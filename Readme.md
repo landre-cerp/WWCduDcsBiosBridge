@@ -3,10 +3,6 @@ This console app is the bridge between DCS and the Winwing MCDU
 
 DCS <-> Dcs Bios <-> This App <-> Winwing MCDU 
 
-it's based on 2 projects. 
-- DCS-Bios C# from https://github.com/DCS-Skunkworks/DCSFPCommon
-- mcdu-dotnet library from https://github.com/vradarserver/cduhub/blob/main/library/mcdu-dotnet/README.md
-
 ## A10C support. 
 At the moment this is the only DCS Aircraft supported 
 

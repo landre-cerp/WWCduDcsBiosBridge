@@ -1,0 +1,9 @@
+This project uses the following third-party libraries:
+
+- DCSBIOS:
+  - License: MIT License
+  - Source: https://github.com/DCS-Skunkworks/DCSFPCommon
+
+- mcdu-dotnet:
+  - License: BSD-3-Clause License
+  - Source: https://github.com/vradarserver/cduhub/blob/main/library/mcdu-dotnet/README.md
