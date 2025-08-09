@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\..\Projects\usb\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\a10c-font-21x31.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
