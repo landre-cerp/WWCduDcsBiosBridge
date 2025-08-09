@@ -78,9 +78,18 @@ Mine is on d:/saved games/DCS/Scripts/ ...
 This should match the above folders 
 IP and ports in the config.json are the default one of dcsbiosconfig.lua 
 
+
+
 # Fly ! 
 
 - Plug your Winwing(tm) MCDU
-- Launch the McduDcsBiosBridge.exe
+- Launch the McduDcsBiosBridge.exe ( see command line options below ))
 - Launch DCS
 - Start yout A10.
+
+## Command line options 
+```
+-a 5 # Set the A10C  (mandatory)
+-cms # Use free space on the CDU for CMS screen display
+-ba # Prefer bottom alignment for the MCDU ( Free space on top for CMS ))
+
