@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="mcdu-dotnet" Version="1.1.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25358.103" />
   </ItemGroup>
 
   <ItemGroup>

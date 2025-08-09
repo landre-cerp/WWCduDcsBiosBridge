@@ -10,7 +10,7 @@ using Timer = System.Timers.Timer;
 
 namespace McduDcsBiosBridge
 {
-    internal class A10cListener : IDCSBIOSStringListener, IDcsBiosDataListener, IDisposable
+    internal class A10cListener : IDcsBiosListener, IDisposable
     {
 
         private DCSBIOSOutput _CDU_LINE_0;
@@ -32,6 +32,9 @@ namespace McduDcsBiosBridge
         private DCSBIOSOutput _CANOPY_LED; 
         private DCSBIOSOutput _GUN_READY;
 
+        private DCSBIOSOutput _CMSP1;
+        private DCSBIOSOutput _CMSP2;
+
         private static double _TICK_DISPLAY = 200;
         private readonly Timer _DisplayCDUTimer = new(_TICK_DISPLAY);
 
@@ -43,22 +46,22 @@ namespace McduDcsBiosBridge
         private uint _Count;
 
 
-
         private IMcdu mcdu;
+        private bool _bottomAligned;
+        private bool _displayCMS;
+
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public A10cListener(IMcdu mcdu) {
+        public A10cListener(IMcdu mcdu, bool bottomAligned, bool displayCMS) {
             
             this.mcdu = mcdu;
+            _bottomAligned = bottomAligned ;
+            _displayCMS = displayCMS;
 
             initBiosControls();
+            mcdu.Output.Clear();
 
-            BIOSEventHandler.AttachStringListener(this);
-            BIOSEventHandler.AttachDataListener(this);
-
-            _DisplayCDUTimer.Elapsed += TimedDisplayBufferOnCDU;
-            _DisplayCDUTimer.Start();
 
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -66,6 +69,36 @@ namespace McduDcsBiosBridge
         ~A10cListener()
         {
             Dispose();
+        }
+
+        public void Start()
+        {
+            BIOSEventHandler.AttachStringListener(this);
+            BIOSEventHandler.AttachDataListener(this);
+            BIOSEventHandler.AttachConnectionListener(this);
+
+            _DisplayCDUTimer.Elapsed += TimedDisplayBufferOnCDU;
+            _DisplayCDUTimer.Start();
+
+
+        }
+
+        public void Stop()
+        {
+            BIOSEventHandler.DetachConnectionListener(this);
+            BIOSEventHandler.DetachDataListener(this);
+            BIOSEventHandler.DetachStringListener(this);
+
+
+            _DisplayCDUTimer.Stop();
+            mcdu.Output.Clear();
+            mcdu.RefreshDisplay();
+            mcdu.Cleanup();
+            
+        }
+
+        public void DcsBiosConnectionActive(object sender, DCSBIOSConnectionEventArgs e)
+        {
         }
 
 
@@ -89,6 +122,9 @@ namespace McduDcsBiosBridge
             _NOSE_SW_GREENLIGHT= DCSBIOSControlLocator.GetUIntDCSBIOSOutput("NOSEWHEEL_STEERING");
             _CANOPY_LED = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CANOPY_UNLOCKED");
             _GUN_READY = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("GUN_READY");
+
+            _CMSP1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP1");
+            _CMSP2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP2");
 
         }
 
@@ -160,23 +196,6 @@ namespace McduDcsBiosBridge
             try
             {
 
-                //.WriteLine("  0123456789ABCDEF UDLR")
-                //.WriteLine(" 2<grey> !\"#$%&'()*+,-./ ↑↓←→")
-                //.WriteLine("<yellow>><white>3<grey>0123456789:;<=>? ▲▼◀▶<yellow><")
-                //.WriteLine(" 4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡")
-                //.WriteLine("<yellow>><white>5<grey>PQRSTUVWXYZ[\\]^_ █□■ <yellow><")
-                //.WriteLine(" 6<grey>`abcdefghijklmno")
-                //.WriteLine("<yellow>><white>7<grey>pqrstuvwxyz{|}~      <yellow><")
-                //.Newline()
-                //.Small()
-                //.WriteLine("<large><yellow>><white><small>2<grey> !\"#$%&'()*+,-./ ↑↓←→<large><yellow><")
-                //.WriteLine(" 3<grey>0123456789:;<=>? ▲▼◀▶")
-                //.WriteLine("<large><yellow>><white><small>4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡<large><yellow><")
-                //.WriteLine(" 5<grey>PQRSTUVWXYZ[\\]^_ █□■")
-                //.WriteLine("<large><yellow>><white><small>6<grey>`abcdefghijklmno      <large><yellow><")
-                //.WriteLine(" 7<grey>pqrstuvwxyz{|}~")
-
-
                 string data = e.StringData
                     .Replace("»", "→")
                     .Replace("«", "←")
@@ -188,24 +207,55 @@ namespace McduDcsBiosBridge
 
                 mcdu.Output.Green();
 
-                var lineMap = new Dictionary<uint, int>
+                Dictionary<uint,int> lineMap; 
+
+                if (_bottomAligned)
+                {
+                    lineMap = new Dictionary<uint, int>
                     {
-                        { _CDU_LINE_0.Address, 0 },
+                        { _CMSP1.Address, 0 },
+                        { _CMSP2.Address, 1 },
+                        { _CDU_LINE_0.Address, 4 },
+                        { _CDU_LINE_1.Address, 5 },
+                        { _CDU_LINE_2.Address, 6 },
+                        { _CDU_LINE_3.Address, 7 },
+                        { _CDU_LINE_4.Address, 8 },
+                        { _CDU_LINE_5.Address, 9 },
+                        { _CDU_LINE_6.Address, 10 },
+                        { _CDU_LINE_7.Address, 11 },
+                        { _CDU_LINE_8.Address, 12 },
+                        { _CDU_LINE_9.Address, 13 },
+
+                    };
+
+                }
+                else
+                {
+                    lineMap = new Dictionary<uint, int>
+                    {
+                        { _CDU_LINE_0.Address, 0},
                         { _CDU_LINE_1.Address, 1 },
-                        { _CDU_LINE_2.Address, 2 },
+                        { _CDU_LINE_2.Address, 2},
                         { _CDU_LINE_3.Address, 3 },
                         { _CDU_LINE_4.Address, 4 },
                         { _CDU_LINE_5.Address, 5 },
                         { _CDU_LINE_6.Address, 6 },
                         { _CDU_LINE_7.Address, 7 },
                         { _CDU_LINE_8.Address, 8 },
-                        { _CDU_LINE_9.Address, 9 }
+                        { _CDU_LINE_9.Address, 9 },
+                        { _CMSP1.Address, 12 },
+                        { _CMSP2.Address, 13 },
+
                     };
+
+                }
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    mcdu.Output.Line(lineIndex).WriteLine(data);
+                    if (_displayCMS || (_CMSP1.Address != e.Address && _CMSP2.Address != e.Address) ) mcdu.Output.Line(lineIndex).WriteLine(data);
                 }
+                
+                if (_displayCMS) mcdu.Output.Line(_bottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
             catch
             {
@@ -217,10 +267,7 @@ namespace McduDcsBiosBridge
         public void Dispose()
         {
             if (_disposed) return;
-            _DisplayCDUTimer.Stop();
-            mcdu.Output.Clear();
-            mcdu.RefreshDisplay();
-            mcdu.Cleanup();
+            Stop();
             _disposed = true;
             GC.SuppressFinalize(this); // évite que le finalizer soit appelé
 
@@ -250,6 +297,7 @@ namespace McduDcsBiosBridge
                     {
                         // Not good
                         _Count = newCount;
+                        Console.WriteLine($"UpdateCounter: Address {address} has unexpected value {data}. Expected {_Count + 1}.");
                     }
                 }
             }
