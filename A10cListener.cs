@@ -159,14 +159,32 @@ namespace McduDcsBiosBridge
         {
             try
             {
+
+                //.WriteLine("  0123456789ABCDEF UDLR")
+                //.WriteLine(" 2<grey> !\"#$%&'()*+,-./ ↑↓←→")
+                //.WriteLine("<yellow>><white>3<grey>0123456789:;<=>? ▲▼◀▶<yellow><")
+                //.WriteLine(" 4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡")
+                //.WriteLine("<yellow>><white>5<grey>PQRSTUVWXYZ[\\]^_ █□■ <yellow><")
+                //.WriteLine(" 6<grey>`abcdefghijklmno")
+                //.WriteLine("<yellow>><white>7<grey>pqrstuvwxyz{|}~      <yellow><")
+                //.Newline()
+                //.Small()
+                //.WriteLine("<large><yellow>><white><small>2<grey> !\"#$%&'()*+,-./ ↑↓←→<large><yellow><")
+                //.WriteLine(" 3<grey>0123456789:;<=>? ▲▼◀▶")
+                //.WriteLine("<large><yellow>><white><small>4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡<large><yellow><")
+                //.WriteLine(" 5<grey>PQRSTUVWXYZ[\\]^_ █□■")
+                //.WriteLine("<large><yellow>><white><small>6<grey>`abcdefghijklmno      <large><yellow><")
+                //.WriteLine(" 7<grey>pqrstuvwxyz{|}~")
+
+
                 string data = e.StringData
-                    .Replace("*", "<small>*<large>")
                     .Replace("»", "→")
                     .Replace("«", "←")
-                    .Replace("¡", "▶")
+                    .Replace("¡", "☐")
                     .Replace("®", "Δ")
-                    .Replace("©", "⬡")
-                    .Replace("±", "+");
+                    .Replace("©", "^")
+                    .Replace("±", "_")
+                    .Replace("?", "%");
 
                 mcdu.Output.Green();
 

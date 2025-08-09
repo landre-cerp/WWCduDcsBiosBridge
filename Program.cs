@@ -1,7 +1,9 @@
 ﻿using ClassLibraryCommon;
 using DCS_BIOS;
 using DCS_BIOS.ControlLocator;
+using HidSharp.Utility;
 using McduDotNet;
+using Newtonsoft.Json;
 using System.DirectoryServices;
 using System.Net;
 using System.Text.Json;
@@ -22,6 +24,13 @@ namespace McduDcsBiosBridge
             
             ConfigManager.Save(config);
 
+            
+            var json = File.ReadAllText("resources/a10c-font-21x31.json");
+            var result = JsonConvert.DeserializeObject<McduFontFile>(json);
+
+            Mcdu.UseFont( result , true);
+
+
             Mcdu.Output
                 .Clear().Green()
                 .MiddleLine().Centered("A10C from DCSBios")
@@ -34,7 +43,7 @@ namespace McduDcsBiosBridge
             initDCSBios();
             ListenToBios();
             Console.WriteLine("A10C Dcsbios - Mcdu started");
-            Console.WriteLine($"Using config : {JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true })} ");
+            Console.WriteLine($"Using config : {System.Text.Json.JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true })} ");
 
         }
 
