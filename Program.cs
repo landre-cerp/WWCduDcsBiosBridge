@@ -29,7 +29,7 @@ namespace McduDcsBiosBridge
 
             try {
 
-                Console.WriteLine("Starting A10C Dcsbios - Mcdu bridge");
+                Console.WriteLine("Starting Dcsbios - Mcdu bridge");
 
 
                 RootCommand rootCommand = new("Winwing MCDU DCSBios brigde ") {
@@ -48,10 +48,6 @@ namespace McduDcsBiosBridge
                         var alignementString = displayBottomAligned ? "bottom" : "top";
                         var displayCMS = parseResult.GetValue(Options.DisplayCMS);
 
-                        var json = File.ReadAllText("resources/a10c-font-21x31.json");
-                        var result = JsonConvert.DeserializeObject<McduFontFile>(json);
-
-                        Mcdu.UseFont(result, true);
 
                         Mcdu.Output
                             .Clear().Green()
@@ -116,18 +112,36 @@ namespace McduDcsBiosBridge
                 DCSAircraft.FillModulesListFromDcsBios(config.dcsBiosJsonLocation, true);
                 DCSBIOSControlLocator.JSONDirectory = config.dcsBiosJsonLocation;
 
-                // Replace the following incorrect code:
-                // switch aircraftNumber:
+                string json;
+                McduFontFile? result;
 
-                // With the correct C# switch statement syntax:
                 switch (aircraftNumber)
                 {
                     case 5:
+                        json = File.ReadAllText("resources/a10c-font-21x31.json");
+                        result = JsonConvert.DeserializeObject<McduFontFile>(json);
+
+                        Mcdu.UseFont(result, true);
+
+
                         Mcdu.Output.Clear().Green().WriteLine("Starting A10C");
                         DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
-                        listener = new A10cListener(Mcdu, displayBottomAligned,displayCMS);
+                        listener = new A10C_Listener(Mcdu, displayBottomAligned,displayCMS);
                         Mcdu.RefreshDisplay();
                         break;
+                    case 46:
+                        json = File.ReadAllText("resources/ah64d-font-21x31.json");
+                        result = JsonConvert.DeserializeObject<McduFontFile>(json);
+
+                        Mcdu.UseFont(result, true);
+
+
+                        Mcdu.Output.Clear().Green().WriteLine("Starting AH64D");
+                        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
+                        listener = new AH64D_Listener(Mcdu, displayBottomAligned);
+                        Mcdu.RefreshDisplay();
+                        break;
+
                     default:
                         Mcdu.Output.Newline().Red().WriteLine("Unknown Aircraft Number");
                         Mcdu.RefreshDisplay();

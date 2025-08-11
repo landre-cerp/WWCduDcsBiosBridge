@@ -2,7 +2,7 @@
   "profiles": {
     "McduDcsBiosBridge": {
       "commandName": "Project",
-      "commandLineArgs": "-a 5 -ba -cms"
+      "commandLineArgs": "-a 46 -ba -cms"
     }
   }
 }
