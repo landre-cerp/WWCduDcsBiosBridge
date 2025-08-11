@@ -6,11 +6,11 @@ using DCS_BIOS.Interfaces;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using System.Timers;
-using Timer = System.Timers.Timer;
+
 
 namespace McduDcsBiosBridge
 {
-    internal class A10cListener : IDcsBiosListener, IDisposable
+    internal class A10C_Listener : AircraftListener
     {
 
         private DCSBIOSOutput _CDU_LINE_0;
@@ -35,28 +35,14 @@ namespace McduDcsBiosBridge
         private DCSBIOSOutput _CMSP1;
         private DCSBIOSOutput _CMSP2;
 
-        private static double _TICK_DISPLAY = 200;
-        private readonly Timer _DisplayCDUTimer = new(_TICK_DISPLAY);
 
-        private bool _disposed;
-
-        private readonly DCSBIOSOutput _UpdateCounterDCSBIOSOutput;
-        private static readonly object _UpdateCounterLockObject = new();
-        private bool _HasSyncOnce;
-        private uint _Count;
-
-
-        private IMcdu mcdu;
-        private bool _bottomAligned;
         private bool _displayCMS;
 
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public A10cListener(IMcdu mcdu, bool bottomAligned, bool displayCMS) {
+        public A10C_Listener(IMcdu mcdu, bool bottomAligned, bool displayCMS) : base(mcdu, bottomAligned) {
             
-            this.mcdu = mcdu;
-            _bottomAligned = bottomAligned ;
             _displayCMS = displayCMS;
 
             initBiosControls();
@@ -66,43 +52,13 @@ namespace McduDcsBiosBridge
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-        ~A10cListener()
+        ~A10C_Listener()
         {
-            Dispose();
-        }
-
-        public void Start()
-        {
-            BIOSEventHandler.AttachStringListener(this);
-            BIOSEventHandler.AttachDataListener(this);
-            BIOSEventHandler.AttachConnectionListener(this);
-
-            _DisplayCDUTimer.Elapsed += TimedDisplayBufferOnCDU;
-            _DisplayCDUTimer.Start();
-
-
-        }
-
-        public void Stop()
-        {
-            BIOSEventHandler.DetachConnectionListener(this);
-            BIOSEventHandler.DetachDataListener(this);
-            BIOSEventHandler.DetachStringListener(this);
-
-
-            _DisplayCDUTimer.Stop();
-            mcdu.Output.Clear();
-            mcdu.RefreshDisplay();
-            mcdu.Cleanup();
-            
-        }
-
-        public void DcsBiosConnectionActive(object sender, DCSBIOSConnectionEventArgs e)
-        {
+            Dispose(false);
         }
 
 
-        private void initBiosControls()
+        protected override void initBiosControls()
         {
             _CDU_LINE_0 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE0");
             _CDU_LINE_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE1");
@@ -128,13 +84,8 @@ namespace McduDcsBiosBridge
 
         }
 
-        private void TimedDisplayBufferOnCDU(object sender, ElapsedEventArgs e)
-        {
-            mcdu.RefreshDisplay();
-        }
 
-
-        public void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
+        public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
         {
             try
             {
@@ -191,7 +142,7 @@ namespace McduDcsBiosBridge
         }
 
 
-        public void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
+        public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
         {
             try
             {
@@ -260,46 +211,6 @@ namespace McduDcsBiosBridge
             catch
             {
                 // Optionnel : log l'erreur
-            }
-        }
-
-
-        public void Dispose()
-        {
-            if (_disposed) return;
-            Stop();
-            _disposed = true;
-            GC.SuppressFinalize(this); // évite que le finalizer soit appelé
-
-        }
-
-        protected void UpdateCounter(uint address, uint data)
-        {
-            lock (_UpdateCounterLockObject)
-            {
-                if (_UpdateCounterDCSBIOSOutput != null && _UpdateCounterDCSBIOSOutput.Address == address)
-                {
-                    var newCount = _UpdateCounterDCSBIOSOutput.GetUIntValue(data);
-                    if (!_HasSyncOnce)
-                    {
-                        _Count = newCount;
-                        _HasSyncOnce = true;
-                        return;
-                    }
-
-                    // Max is 255
-                    if (newCount == 0 && _Count == 255 || newCount - _Count == 1)
-                    {
-                        // All is well
-                        _Count = newCount;
-                    }
-                    else if (newCount - _Count != 1)
-                    {
-                        // Not good
-                        _Count = newCount;
-                        Console.WriteLine($"UpdateCounter: Address {address} has unexpected value {data}. Expected {_Count + 1}.");
-                    }
-                }
             }
         }
 

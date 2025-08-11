@@ -65,6 +65,9 @@ If you open the .lua on the zip file this is what you should find
 
 # Application installation 
 
+**IF YOU update and ALREADY HAVE A Config.json FILE, DO NOT OVERWRITE IT.
+REUSEIT !** 
+
 Unzip the application in the folder of your choice.
 Open the confi.json and modify the dcsBiosJsonLocation 
 
@@ -78,18 +81,19 @@ Mine is on d:/saved games/DCS/Scripts/ ...
 This should match the above folders 
 IP and ports in the config.json are the default one of dcsbiosconfig.lua 
 
-
-
 # Fly ! 
 
 - Plug your Winwing(tm) MCDU
-- Launch the McduDcsBiosBridge.exe ( see command line options below ))
+- Launch the McduDcsBiosBridge.exe ( see command line options below to configure your shortcut ))
 - Launch DCS
-- Start yout A10.
+- Start your Aircraft (A10C or AH64-D)
 
 ## Command line options 
 ```
--a 5 # Set the A10C  (mandatory)
+-a option is mandatory, at the moment you must define a value to select the Aircraft ( this will be improved in the futur)
+	-a 5 # Set the A10C  
+	-a 46 # Set the AH64-D 
+
+A10c specific options ( no effect on AH64-D )
 -cms # Use free space on the CDU for CMS screen display
 -ba # Prefer bottom alignment for the MCDU ( Free space on top for CMS ))
-

@@ -18,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\ah64d-font-21x31.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\a10c-font-21x31.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
