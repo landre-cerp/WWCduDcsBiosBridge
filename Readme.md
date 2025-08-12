@@ -3,13 +3,16 @@ This console app is the bridge between DCS and the Winwing MCDU
 
 DCS <-> Dcs Bios <-> This App <-> Winwing MCDU 
 
-## A10C support. 
-At the moment this is the only DCS Aircraft supported 
-
-### Keyboard 
+## Keyboard 
 You need to map keys in DCS using the default Joystick BTN sent by the device. 
 
-### Leds 
+## Aircraft support. 
+
+
+### A10C 
+The original target is the A10C,Which is only aircraft that has a MCDU in DCS. ( ch47 cdu is not yes readable in DCSBios )
+
+#### Leds 
 
 | Led     | Dcs indicator |
 |---------|---------------|
@@ -20,13 +23,14 @@ You need to map keys in DCS using the default Joystick BTN sent by the device.
 
 Keyboard backlight is mappend on the A10 console Rotary ( lower right part of the Right Pedestal )
 Use of Brt/Dim in the plane should change things on the Mcdu 
+ 
 
-### Display 
+### Other Aircrafts
 
-Some A10C chars do not exists on the default Font of the Winwing. 
-I've made some mapping that "Looks good", but it's a matter of taste :) . 
+- AH64-D ( very basic support, some UFD informations and Keyboard left of the Pilot )
+- FA18C ( very basic support, only the UFC fields  )
 
-My goal is to, one day, be able to use a font that matches the one in the Aircraft. 
+Fail led binded to the Master caution.
 
 ### Know issues 
 - Brightness of things can mismatch the plane situation 
@@ -71,6 +75,16 @@ REUSEIT !**
 Unzip the application in the folder of your choice.
 Open the confi.json and modify the dcsBiosJsonLocation 
 
+```json
+{
+  "ReceiveFromIpUdp": "239.255.50.10",
+  "SendToIpUdp": "127.0.0.1",
+  "ReceivePortUdp": 5010,
+  "SendPortUdp": 7778,
+  "dcsBiosJsonLocation": "<< your path to DCS-BIOS JSON files >>"
+}
+```
+
 Default should be in %USERPROFILE%\Saved Games\DCS\Scripts\ ...  
 (name depends on localisation, for example Fr is "Parties enregistrées" ).
 Mine is on d:/saved games/DCS/Scripts/ ... 
@@ -90,10 +104,6 @@ IP and ports in the config.json are the default one of dcsbiosconfig.lua
 
 ## Command line options 
 ```
--a option is mandatory, at the moment you must define a value to select the Aircraft ( this will be improved in the futur)
-	-a 5 # Set the A10C  
-	-a 46 # Set the AH64-D 
-
-A10c specific options ( no effect on AH64-D )
+these are A10c specific options ( no effect on AH64-D )
 -cms # Use free space on the CDU for CMS screen display
 -ba # Prefer bottom alignment for the MCDU ( Free space on top for CMS ))
