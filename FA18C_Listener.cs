@@ -42,13 +42,14 @@ namespace McduDcsBiosBridge
 
         uint _masterCaution = 0;
 
+        protected override string GetFontFile() => "resources/a10c-font-21x31.json";
+        protected override string GetAircraftName() => "FA-18C";
+        const int _AircraftNumber = 20; 
 
 
-        public FA18C_Listener(IMcdu mcdu, bool bottomAligned) : base(mcdu, bottomAligned)
+
+        public FA18C_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned)
         {
-            this.mcdu = mcdu;
-            initBiosControls();
-            mcdu.Output.Clear();
         }
 
 
@@ -261,6 +262,7 @@ namespace McduDcsBiosBridge
 
             }
         }
+
 
     }
 }
