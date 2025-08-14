@@ -36,19 +36,15 @@ namespace McduDcsBiosBridge
         private DCSBIOSOutput _CMSP2;
 
 
-        private bool _displayCMS;
+        protected override string GetAircraftName() => "A-10C";
+        protected override string GetFontFile() => "resources/a10c-font-21x31.json";
+        
+        const int _AircraftNumber = 5;
 
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public A10C_Listener(IMcdu mcdu, bool bottomAligned, bool displayCMS) : base(mcdu, bottomAligned) {
-            
-            _displayCMS = displayCMS;
-
-            initBiosControls();
-            mcdu.Output.Clear();
-
-
+        public A10C_Listener(ICdu mcdu, bool bottomAligned, bool displayCMS) : base(mcdu, _AircraftNumber, bottomAligned, displayCMS) {
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
@@ -160,7 +156,7 @@ namespace McduDcsBiosBridge
 
                 Dictionary<uint,int> lineMap; 
 
-                if (_bottomAligned)
+                if (BottomAligned)
                 {
                     lineMap = new Dictionary<uint, int>
                     {
@@ -203,17 +199,16 @@ namespace McduDcsBiosBridge
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    if (_displayCMS || (_CMSP1.Address != e.Address && _CMSP2.Address != e.Address) ) mcdu.Output.Line(lineIndex).WriteLine(data);
+                    if (DisplayCMS || (_CMSP1.Address != e.Address && _CMSP2.Address != e.Address) ) mcdu.Output.Line(lineIndex).WriteLine(data);
                 }
                 
-                if (_displayCMS) mcdu.Output.Line(_bottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+                if (DisplayCMS) mcdu.Output.Line(BottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
             catch
             {
                 // Optionnel : log l'erreur
             }
         }
-
     }
 
 }

@@ -43,16 +43,14 @@ namespace McduDcsBiosBridge
         private bool _HasSyncOnce;
         private uint _Count;
 
+        protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
+        protected override string GetAircraftName() => "AH-64D";
+        const int _AircraftNumber = 46;
+
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public AH64D_Listener(IMcdu mcdu, bool bottomAligned) : base(mcdu, bottomAligned) {
-            
-            this.mcdu = mcdu;
-
-            initBiosControls();
-            mcdu.Output.Clear();
-
+        public AH64D_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned) {
 
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -156,28 +154,6 @@ namespace McduDcsBiosBridge
                     .Replace(">", "▶")
                     .Replace("<", "◀")
                     .Replace("=", "■");
-                    //.Replace("¡", "☐")
-                    //.Replace("®", "Δ")
-                    //.Replace("©", "^")
-                    //.Replace("±", "_")
-                    //.Replace("?", "%");
-
-                //.WriteLine("  0123456789ABCDEF UDLR")
-                //.WriteLine(" 2<grey> !\"#$%&'()*+,-./ ↑↓←→")
-                //.WriteLine("<yellow>><white>3<grey>0123456789:;<=>? ▲▼◀▶<yellow><")
-                //.WriteLine(" 4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡")
-                //.WriteLine("<yellow>><white>5<grey>PQRSTUVWXYZ[\\]^_ █□■ <yellow><")
-                //.WriteLine(" 6<grey>`abcdefghijklmno")
-                //.WriteLine("<yellow>><white>7<grey>pqrstuvwxyz{|}~      <yellow><")
-                //.Newline()
-                //.Small()
-                //.WriteLine("<large><yellow>><white><small>2<grey> !\"#$%&'()*+,-./ ↑↓←→<large><yellow><")
-                //.WriteLine(" 3<grey>0123456789:;<=>? ▲▼◀▶")
-                //.WriteLine("<large><yellow>><white><small>4<grey>@ABCDEFGHIJKLMNO ☐°Δ⬡<large><yellow><")
-                //.WriteLine(" 5<grey>PQRSTUVWXYZ[\\]^_ █□■")
-                //.WriteLine("<large><yellow>><white><small>6<grey>`abcdefghijklmno      <large><yellow><")
-                //.WriteLine(" 7<grey>pqrstuvwxyz{|}~")
-
 
                 mcdu.Output.Green();
 
@@ -187,7 +163,7 @@ namespace McduDcsBiosBridge
                 if (e.Address.Equals(_PLT_EUFD_LINE14.Address))
                 {
                     incomingData = data.Substring(46, 10);
-                    mcdu.Output.Line(0).WriteLine(incomingData);
+                    mcdu.Output.Line(0).ClearRow().WriteLine(incomingData);
 
 
                 }

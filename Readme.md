@@ -33,6 +33,7 @@ Use of Brt/Dim in the plane should change things on the Mcdu
 Fail led binded to the Master caution.
 
 ### Know issues 
+- If you change Aircraft, you need to restart the McduDcsBiosBridge.exe application.
 - Brightness of things can mismatch the plane situation 
 	- You can use Dim to make it 0 on both airplane / Mcdu , then crank it up 
 - Cursor can be erratic. 

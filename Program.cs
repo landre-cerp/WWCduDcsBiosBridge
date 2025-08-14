@@ -6,10 +6,12 @@ using McduDcsBiosBridge;
 using McduDotNet;
 using Newtonsoft.Json;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.DirectoryServices;
 using System.Drawing.Text;
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 
 namespace McduDcsBiosBridge
@@ -17,25 +19,32 @@ namespace McduDcsBiosBridge
     internal class Program
     {
         private static DcsBiosConfig config = ConfigManager.Load();
-        private static IMcdu Mcdu = McduFactory.ConnectLocal();
+        private static ICdu Mcdu = CduFactory.ConnectLocal();
         private static DCSBIOS dCSBIOS;
 
-        private static int aircraft = -1;
+        private static int selected_aircraft = -1;
 
         private static bool displayBottomAligned = false;
         private static bool displayCMS = false;
 
-
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
 
             int exitCode = 0;
             bool worked = false;
 
             try {
+                Console.WriteLine("Connecting to MCDU...");
+                while (Mcdu == null)
+                {
+                    Thread.Sleep(100);
+                    Console.Write(".");
+                    Mcdu = CduFactory.ConnectLocal();
+
+                }
 
                 Console.WriteLine("Starting Dcsbios - Mcdu bridge");
-
+                Console.WriteLine(Mcdu.DeviceId);
 
                 RootCommand rootCommand = new("Winwing MCDU DCSBios brigde ") {
                         Options.DisplayBottomAligned,
@@ -45,15 +54,13 @@ namespace McduDcsBiosBridge
 
                 rootCommand.TreatUnmatchedTokensAsErrors = true;
 
-                rootCommand.SetAction(
-                    parseResult => {
+                    
+                ParseResult parsed=rootCommand.Parse(args);
+                displayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
+                displayCMS = parsed.GetValue(Options.DisplayCMS);
 
-                        displayBottomAligned = parseResult.GetValue(Options.DisplayBottomAligned);
-                        displayCMS = parseResult.GetValue(Options.DisplayCMS);
 
-
-                    }
-                );
+                Mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(File.ReadAllText("resources/a10c-font-21x31.json")), true);
 
                 Mcdu.Output
                     .Clear().Green()
@@ -62,21 +69,24 @@ namespace McduDcsBiosBridge
                     .NewLine().Centered("by Cerppo")
                     .White().LeftLabel(3, "A10C")
                     .RightLabel(3, "AH64D")
+                    .BottomLine().WriteLine("Menu key to exit")
                     .White().LeftLabel(4, "FA18C");
 
                 Mcdu.RefreshDisplay();
 
-                ReadMenu();
+                Mcdu.KeyDown += ReadMenu;
 
 
-                while (aircraft == -1)
+                while (selected_aircraft == -1)
                 {
                     Mcdu.RefreshDisplay();
                     Thread.Sleep(100);
                 }
 
+                Mcdu.KeyDown -= ReadMenu;
+
                 initDCSBios();
-                ListenToBios(displayBottomAligned, aircraft, displayCMS);
+                ListenToBios(displayBottomAligned, selected_aircraft, displayCMS);
 
 
                 exitCode = rootCommand.Parse(args).Invoke();
@@ -98,38 +108,36 @@ namespace McduDcsBiosBridge
 
             return exitCode;
 
-
         }
 
-        private static void ReadMenu()
+        private static void ReadMenu(object? sender, KeyEventArgs e)
         {
-            Mcdu.KeyDown += (sender, e) => {
-                if (e.Key == Key.LineSelectLeft3)
-                {
-                    Console.WriteLine("Starting A10");
-                    aircraft = 5;
+            if (e.Key == Key.LineSelectLeft3)
+            {
+                Console.WriteLine("Starting A10");
+                selected_aircraft = 5;
 
-                }
+            }
 
-                if (e.Key == Key.LineSelectRight3)
-                {
-                    Console.WriteLine("Starting AH64D");
-                    aircraft = 46;
-                }
+            if (e.Key == Key.LineSelectRight3)
+            {
+                Console.WriteLine("Starting AH64D");
+                selected_aircraft = 46;
+            }
 
-                if (e.Key == Key.LineSelectLeft4)
-                {
-                    Console.WriteLine("Starting FA18C");
-                    aircraft = 20;
-                }
+            if (e.Key == Key.LineSelectLeft4)
+            {
+                Console.WriteLine("Starting FA18C");
+                selected_aircraft = 20;
+            }
 
-                if (e.Key == Key.McduMenu)
-                {
-                    Console.WriteLine("Exiting...");
-                    Mcdu.Cleanup();
-                    Environment.Exit(0);
-                }
-            };
+            if (e.Key == Key.McduMenu || e.Key == Key.Menu)
+            {
+                Console.WriteLine("Exiting...");
+                Mcdu.Cleanup();
+                Environment.Exit(0);
+            }
+            
         }
 
         private static void initDCSBios()
@@ -146,78 +154,39 @@ namespace McduDcsBiosBridge
             }
             
         }
-
         private static void ListenToBios(bool displayBottomAligned, int aircraftNumber, bool displayCMS)
         {
-            
-
             try
             {
-                IDcsBiosListener listener;
                 DCSAircraft.Init();
                 DCSAircraft.FillModulesListFromDcsBios(config.dcsBiosJsonLocation, true);
                 DCSBIOSControlLocator.JSONDirectory = config.dcsBiosJsonLocation;
 
-                string json;
-                McduFontFile? result;
-
-                switch (aircraftNumber)
+                var aircraftMap = new Dictionary<int, Func<IDcsBiosListener>>
                 {
-                    case 5:
-                        json = File.ReadAllText("resources/a10c-font-21x31.json");
-                        result = JsonConvert.DeserializeObject<McduFontFile>(json);
+                    [5] =  () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
+                    [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
+                    [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
+                };
 
-                        Mcdu.UseFont(result, true);
-
-
-                        Mcdu.Output.Clear().Green().WriteLine("Starting A10C");
-                        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
-                        listener = new A10C_Listener(Mcdu, displayBottomAligned,displayCMS);
-                        Mcdu.RefreshDisplay();
-                        break;
-                    case 46:
-                        json = File.ReadAllText("resources/ah64d-font-21x31.json");
-                        result = JsonConvert.DeserializeObject<McduFontFile>(json);
-
-                        Mcdu.UseFont(result, true);
-
-
-                        Mcdu.Output.Clear().Green().WriteLine("Starting AH64D");
-                        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
-                        listener = new AH64D_Listener(Mcdu, displayBottomAligned);
-                        Mcdu.RefreshDisplay();
-                        break;
-
-                    case 20:
-                        json = File.ReadAllText("resources/a10c-font-21x31.json");
-                        result = JsonConvert.DeserializeObject<McduFontFile>(json);
-                        Mcdu.UseFont(result, true);
-                        Mcdu.Output.Clear().Green().WriteLine("Starting FA18/C");
-                        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
-                        listener = new FA18C_Listener(Mcdu, displayBottomAligned);
-                        Mcdu.RefreshDisplay();
-                        break;
-
-
-                    default:
-                        Mcdu.Output.Newline().Red().WriteLine("Unknown Aircraft Number");
-                        Mcdu.RefreshDisplay();
-                        return;
+                if (!aircraftMap.TryGetValue(aircraftNumber, out var listenerFactory))
+                {
+                    Mcdu.Output.Newline().Red().WriteLine("Unknown Aircraft Number");
+                    Mcdu.RefreshDisplay();
+                    return;
                 }
 
-                Console.WriteLine($"Using Aircraft {DCSBIOSControlLocator.DCSAircraft.ModuleLuaName} with number {aircraftNumber}");
 
+                var listener = listenerFactory();
                 listener.Start();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error while listening to DCS-BIOS: " + ex.Message);
-                Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS");
-                Mcdu.Output.NewLine().WriteLine("Check console");
+                Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
+                    .NewLine().WriteLine("Check console");
                 Mcdu.RefreshDisplay();
             }
-
-
         }
 
     }

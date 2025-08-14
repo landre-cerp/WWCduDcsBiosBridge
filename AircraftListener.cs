@@ -1,6 +1,9 @@
-﻿using DCS_BIOS.EventArgs;
+﻿using ClassLibraryCommon;
+using DCS_BIOS.ControlLocator;
+using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +14,14 @@ using Timer = System.Timers.Timer;
 
 namespace McduDcsBiosBridge
 {
-    internal class AircraftListener : IDcsBiosListener, IDisposable
+    internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
         private static double _TICK_DISPLAY = 200;
-        private readonly Timer _DisplayCDUTimer = new(_TICK_DISPLAY);
-        protected IMcdu mcdu;
-        protected bool _bottomAligned;
+        private readonly Timer _DisplayCDUTimer;
+        protected ICdu mcdu;
+        protected readonly bool BottomAligned = false;
+        protected readonly bool DisplayCMS = false;
+        protected readonly int AircraftNumber;
 
         private bool _disposed;
 
@@ -26,20 +31,31 @@ namespace McduDcsBiosBridge
         private uint _Count;
 
 
-        public AircraftListener(IMcdu mcdu, bool bottomAligned )
+        public AircraftListener(ICdu mcdu, int aircraftNumber, bool bottomAligned =false, bool displayCms = false  )
         {
             this.mcdu = mcdu;
-            this._bottomAligned = bottomAligned;
+            BottomAligned = bottomAligned;
+            DisplayCMS = displayCms;
+            AircraftNumber = aircraftNumber;
+
+            _DisplayCDUTimer = new(_TICK_DISPLAY);
+            _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
 
         }
 
         public void Start()
         {
+            DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
+            initBiosControls();
+
+            InitMcduFont();
+            ShowStartupMessage();
+
             BIOSEventHandler.AttachStringListener(this);
             BIOSEventHandler.AttachDataListener(this);
             BIOSEventHandler.AttachConnectionListener(this);
 
-            _DisplayCDUTimer.Elapsed += TimedDisplayBufferOnCDU;
+
             _DisplayCDUTimer.Start();
 
 
@@ -51,19 +67,28 @@ namespace McduDcsBiosBridge
             BIOSEventHandler.DetachDataListener(this);
             BIOSEventHandler.DetachStringListener(this);
 
-
             _DisplayCDUTimer.Stop();
             mcdu.Output.Clear();
             mcdu.RefreshDisplay();
             mcdu.Cleanup();
 
         }
-
-        private void TimedDisplayBufferOnCDU(object sender, ElapsedEventArgs e)
+        private void InitMcduFont()
         {
-            mcdu.RefreshDisplay();
+            var fontFile = GetFontFile();
+            var json = File.ReadAllText(fontFile);
+            var font = JsonConvert.DeserializeObject<McduFontFile>(json);
+            mcdu.UseFont(font, true);
         }
 
+        protected abstract string GetFontFile();
+        protected abstract string GetAircraftName();
+        
+        private void ShowStartupMessage()
+        {
+            mcdu.Output.Clear().Green();
+            mcdu.RefreshDisplay();
+        }
 
         protected virtual void initBiosControls() { }
 
