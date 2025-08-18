@@ -36,13 +36,6 @@ namespace McduDcsBiosBridge
         private DCSBIOSOutput _PLT_MASTER_WARNING_L;
 
 
-        private bool _disposed;
-
-        private readonly DCSBIOSOutput _UpdateCounterDCSBIOSOutput;
-        private static readonly object _UpdateCounterLockObject = new();
-        private bool _HasSyncOnce;
-        private uint _Count;
-
         protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
         protected override string GetAircraftName() => "AH-64D";
         const int _AircraftNumber = 46;
