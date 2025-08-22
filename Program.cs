@@ -20,7 +20,7 @@ namespace McduDcsBiosBridge
     {
         private static DcsBiosConfig config = ConfigManager.Load();
         private static ICdu Mcdu = CduFactory.ConnectLocal();
-        private static DCSBIOS dCSBIOS;
+        private static DCSBIOS? dCSBIOS;
 
         private static int selected_aircraft = -1;
 
@@ -29,18 +29,17 @@ namespace McduDcsBiosBridge
 
         static async Task<int> Main(string[] args)
         {
-
             int exitCode = 0;
             bool worked = false;
 
-            try {
+            try
+            {
                 Console.WriteLine("Connecting to MCDU...");
                 while (Mcdu == null)
                 {
-                    Thread.Sleep(100);
+                    await Task.Delay(100); // Use await to avoid CS1998
                     Console.Write(".");
                     Mcdu = CduFactory.ConnectLocal();
-
                 }
 
                 Console.WriteLine("Starting Dcsbios - Mcdu bridge");
@@ -54,11 +53,9 @@ namespace McduDcsBiosBridge
 
                 rootCommand.TreatUnmatchedTokensAsErrors = true;
 
-                    
-                ParseResult parsed=rootCommand.Parse(args);
+                ParseResult parsed = rootCommand.Parse(args);
                 displayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
                 displayCMS = parsed.GetValue(Options.DisplayCMS);
-
 
                 Mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(File.ReadAllText("resources/a10c-font-21x31.json")), true);
 
@@ -76,11 +73,10 @@ namespace McduDcsBiosBridge
 
                 Mcdu.KeyDown += ReadMenu;
 
-
                 while (selected_aircraft == -1)
                 {
                     Mcdu.RefreshDisplay();
-                    Thread.Sleep(100);
+                    await Task.Delay(100); // Use await to avoid CS1998
                 }
 
                 Mcdu.KeyDown -= ReadMenu;
@@ -88,26 +84,25 @@ namespace McduDcsBiosBridge
                 initDCSBios();
                 ListenToBios(displayBottomAligned, selected_aircraft, displayCMS);
 
-
                 exitCode = rootCommand.Parse(args).Invoke();
 
                 if (!worked)
                 {
                     exitCode = 1;
                 }
-            } 
-            catch(Exception ex) {
-                    Console.WriteLine("Caught exception during processing:");
-                    Console.WriteLine(ex);
-                    Mcdu.Output.Clear();
-                    Mcdu.RefreshDisplay();
-                    Mcdu.Cleanup();
-                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Caught exception during processing:");
+                Console.WriteLine(ex);
+                Mcdu.Output.Clear();
+                Mcdu.RefreshDisplay();
+                Mcdu.Cleanup();
+
                 exitCode = 2;
-                }
+            }
 
             return exitCode;
-
         }
 
         private static void ReadMenu(object? sender, KeyEventArgs e)

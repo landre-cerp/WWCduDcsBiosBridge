@@ -37,15 +37,18 @@ namespace McduDcsBiosBridge
             BottomAligned = bottomAligned;
             DisplayCMS = displayCms;
             AircraftNumber = aircraftNumber;
+            DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
+            _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
 
             _DisplayCDUTimer = new(_TICK_DISPLAY);
             _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
+
 
         }
 
         public void Start()
         {
-            DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
+            
             initBiosControls();
 
             InitMcduFont();

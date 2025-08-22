@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="mcdu-dotnet" Version="1.4.0-beta-0002" />
+    <PackageReference Include="mcdu-dotnet" Version="1.4.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta7.25380.108" />
   </ItemGroup>
 
