@@ -188,8 +188,7 @@ namespace McduDcsBiosBridge
             catch (Exception ex)
             {
                 Console.WriteLine("Error while listening to DCS-BIOS: " + ex.Message);
-                Console.WriteLine("Check config.json file and verify the dcsbios location is correct");
-                Console.WriteLine("now it's " +config.dcsBiosJsonLocation);
+                Console.WriteLine("Current dcsBiosJsonLocation: " + config.dcsBiosJsonLocation);
                 Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
                     .NewLine().WriteLine("Check console");
                 Mcdu.RefreshDisplay();
