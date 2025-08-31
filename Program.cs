@@ -97,7 +97,7 @@ namespace McduDcsBiosBridge
             {
                 Console.WriteLine(cex.Message);
                 exitCode = 3;
-            }   
+            }
             catch (Exception ex)
             {
                 Console.WriteLine("Fatal error: " + ex.Message);
