@@ -47,9 +47,6 @@ namespace McduDcsBiosBridge
                     Mcdu = CduFactory.ConnectLocal();
                 }
 
-                Logger.Info("Connected to MCDU");
-
-
                 Logger.Info("Starting Dcsbios - Mcdu bridge");
                 Logger.Info(Mcdu.DeviceId);
 
