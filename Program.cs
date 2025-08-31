@@ -36,9 +36,7 @@ namespace McduDcsBiosBridge
 
             try
             {
-                LogManager.ThrowConfigExceptions =  true;
-                
-
+                LogManager.ThrowConfigExceptions = true;
                 config = ConfigManager.Load();
 
                 Logger.Info("Connecting to MCDU");
