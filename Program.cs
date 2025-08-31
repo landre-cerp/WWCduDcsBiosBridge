@@ -18,7 +18,7 @@ namespace McduDcsBiosBridge
 {
     internal class Program
     {
-        private static DcsBiosConfig config = ConfigManager.Load();
+        private static DcsBiosConfig? config;
         private static ICdu Mcdu = CduFactory.ConnectLocal();
         private static DCSBIOS? dCSBIOS;
 
@@ -34,10 +34,12 @@ namespace McduDcsBiosBridge
 
             try
             {
+                config = ConfigManager.Load();
+
                 Console.WriteLine("Connecting to MCDU...");
                 while (Mcdu == null)
                 {
-                    await Task.Delay(100); // Use await to avoid CS1998
+                    await Task.Delay(200); // Use await to avoid CS1998
                     Console.Write(".");
                     Mcdu = CduFactory.ConnectLocal();
                 }
@@ -91,10 +93,14 @@ namespace McduDcsBiosBridge
                     exitCode = 1;
                 }
             }
+            catch (ConfigException cex)
+            {
+                Console.WriteLine(cex.Message);
+                exitCode = 3;
+            }   
             catch (Exception ex)
             {
-                Console.WriteLine("Caught exception during processing:");
-                Console.WriteLine(ex);
+                Console.WriteLine("Fatal error: " + ex.Message);
                 Mcdu.Output.Clear();
                 Mcdu.RefreshDisplay();
                 Mcdu.Cleanup();
@@ -147,6 +153,10 @@ namespace McduDcsBiosBridge
                 Console.WriteLine("DCS-BIOS started successfully.");
 
             }
+            else
+            {
+                Console.WriteLine(dCSBIOS.GetLastException().Message);
+            }
             
         }
         private static void ListenToBios(bool displayBottomAligned, int aircraftNumber, bool displayCMS)
@@ -178,6 +188,8 @@ namespace McduDcsBiosBridge
             catch (Exception ex)
             {
                 Console.WriteLine("Error while listening to DCS-BIOS: " + ex.Message);
+                Console.WriteLine("Check config.json file and verify the dcsbios location is correct");
+                Console.WriteLine("now it's " +config.dcsBiosJsonLocation);
                 Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
                     .NewLine().WriteLine("Check console");
                 Mcdu.RefreshDisplay();

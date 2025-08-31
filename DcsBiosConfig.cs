@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace McduDcsBiosBridge
 {
+    public class ConfigException : Exception
+    {
+        public ConfigException(string message) : base(message) { }
+    }
     public class DcsBiosConfig
     {
             public string ReceiveFromIpUdp { get; set; } = "239.255.50.10";
@@ -13,7 +17,7 @@ namespace McduDcsBiosBridge
             public int ReceivePortUdp { get; set; } = 5010;
             public int SendPortUdp { get; set; } = 7778;
 
-            public string dcsBiosJsonLocation { get; set; } = "D:\\Saved Games\\DCS\\Scripts\\DCS-BIOS\\doc\\json";
+            public string dcsBiosJsonLocation { get; set; } = "";
 
     }
 }
