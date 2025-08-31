@@ -13,11 +13,13 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using NLog;
 
 namespace McduDcsBiosBridge
 {
     internal class Program
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static DcsBiosConfig? config;
         private static ICdu Mcdu = CduFactory.ConnectLocal();
         private static DCSBIOS? dCSBIOS;
@@ -34,9 +36,10 @@ namespace McduDcsBiosBridge
 
             try
             {
+                LogManager.ThrowConfigExceptions = true;
                 config = ConfigManager.Load();
 
-                Console.WriteLine("Connecting to MCDU...");
+                Logger.Info("Connecting to MCDU");
                 while (Mcdu == null)
                 {
                     await Task.Delay(200); // Use await to avoid CS1998
@@ -44,8 +47,8 @@ namespace McduDcsBiosBridge
                     Mcdu = CduFactory.ConnectLocal();
                 }
 
-                Console.WriteLine("Starting Dcsbios - Mcdu bridge");
-                Console.WriteLine(Mcdu.DeviceId);
+                Logger.Info("Starting Dcsbios - Mcdu bridge");
+                Logger.Info(Mcdu.DeviceId);
 
                 RootCommand rootCommand = new("Winwing MCDU DCSBios brigde ") {
                         Options.DisplayBottomAligned,
@@ -95,18 +98,20 @@ namespace McduDcsBiosBridge
             }
             catch (ConfigException cex)
             {
-                Console.WriteLine(cex.Message);
+                Logger.Error(cex.Message);
                 exitCode = 3;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Fatal error: " + ex.Message);
+                Logger.Error("Fatal error: " + ex.Message);
                 Mcdu.Output.Clear();
                 Mcdu.RefreshDisplay();
                 Mcdu.Cleanup();
 
                 exitCode = 2;
             }
+
+            LogManager.Shutdown(); // Add before return exitCode;
 
             return exitCode;
         }
@@ -115,26 +120,26 @@ namespace McduDcsBiosBridge
         {
             if (e.Key == Key.LineSelectLeft3)
             {
-                Console.WriteLine("Starting A10");
+                Logger.Info("Starting A10");
                 selected_aircraft = 5;
 
             }
 
             if (e.Key == Key.LineSelectRight3)
             {
-                Console.WriteLine("Starting AH64D");
+                Logger.Info("Starting AH64D");
                 selected_aircraft = 46;
             }
 
             if (e.Key == Key.LineSelectLeft4)
             {
-                Console.WriteLine("Starting FA18C");
+                Logger.Info("Starting FA18C");
                 selected_aircraft = 20;
             }
 
             if (e.Key == Key.McduMenu || e.Key == Key.Menu)
             {
-                Console.WriteLine("Exiting...");
+                Logger.Info("Exiting...");
                 Mcdu.Cleanup();
                 Environment.Exit(0);
             }
@@ -150,12 +155,12 @@ namespace McduDcsBiosBridge
                     dCSBIOS.Startup();
                 }
 
-                Console.WriteLine("DCS-BIOS started successfully.");
+                Logger.Info("DCS-BIOS started successfully.");
 
             }
             else
             {
-                Console.WriteLine(dCSBIOS.GetLastException().Message);
+                Logger.Error(dCSBIOS.GetLastException().Message);
             }
             
         }
@@ -187,14 +192,13 @@ namespace McduDcsBiosBridge
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error while listening to DCS-BIOS: " + ex.Message);
-                Console.WriteLine("Current dcsBiosJsonLocation: " + config.dcsBiosJsonLocation);
+                Logger.Error("Error while listening to DCS-BIOS: " + ex.Message);
+                Logger.Error("Current dcsBiosJsonLocation: " + config.dcsBiosJsonLocation);
                 Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
-                    .NewLine().WriteLine("Check console");
+                    .NewLine().WriteLine("Check log.txt");
                 Mcdu.RefreshDisplay();
             }
         }
 
     }
 }
- 
