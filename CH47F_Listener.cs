@@ -141,7 +141,6 @@ namespace McduDcsBiosBridge
                 { _CDU_LINE14_COLOR.Address, 14 },
             };
 
-
         }
 
         public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
@@ -156,6 +155,7 @@ namespace McduDcsBiosBridge
                     .Replace("}", "↓")
                     .Replace("{", "↑")
                     .Replace("®", "Δ");
+                    
 
                 mcdu.Output.White();
 
