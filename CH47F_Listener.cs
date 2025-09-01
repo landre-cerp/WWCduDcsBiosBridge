@@ -169,7 +169,7 @@ namespace McduDcsBiosBridge
                     for (var cellIdx = 0; cellIdx < row.Cells.Length; ++cellIdx)
                     {
                         var cell = row.Cells[cellIdx];
-                        cell.Character = data[cellIdx];
+                        cell.Character = cellIdx < data.Length ? data[cellIdx] : ' ';
                         _Colours.TryGetValue(color[cellIdx].ToString(), out Colour value);
                         cell.Colour = value; 
                         cell.Small = lineIndex%2 == 0  && lineIndex!= 14;
