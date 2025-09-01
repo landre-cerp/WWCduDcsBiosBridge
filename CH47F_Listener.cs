@@ -4,7 +4,6 @@ using DCS_BIOS.Serialized;
 using McduDotNet;
 using NLog;
 using System.Drawing.Imaging;
-using System.Web;
 
 namespace McduDcsBiosBridge
 {
