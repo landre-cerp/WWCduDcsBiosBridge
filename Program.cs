@@ -29,6 +29,8 @@ namespace McduDcsBiosBridge
         private static bool displayBottomAligned = false;
         private static bool displayCMS = false;
 
+        private static bool pilot = true;
+
         static async Task<int> Main(string[] args)
         {
             int exitCode = 0;
@@ -72,7 +74,8 @@ namespace McduDcsBiosBridge
                     .White().LeftLabel(3, "A10C")
                     .RightLabel(3, "AH64D")
                     .White().LeftLabel(4, "FA18C")
-                    .White().RightLabel(4, "CH-47")
+                    .White().RightLabel(4, "CH-47 (PLT)")
+                    .White().RightLabel(5, "CH-47 (CPLT)")
                     .BottomLine().WriteLine("Menu key to exit");
 
                 Mcdu.RefreshDisplay();
@@ -142,6 +145,14 @@ namespace McduDcsBiosBridge
             {
                 Logger.Info("Starting CH-47");
                 selected_aircraft = 50;
+                pilot = true;
+            }
+
+            if (e.Key == Key.LineSelectRight5)
+            {
+                Logger.Info("Starting CH-47");
+                selected_aircraft = 50;
+                pilot = false;
             }
 
             if (e.Key == Key.McduMenu || e.Key == Key.Menu)
@@ -184,7 +195,7 @@ namespace McduDcsBiosBridge
                     [5] =  () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
                     [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
                     [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
-                    [50] = () => new CH47F_Listener(Mcdu, false)
+                    [50] = () => new CH47F_Listener(Mcdu, false, pilot )
                 };
 
                 if (!aircraftMap.TryGetValue(aircraftNumber, out var listenerFactory))
