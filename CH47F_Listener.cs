@@ -181,7 +181,7 @@ namespace McduDcsBiosBridge
             }
             catch (Exception ex)
             {
-                // Optionnel : log l'erreur
+                // Optional: log the error
                 Console.WriteLine(ex.ToString());
             }
         }
