@@ -45,7 +45,7 @@ namespace McduDcsBiosBridge
 
         private Dictionary<uint, int> colorLines;
 
-        private readonly string[] colorMap = Enumerable.Repeat(new string(' ', 24), 14).ToArray();
+        private readonly string[] colorMap = Enumerable.Range(0, 14).Select(_ => new string(' ', 24)).ToArray();
 
         protected override string GetAircraftName() => "CH-47F";
         
