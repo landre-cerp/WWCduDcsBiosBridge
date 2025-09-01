@@ -4,7 +4,7 @@ using DCS_BIOS.Serialized;
 using McduDotNet;
 using NLog;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal class CH47F_Listener : AircraftListener
     {

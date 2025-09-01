@@ -8,7 +8,7 @@ using McduDotNet;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal class AH64D_Listener : AircraftListener
     {

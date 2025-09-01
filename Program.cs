@@ -4,16 +4,15 @@ using DCS_BIOS.ControlLocator;
 using McduDotNet;
 using Newtonsoft.Json;
 using System.CommandLine;
-using System.CommandLine.Parsing;
 using NLog;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal class Program
     {
         // Configuration constants
         private const string FontResourcePath = "resources/a10c-font-21x31.json";
-        private const int McduConnectionDelayMs = 200;
+        private const int WWCduConnectionDelayMs = 200;
         private const int RefreshDelayMs = 100;
         
         // Aircraft numbers
@@ -24,7 +23,7 @@ namespace McduDcsBiosBridge
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static DcsBiosConfig? config;
-        private static ICdu Mcdu = CduFactory.ConnectLocal();
+        private static ICdu WWCdu = CduFactory.ConnectLocal();
         private static DCSBIOS? dcsBios;
 
         private static int selectedAircraft = -1;
@@ -92,15 +91,15 @@ namespace McduDcsBiosBridge
         private static async Task ConnectToMcduAsync()
         {
             Logger.Info("Connecting to MCDU");
-            while (Mcdu == null)
+            while (WWCdu == null)
             {
-                await Task.Delay(McduConnectionDelayMs);
+                await Task.Delay(WWCduConnectionDelayMs);
                 Console.Write(".");
-                Mcdu = CduFactory.ConnectLocal();
+                WWCdu = CduFactory.ConnectLocal();
             }
 
-            Logger.Info("Starting DcsBios - Mcdu bridge");
-            Logger.Info(Mcdu.DeviceId);
+            Logger.Info("Starting DcsBios - Winwing Cdu bridge");
+            Logger.Info(WWCdu.DeviceId);
         }
 
         /// <summary>
@@ -109,7 +108,7 @@ namespace McduDcsBiosBridge
         /// <param name="args">Command line arguments</param>
         private static void ParseOptions(string[] args)
         {
-            RootCommand rootCommand = new("Winwing MCDU DCSBios bridge ") {
+            RootCommand rootCommand = new("Winwing CDU DCSBios bridge ") {
                     Options.DisplayBottomAligned,
                     Options.AircraftNumber,
                     Options.DisplayCMS
@@ -127,22 +126,20 @@ namespace McduDcsBiosBridge
         /// </summary>
         private static void ShowStartupScreen()
         {
-            Mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(File.ReadAllText(FontResourcePath)), true);
+            WWCdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(File.ReadAllText(FontResourcePath)), true);
 
-            Mcdu.Output
+            WWCdu.Output
                 .Clear().Green()
-                .Line(0).Centered("DCSbios-MCDU Bridge")
-                .NewLine().Yellow().Small().Centered("(WIP)").Large()
-                .NewLine().Centered("by Cerppo")
-                .White().LeftLabel(3, "A10C")
-                .RightLabel(3, "AH64D")
-                .White().LeftLabel(4, "FA18C")
-                .White().RightLabel(4, "CH-47 (PLT)")
-                .White().RightLabel(5, "CH-47 (CPLT)")
+                .Line(0).Centered("DCSbios/WWCDU Bridge")
+                .NewLine().Large().Yellow().Centered("by Cerppo")
+                .White()
+                .LeftLabel(2, "A10C").RightLabel(2, "AH64D")
+                .LeftLabel(3, "FA18C").RightLabel(3, "CH-47 (PLT)")
+                .RightLabel(4, "CH-47 (CPLT)")
                 .BottomLine().WriteLine("Menu key to exit");
 
-            Mcdu.RefreshDisplay();
-            Mcdu.KeyDown += ReadMenu;
+            WWCdu.RefreshDisplay();
+            WWCdu.KeyDown += ReadMenu;
         }
 
         /// <summary>
@@ -152,11 +149,11 @@ namespace McduDcsBiosBridge
         {
             while (selectedAircraft == -1)
             {
-                Mcdu.RefreshDisplay();
+                WWCdu.RefreshDisplay();
                 await Task.Delay(RefreshDelayMs);
             }
 
-            Mcdu.KeyDown -= ReadMenu;
+            WWCdu.KeyDown -= ReadMenu;
         }
 
         /// <summary>
@@ -198,39 +195,39 @@ namespace McduDcsBiosBridge
         /// </summary>
         private static void CleanupAndExit()
         {
-            Mcdu.Output.Clear();
-            Mcdu.RefreshDisplay();
-            Mcdu.Cleanup();
+            WWCdu.Output.Clear();
+            WWCdu.RefreshDisplay();
+            WWCdu.Cleanup();
         }
 
         private static void ReadMenu(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.LineSelectLeft3)
+            if (e.Key == Key.LineSelectLeft2)
             {
                 Logger.Info("Starting A10");
                 selectedAircraft = A10CAircraftNumber;
             }
 
-            if (e.Key == Key.LineSelectRight3)
+            if (e.Key == Key.LineSelectRight2)
             {
                 Logger.Info("Starting AH64D");
                 selectedAircraft = AH64DAircraftNumber;
             }
 
-            if (e.Key == Key.LineSelectLeft4)
+            if (e.Key == Key.LineSelectLeft3)
             {
                 Logger.Info("Starting FA18C");
                 selectedAircraft = FA18CAircraftNumber;
             }
 
-            if (e.Key == Key.LineSelectRight4)
+            if (e.Key == Key.LineSelectRight3)
             {
                 Logger.Info("Starting CH-47");
                 selectedAircraft = CH47FAircraftNumber;
                 pilot = true;
             }
 
-            if (e.Key == Key.LineSelectRight5)
+            if (e.Key == Key.LineSelectRight4)
             {
                 Logger.Info("Starting CH-47");
                 selectedAircraft = CH47FAircraftNumber;
@@ -240,7 +237,7 @@ namespace McduDcsBiosBridge
             if (e.Key == Key.McduMenu || e.Key == Key.Menu)
             {
                 Logger.Info("Exiting...");
-                Mcdu.Cleanup();
+                WWCdu.Cleanup();
                 Environment.Exit(0);
             }
         }
@@ -258,16 +255,16 @@ namespace McduDcsBiosBridge
 
                 var aircraftMap = new Dictionary<int, Func<IDcsBiosListener>>
                 {
-                    [A10CAircraftNumber] =  () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
-                    [AH64DAircraftNumber] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
-                    [FA18CAircraftNumber] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
-                    [CH47FAircraftNumber] = () => new CH47F_Listener(Mcdu, false, pilot )
+                    [A10CAircraftNumber] =  () => new A10C_Listener(WWCdu, displayBottomAligned, displayCMS),
+                    [AH64DAircraftNumber] = () => new AH64D_Listener(WWCdu, displayBottomAligned),
+                    [FA18CAircraftNumber] = () => new FA18C_Listener(WWCdu, displayBottomAligned),
+                    [CH47FAircraftNumber] = () => new CH47F_Listener(WWCdu, false, pilot )
                 };
 
                 if (!aircraftMap.TryGetValue(aircraftNumber, out var listenerFactory))
                 {
-                    Mcdu.Output.Newline().Red().WriteLine("Unknown Aircraft Number");
-                    Mcdu.RefreshDisplay();
+                    WWCdu.Output.Newline().Red().WriteLine("Unknown Aircraft Number");
+                    WWCdu.RefreshDisplay();
                     return;
                 }
 
@@ -278,9 +275,9 @@ namespace McduDcsBiosBridge
             {
                 Logger.Error("Error while listening to DCS-BIOS: " + ex.Message);
                 Logger.Error("Current DcsBiosJsonLocation: " + config?.DcsBiosJsonLocation);
-                Mcdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
+                WWCdu.Output.Clear().Red().WriteLine("Error DCS-BIOS")
                     .NewLine().WriteLine("Check log.txt");
-                Mcdu.RefreshDisplay();
+                WWCdu.RefreshDisplay();
             }
         }
 

@@ -5,7 +5,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>McduDcsBiosBridge.Program</StartupObject>
+    <StartupObject>WWCduDcsBiosBridge.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,11 +14,11 @@
     <PackageReference Include="NLog" Version="5.2.8" />
   </ItemGroup>
 
-  <!-- Temporarily comment out the missing project reference
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\Projects\usb\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
   </ItemGroup>
-  -->
+
 
   <ItemGroup>
     <None Update="NLog.config">

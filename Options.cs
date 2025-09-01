@@ -1,6 +1,6 @@
 ﻿using System.CommandLine;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     /// <summary>
     /// Command line options for the MCDU DCS-BIOS Bridge application.

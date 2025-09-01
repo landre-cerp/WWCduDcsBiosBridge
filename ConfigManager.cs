@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     /// <summary>
     /// Manages configuration loading, saving, and validation for the DCS-BIOS bridge application.

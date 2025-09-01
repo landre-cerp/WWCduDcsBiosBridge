@@ -1,4 +1,4 @@
-﻿namespace McduDcsBiosBridge
+﻿namespace WWCduDcsBiosBridge
 {
     /// <summary>
     /// Exception thrown when configuration validation fails.
