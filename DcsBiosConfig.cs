@@ -1,23 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace McduDcsBiosBridge
+﻿namespace McduDcsBiosBridge
 {
+    /// <summary>
+    /// Exception thrown when configuration validation fails.
+    /// </summary>
     public class ConfigException : Exception
     {
         public ConfigException(string message) : base(message) { }
     }
+
+    /// <summary>
+    /// Configuration class for DCS-BIOS connection settings.
+    /// </summary>
     public class DcsBiosConfig
     {
-            public string ReceiveFromIpUdp { get; set; } = "239.255.50.10";
-            public string SendToIpUdp { get; set; } = "127.0.0.1";
-            public int ReceivePortUdp { get; set; } = 5010;
-            public int SendPortUdp { get; set; } = 7778;
+        /// <summary>
+        /// IP address to receive UDP data from DCS-BIOS (multicast address).
+        /// </summary>
+        public string ReceiveFromIpUdp { get; set; } = "239.255.50.10";
 
-            public string dcsBiosJsonLocation { get; set; } = "";
+        /// <summary>
+        /// IP address to send UDP data to DCS-BIOS.
+        /// </summary>
+        public string SendToIpUdp { get; set; } = "127.0.0.1";
 
+        /// <summary>
+        /// Port number to receive UDP data from DCS-BIOS.
+        /// </summary>
+        public int ReceivePortUdp { get; set; } = 5010;
+
+        /// <summary>
+        /// Port number to send UDP data to DCS-BIOS.
+        /// </summary>
+        public int SendPortUdp { get; set; } = 7778;
+
+        /// <summary>
+        /// Path to the DCS-BIOS JSON files directory.
+        /// </summary>
+        public string DcsBiosJsonLocation { get; set; } = "";
     }
 }
