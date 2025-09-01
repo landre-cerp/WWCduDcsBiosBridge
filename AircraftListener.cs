@@ -4,11 +4,6 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 

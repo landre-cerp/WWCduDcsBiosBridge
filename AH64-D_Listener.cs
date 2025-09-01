@@ -5,7 +5,6 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Interfaces;
 using DCS_BIOS.Serialized;
 using McduDotNet;
-using System.Drawing.Drawing2D;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
