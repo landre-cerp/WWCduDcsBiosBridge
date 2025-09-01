@@ -71,8 +71,9 @@ namespace McduDcsBiosBridge
                     .NewLine().Centered("by Cerppo")
                     .White().LeftLabel(3, "A10C")
                     .RightLabel(3, "AH64D")
-                    .BottomLine().WriteLine("Menu key to exit")
-                    .White().LeftLabel(4, "FA18C");
+                    .White().LeftLabel(4, "FA18C")
+                    .White().RightLabel(4, "CH-47")
+                    .BottomLine().WriteLine("Menu key to exit");
 
                 Mcdu.RefreshDisplay();
 
@@ -137,6 +138,12 @@ namespace McduDcsBiosBridge
                 selected_aircraft = 20;
             }
 
+            if (e.Key == Key.LineSelectRight4)
+            {
+                Logger.Info("Starting CH-47");
+                selected_aircraft = 50;
+            }
+
             if (e.Key == Key.McduMenu || e.Key == Key.Menu)
             {
                 Logger.Info("Exiting...");
@@ -177,6 +184,7 @@ namespace McduDcsBiosBridge
                     [5] =  () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
                     [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
                     [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
+                    [50] = () => new CH47F_Listener(Mcdu, false)
                 };
 
                 if (!aircraftMap.TryGetValue(aircraftNumber, out var listenerFactory))

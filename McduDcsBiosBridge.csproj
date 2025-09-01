@@ -21,6 +21,9 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\ch47f-font-21x31.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\ah64d-font-21x31.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
