@@ -100,13 +100,9 @@ namespace McduDcsBiosBridge
         }
 
 
-        public virtual void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
-        {
-        }
+        public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
 
-        public virtual void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
-        {
-        }
+        public abstract void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e);
 
         public void Dispose()
         {

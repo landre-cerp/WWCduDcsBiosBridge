@@ -9,7 +9,7 @@ namespace McduDcsBiosBridge
 {
     internal class CH47F_Listener : AircraftListener
     {
-        
+
         private DCSBIOSOutput _CDU_LINE_1;
         private DCSBIOSOutput _CDU_LINE_2;
         private DCSBIOSOutput _CDU_LINE_3;
@@ -40,6 +40,8 @@ namespace McduDcsBiosBridge
         private DCSBIOSOutput _CDU_LINE13_COLOR;
         private DCSBIOSOutput _CDU_LINE14_COLOR;
 
+        private DCSBIOSOutput _MSTR_CAUTION;
+
         private Dictionary<uint, int> lineMap;
 
 
@@ -48,7 +50,7 @@ namespace McduDcsBiosBridge
         private readonly string[] colorMap = Enumerable.Range(0, 14).Select(_ => new string(' ', 24)).ToArray();
 
         protected override string GetAircraftName() => "CH-47F";
-        
+
         protected override string GetFontFile() => "resources/ch47f-font-21x31.json";
 
         const int _AircraftNumber = 50;
@@ -60,13 +62,14 @@ namespace McduDcsBiosBridge
                 { "p",  Colour.Magenta} ,
                 { "w",  Colour.White}
         };
-        
-        public CH47F_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned) {
+
+        public CH47F_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned)
+        {
         }
 
         protected override void initBiosControls()
         {
-            
+
             _CDU_LINE_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE1");
             _CDU_LINE_2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE2");
             _CDU_LINE_3 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE3");
@@ -96,6 +99,8 @@ namespace McduDcsBiosBridge
             _CDU_LINE12_COLOR = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE12_COLOR");
             _CDU_LINE13_COLOR = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE13_COLOR");
             _CDU_LINE14_COLOR = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PLT_CDU_LINE14_COLOR");
+
+            _MSTR_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_MASTER_CAUTION_LIGHT");
 
             lineMap = new Dictionary<uint, int>
             {
@@ -159,23 +164,23 @@ namespace McduDcsBiosBridge
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    
+
                     // update line with this fast method 
                     var screen = mcdu.Screen;
-                    var row = screen.Rows[lineIndex-1];
+                    var row = screen.Rows[lineIndex - 1];
                     var color = colorMap[lineIndex - 1];
                     for (var cellIdx = 0; cellIdx < row.Cells.Length; ++cellIdx)
                     {
                         var cell = row.Cells[cellIdx];
                         cell.Character = cellIdx < data.Length ? data[cellIdx] : ' ';
                         _Colours.TryGetValue(color[cellIdx].ToString(), out Colour value);
-                        cell.Colour = value; 
-                        cell.Small = lineIndex%2 == 0  && lineIndex!= 14;
+                        cell.Colour = value;
+                        cell.Small = lineIndex % 2 == 0 && lineIndex != 14;
                     }
 
                 }
-                
-                
+
+
             }
             catch (Exception ex)
             {
@@ -184,8 +189,21 @@ namespace McduDcsBiosBridge
             }
         }
 
+        public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
+        {
+            var refresh = false;
+            if (e.Address == _MSTR_CAUTION.Address)
+            {
+                mcdu.Leds.Fail = _MSTR_CAUTION.GetUIntValue(e.Data) != 0;
+                refresh = true;
+            }
 
-
-
+            if (refresh)
+            {
+                mcdu.RefreshBrightnesses();
+                mcdu.RefreshLeds();
+            }
+        }
     }
+
 }
