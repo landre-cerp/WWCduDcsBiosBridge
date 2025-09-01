@@ -47,7 +47,7 @@ namespace McduDcsBiosBridge
 
         private readonly string[] colorMap = Enumerable.Repeat(new string(' ', 24), 14).ToArray();
 
-        protected override string GetAircraftName() =>"CH-47F";
+        protected override string GetAircraftName() => "CH-47F";
         
         protected override string GetFontFile() => "resources/ch47f-font-21x31.json";
 
