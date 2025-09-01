@@ -146,10 +146,8 @@ namespace McduDcsBiosBridge
                     .Replace("«", "←")
                     .Replace("¡", "☐")
                     .Replace("}", "↓")
+                    .Replace("{", "↑")
                     .Replace("®", "Δ");
-
-                    //.Replace("©", "^")
-                    //.Replace("?", "%");
 
                 mcdu.Output.White();
 
