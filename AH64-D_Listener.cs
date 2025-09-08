@@ -5,11 +5,10 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Interfaces;
 using DCS_BIOS.Serialized;
 using McduDotNet;
-using System.Drawing.Drawing2D;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal class AH64D_Listener : AircraftListener
     {
@@ -155,8 +154,9 @@ namespace McduDcsBiosBridge
 
                 if (e.Address.Equals(_PLT_EUFD_LINE14.Address))
                 {
-                    incomingData = data.Substring(46, 10);
-                    mcdu.Output.Line(0).ClearRow().WriteLine(incomingData);
+                    var time = data.Substring(46, 10);
+                    var fuel =data.Substring(0, 10);
+                    mcdu.Output.Line(0).ClearRow().WriteLine($"{fuel}    {time}");
 
 
                 }

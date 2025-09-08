@@ -2,4 +2,4 @@ bin
 obj
 .vs
 /Properties/PublishProfiles
-/McduDcsBiosBridge.csproj.user
+*.csproj.user

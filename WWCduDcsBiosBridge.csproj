@@ -5,17 +5,20 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>McduDcsBiosBridge.Program</StartupObject>
+    <StartupObject>WWCduDcsBiosBridge.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="mcdu-dotnet" Version="1.4.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta7.25380.108" />
+    <PackageReference Include="NLog" Version="5.2.8" />
   </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Projects\usb\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
   </ItemGroup>
+
 
   <ItemGroup>
     <None Update="NLog.config">

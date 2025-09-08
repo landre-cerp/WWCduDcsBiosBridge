@@ -4,19 +4,13 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
-        private static double _TICK_DISPLAY = 200;
+        private static double _TICK_DISPLAY = 100;
         private readonly Timer _DisplayCDUTimer;
         protected ICdu mcdu;
         protected readonly bool BottomAligned = false;

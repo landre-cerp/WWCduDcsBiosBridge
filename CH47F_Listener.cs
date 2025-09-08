@@ -3,9 +3,8 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using NLog;
-using System.Drawing.Imaging;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
     internal class CH47F_Listener : AircraftListener
     {

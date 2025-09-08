@@ -1,27 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 
-namespace McduDcsBiosBridge
+namespace WWCduDcsBiosBridge
 {
+    /// <summary>
+    /// Command line options for the MCDU DCS-BIOS Bridge application.
+    /// </summary>
     static class Options
     {
+        /// <summary>
+        /// Option to align display to bottom of the screen.
+        /// </summary>
         public static Option<bool> DisplayBottomAligned = new("--bottom-aligned", "-ba")
         {
-            Description = "Display is aligned to bottom of the screen ",
+            Description = "Display is aligned to bottom of the screen",
         };
 
+        /// <summary>
+        /// Option to set the aircraft number.
+        /// </summary>
         public static Option<int> AircraftNumber = new("--aircraft", "-a")
         {
             Description = "Set Aircraft number",
         };
 
+        /// <summary>
+        /// Option to display CMS information.
+        /// </summary>
         public static Option<bool> DisplayCMS = new("--display-cms", "-cms")
         {
-            Description = "Display CMS on the",
+            Description = "Display CMS on the screen",
         };
     }
 }
