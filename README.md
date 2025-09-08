@@ -17,7 +17,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 
 - DCS World
 - DCS-BIOS (v0.8.4 or later, nightly build required for CH-47F)
-- Winwing MCDU hardware
+- Winwing CDU hardware (MCDU / PFP3N / PFP7 )
 - .NET 8.0 runtime
 
 ## Supported Aircraft
@@ -27,7 +27,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 | **A10C** | Full | Complete MCDU functionality, LED indicators, brightness control |
 | **AH-64D** | Basic | UFD information, keyboard display |
 | **FA-18C** | Basic | UFC fields display |
-| **CH-47F** | Basic | Pilot CDU (requires DCS-BIOS nightly build) |
+| **CH-47F** | Basic | Pilot or CoPilot CDU (requires DCS-BIOS nightly build) |
 
 ### LED Mappings (A10C)
 
