@@ -41,6 +41,8 @@ namespace WWCduDcsBiosBridge
 
         private DCSBIOSOutput _MSTR_CAUTION;
 
+        private DCSBIOSOutput _CDU_BACKLIGHT;
+
         private Dictionary<uint, int> lineMap;
 
 
@@ -103,6 +105,8 @@ namespace WWCduDcsBiosBridge
             _CDU_LINE14_COLOR = DCSBIOSControlLocator.GetStringDCSBIOSOutput(prefix + "CDU_LINE14_COLOR");
 
             _MSTR_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput(prefix + "MASTER_CAUTION_LIGHT");
+
+            _CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput(prefix + "INT_LIGHT_CDU");
 
             lineMap = new Dictionary<uint, int>
             {
@@ -197,6 +201,17 @@ namespace WWCduDcsBiosBridge
             if (e.Address == _MSTR_CAUTION.Address)
             {
                 mcdu.Leds.Fail = _MSTR_CAUTION.GetUIntValue(e.Data) != 0;
+                refresh = true;
+            }
+
+            if (e.Address == _CDU_BACKLIGHT.Address)
+            {
+                int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
+                
+                bright = bright * 100 / 65536;
+                mcdu.BacklightBrightnessPercent = bright;
+                mcdu.DisplayBrightnessPercent = bright;
+                mcdu.LedBrightnessPercent = bright;
                 refresh = true;
             }
 
