@@ -102,8 +102,7 @@ namespace WWCduDcsBiosBridge
                 if (shouldUpdate)
                 {
                     int eufdBright = (int)newValue;
-                    // MAX_BRIGHT is 256 , so 655356 / 256 is 256 , we need to divide by 2^8
-                    eufdBright = eufdBright = 100 * eufdBright / 256;
+                    eufdBright = eufdBright = 100 * eufdBright / 65536;
                     mcdu.BacklightBrightnessPercent = eufdBright;
                     mcdu.DisplayBrightnessPercent = eufdBright;
                     mcdu.LedBrightnessPercent = eufdBright;
