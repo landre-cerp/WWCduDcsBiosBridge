@@ -216,7 +216,6 @@ namespace WWCduDcsBiosBridge
                 if (linkedBG)
                 {
                     mcdu.DisplayBrightnessPercent = bright;
-
                 }
                 
                 mcdu.LedBrightnessPercent = bright;
