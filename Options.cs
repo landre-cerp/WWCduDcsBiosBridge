@@ -32,7 +32,7 @@ namespace WWCduDcsBiosBridge
         };
 
         /// <summary>
-        /// Option to Link ch47 screen Brightness
+        /// Option to link ch47 screen brightness
         /// </summary>
         public static Option<bool> CH47_LinkedBGBrightness = new("--ch47-linked-brightness", "-ch47lbg")
         {
