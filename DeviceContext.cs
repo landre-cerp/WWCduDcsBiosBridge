@@ -13,12 +13,18 @@ namespace WWCduDcsBiosBridge
         private readonly bool displayBottomAligned;
         private readonly bool displayCMS;
         private readonly DcsBiosConfig? config;
+        private readonly bool linkedBGbrightness;
 
-        public DeviceContext(ICdu mcdu, bool displayBottomAligned, bool displayCMS, DcsBiosConfig? config)
+        public DeviceContext(ICdu mcdu, 
+            bool displayBottomAligned, 
+            bool displayCMS, 
+            bool linkedBGbrightness,
+            DcsBiosConfig? config)
         {
             Mcdu = mcdu;
             this.displayBottomAligned = displayBottomAligned;
             this.displayCMS = displayCMS;
+            this.linkedBGbrightness = linkedBGbrightness;
             this.config = config;
         }
 
@@ -66,7 +72,7 @@ namespace WWCduDcsBiosBridge
                 [5] = () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
                 [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
                 [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
-                [50] = () => new CH47F_Listener(Mcdu, false, Pilot)
+                [50] = () => new CH47F_Listener(Mcdu, linkedBGbrightness , Pilot)
             };
 
             if (aircraftMap.TryGetValue(SelectedAircraft, out var factory))

@@ -30,5 +30,14 @@ namespace WWCduDcsBiosBridge
         {
             Description = "Display CMS on the screen",
         };
+
+        /// <summary>
+        /// Option to link ch47 screen brightness
+        /// </summary>
+        public static Option<bool> CH47_LinkedBGBrightness = new("--ch47-linked-brightness", "-ch47lbg")
+        {
+            Description = "Link BG Brightness to other",
+        };
+
     }
 }
