@@ -38,6 +38,10 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 | IND | NWS Indicator |
 | FM2 | Cockpit Indicator |
 
+### LED Mappings other aircraft
+| CDU LED | DCS Indicator |
+| Fail | Master Caution |
+
 ## Installation
 
 ### DCS-BIOS Setup
@@ -100,6 +104,10 @@ McduDcsBiosBridge.exe -ba -cms
 | `--bottom-aligned` | `-ba` | Align display to bottom (A10C only) |
 | `--display-cms` | `-cms` | Show CMS on free screen space (A10C only) |
 | `--aircraft` | `-a` | Set aircraft number |
+| `--ch47-linked-brightness` | `-ch47lbg` | Link CH-47F brightness to other aircraft |
+
+if you add the -ch47lbg option, it will link the CH-47F brightness to the other aircraft brightness control.
+It means that when you dial the knob on the pedestal, it will change All. No options,means screen brightness is independent.
 
 ### Controls
 
@@ -138,6 +146,7 @@ McduDcsBiosBridge.exe -ba -cms
 
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
 - **A10C:** MCDU brightness is linked to the console rotary control (right pedestal)
+- **CH-47F:** Brightness is independent unless `--ch47-linked-brightness` option is used ,there's no known way to control screen birightness in the aircraft as BRT/DIM are inoperative
 
 ### Logs
 

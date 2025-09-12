@@ -20,6 +20,7 @@ namespace WWCduDcsBiosBridge
 
         private static bool displayBottomAligned = false;
         private static bool displayCMS = false;
+        private static bool linkedScreenBrightness = false;
 
         /// <summary>
         /// Main entry point for the MCDU DCS-BIOS Bridge application.
@@ -30,10 +31,11 @@ namespace WWCduDcsBiosBridge
         {
             SetupLogging();
             LoadConfig();
+            ParseOptions(args);
 
             var devices = CduFactory.FindLocalDevices().ToList();
             var contexts = devices.Select(dev => new DeviceContext(
-                CduFactory.ConnectLocal(dev), displayBottomAligned, displayCMS, config)).ToList();
+                CduFactory.ConnectLocal(dev), displayBottomAligned, displayCMS, linkedScreenBrightness, config)).ToList();
 
             foreach (var ctx in contexts)
                 ctx.ShowStartupScreen();
@@ -91,6 +93,29 @@ namespace WWCduDcsBiosBridge
                 Logger.Error(dcsBios.GetLastException().Message);
             }
         }
+
+
+        /// <summary>
+        /// Parses command line options and sets global flags.
+        /// </summary>
+        /// <param name="args">Command line arguments</param>
+        private static void ParseOptions(string[] args)
+        {
+            RootCommand rootCommand = new("Winwing CDU DCSBios bridge ") {
+                    Options.DisplayBottomAligned,
+                    Options.AircraftNumber,
+                    Options.DisplayCMS,
+                    Options.CH47_LinkedBGBrightness
+            };
+
+            rootCommand.TreatUnmatchedTokensAsErrors = true;
+
+            ParseResult parsed = rootCommand.Parse(args);
+            displayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
+            displayCMS = parsed.GetValue(Options.DisplayCMS);
+            linkedScreenBrightness = parsed.GetValue(Options.CH47_LinkedBGBrightness);
+        }
+
 
 
     }

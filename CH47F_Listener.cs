@@ -58,6 +58,8 @@ namespace WWCduDcsBiosBridge
 
         protected string prefix;
 
+        private readonly bool linkedBG;
+
         private readonly Dictionary<string, Colour> _Colours = new Dictionary<string, Colour>
         {
                 { " " , Colour.Black },
@@ -66,9 +68,10 @@ namespace WWCduDcsBiosBridge
                 { "w",  Colour.White}
         };
 
-        public CH47F_Listener(ICdu mcdu, bool bottomAligned, bool pilot=true) : base(mcdu, _AircraftNumber, bottomAligned)
+        public CH47F_Listener(ICdu mcdu, bool linkedBGBrightness,  bool pilot=true) : base(mcdu, _AircraftNumber, false)
         {
             prefix = pilot ? "PLT_": "CPLT_";
+            linkedBG = linkedBGBrightness;
         }
 
         protected override void initBiosControls()
@@ -210,7 +213,12 @@ namespace WWCduDcsBiosBridge
                 
                 bright = bright * 100 / 65536;
                 mcdu.BacklightBrightnessPercent = bright;
-                mcdu.DisplayBrightnessPercent = bright;
+                if (linkedBG)
+                {
+                    mcdu.DisplayBrightnessPercent = bright;
+
+                }
+                
                 mcdu.LedBrightnessPercent = bright;
                 refresh = true;
             }
