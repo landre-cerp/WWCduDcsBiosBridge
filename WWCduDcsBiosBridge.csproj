@@ -9,22 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include=".github\workflows\build-on-tag.yml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="mcdu-dotnet" Version="1.4.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta7.25380.108" />
     <PackageReference Include="NLog" Version="5.2.8" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <Reference Include="ClassLibraryCommon">
-      <HintPath>lib\ClassLibraryCommon.dll</HintPath>
-    </Reference>
-    <Reference Include="DCS-BIOS">
-      <HintPath>lib\DCS-BIOS.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\..\Projects\usb\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
   </ItemGroup>
 
 
