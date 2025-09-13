@@ -15,9 +15,9 @@ namespace WWCduDcsBiosBridge
         private readonly DcsBiosConfig? config;
         private readonly bool linkedBGbrightness;
 
-        public DeviceContext(ICdu mcdu, 
-            bool displayBottomAligned, 
-            bool displayCMS, 
+        public DeviceContext(ICdu mcdu,
+            bool displayBottomAligned,
+            bool displayCMS,
             bool linkedBGbrightness,
             DcsBiosConfig? config)
         {
@@ -37,7 +37,7 @@ namespace WWCduDcsBiosBridge
                 .White()
                 .LeftLabel(2, "A10C").RightLabel(2, "AH64D")
                 .LeftLabel(3, "FA18C").RightLabel(3, "CH-47 (PLT)")
-                .RightLabel(4, "CH-47 (CPLT)")
+                .LeftLabel(4, "F15E").RightLabel(4, "CH-47 (CPLT)")
                 .BottomLine().WriteLine("Menu key to exit");
             Mcdu.RefreshDisplay();
             Mcdu.KeyDown += ReadMenu;
@@ -51,6 +51,7 @@ namespace WWCduDcsBiosBridge
                 case Key.LineSelectRight2: SelectedAircraft = 46; break; // AH64D
                 case Key.LineSelectLeft3: SelectedAircraft = 20; break;  // FA18C
                 case Key.LineSelectRight3: SelectedAircraft = 50; Pilot = true; break; // CH-47 PLT
+                case Key.LineSelectLeft4: SelectedAircraft = 44; break;  // F15E
                 case Key.LineSelectRight4: SelectedAircraft = 50; Pilot = false; break; // CH-47 CPLT
                 case Key.Menu:
                 case Key.McduMenu:
@@ -72,7 +73,8 @@ namespace WWCduDcsBiosBridge
                 [5] = () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
                 [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
                 [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
-                [50] = () => new CH47F_Listener(Mcdu, linkedBGbrightness , Pilot)
+                [44] = () => new F15E_Listener(Mcdu, displayBottomAligned),
+                [50] = () => new CH47F_Listener(Mcdu, linkedBGbrightness, Pilot),
             };
 
             if (aircraftMap.TryGetValue(SelectedAircraft, out var factory))
