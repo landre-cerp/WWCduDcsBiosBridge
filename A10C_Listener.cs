@@ -1,58 +1,47 @@
-﻿using ClassLibraryCommon;
-using DCS_BIOS;
-using DCS_BIOS.ControlLocator;
+﻿using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
-using DCS_BIOS.Interfaces;
 using DCS_BIOS.Serialized;
 using McduDotNet;
-using System.Timers;
-
 
 namespace WWCduDcsBiosBridge
 {
     internal class A10C_Listener : AircraftListener
     {
 
-        private DCSBIOSOutput _CDU_LINE_0;
-        private DCSBIOSOutput _CDU_LINE_1;
-        private DCSBIOSOutput _CDU_LINE_2;
-        private DCSBIOSOutput _CDU_LINE_3;
-        private DCSBIOSOutput _CDU_LINE_4;
-        private DCSBIOSOutput _CDU_LINE_5;
-        private DCSBIOSOutput _CDU_LINE_6;
-        private DCSBIOSOutput _CDU_LINE_7;
-        private DCSBIOSOutput _CDU_LINE_8;
-        private DCSBIOSOutput _CDU_LINE_9;
+        private DCSBIOSOutput? _CDU_LINE_0;
+        private DCSBIOSOutput? _CDU_LINE_1;
+        private DCSBIOSOutput? _CDU_LINE_2;
+        private DCSBIOSOutput? _CDU_LINE_3;
+        private DCSBIOSOutput? _CDU_LINE_4;
+        private DCSBIOSOutput? _CDU_LINE_5;
+        private DCSBIOSOutput? _CDU_LINE_6;
+        private DCSBIOSOutput? _CDU_LINE_7;
+        private DCSBIOSOutput? _CDU_LINE_8;
+        private DCSBIOSOutput? _CDU_LINE_9;
 
-        private DCSBIOSOutput _CDU_BRT; 
-        private DCSBIOSOutput _MASTER_CAUTION; 
+        private DCSBIOSOutput? _CDU_BRT; 
+        private DCSBIOSOutput? _MASTER_CAUTION; 
 
-        private DCSBIOSOutput _CONSOLE_BRT; 
-        private DCSBIOSOutput _NOSE_SW_GREENLIGHT;
-        private DCSBIOSOutput _CANOPY_LED; 
-        private DCSBIOSOutput _GUN_READY;
+        private DCSBIOSOutput? _CONSOLE_BRT; 
+        private DCSBIOSOutput? _NOSE_SW_GREENLIGHT;
+        private DCSBIOSOutput? _CANOPY_LED; 
+        private DCSBIOSOutput? _GUN_READY;
 
-        private DCSBIOSOutput _CMSP1;
-        private DCSBIOSOutput _CMSP2;
-
+        private DCSBIOSOutput? _CMSP1;
+        private DCSBIOSOutput? _CMSP2;
 
         protected override string GetAircraftName() => "A-10C";
         protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-        
         const int _AircraftNumber = 5;
 
-
-
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public A10C_Listener(ICdu mcdu, bool bottomAligned, bool displayCMS) : base(mcdu, _AircraftNumber, bottomAligned, displayCMS) {
         }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
 
         ~A10C_Listener()
         {
             Dispose(false);
         }
-
 
         protected override void initBiosControls()
         {
@@ -88,18 +77,18 @@ namespace WWCduDcsBiosBridge
                 bool refresh = false;
                 UpdateCounter(e.Address, e.Data);
 
-                if (e.Address == _CONSOLE_BRT.Address)
+                if (e.Address == _CONSOLE_BRT!.Address)
                 {
                     mcdu.BacklightBrightnessPercent =
-                        (int)(_CONSOLE_BRT.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
+                        (int)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
                     refresh = true;
                 }
-                if (e.Address == _CANOPY_LED.Address)
+                if (e.Address == _CANOPY_LED!.Address)
                 {
-                    mcdu.Leds.Fm2 = _CANOPY_LED.GetUIntValue(e.Data) == 1;
+                    mcdu.Leds.Fm2 = _CANOPY_LED!.GetUIntValue(e.Data) == 1;
                     refresh = true;
                 }
-                if (e.Address == _CDU_BRT.Address)
+                if (e.Address == _CDU_BRT!.Address)
                 {
                     int val = (int)_CDU_BRT.GetUIntValue(e.Data);
                     if (val == 0)
@@ -109,17 +98,17 @@ namespace WWCduDcsBiosBridge
                     // Always refresh Brightness. 
                     refresh = true;
                 }
-                if (e.Address == _NOSE_SW_GREENLIGHT.Address)
+                if (e.Address == _NOSE_SW_GREENLIGHT!.Address)
                 {
-                    mcdu.Leds.Ind = _NOSE_SW_GREENLIGHT.GetUIntValue(e.Data) == 1;
+                    mcdu.Leds.Ind = _NOSE_SW_GREENLIGHT!.GetUIntValue(e.Data) == 1;
                     refresh = true;
                 }
-                if (e.Address == _GUN_READY.Address)
+                if (e.Address == _GUN_READY!.Address)
                 {
                     mcdu.Leds.Fm1 = _GUN_READY.GetUIntValue(e.Data) == 1;
                     refresh = true;
                 }
-                if (e.Address == _MASTER_CAUTION.Address)
+                if (e.Address == _MASTER_CAUTION!.Address)
                 {
                     mcdu.Leds.Fail = _MASTER_CAUTION.GetUIntValue(e.Data) == 1;
                     refresh = true;
@@ -133,7 +122,7 @@ namespace WWCduDcsBiosBridge
             }
             catch
             {
-                // Optionnel : log l'erreur
+                // Optionnel : log error
             }
         }
 
@@ -160,53 +149,55 @@ namespace WWCduDcsBiosBridge
                 {
                     lineMap = new Dictionary<uint, int>
                     {
-                        { _CMSP1.Address, 0 },
-                        { _CMSP2.Address, 1 },
-                        { _CDU_LINE_0.Address, 4 },
-                        { _CDU_LINE_1.Address, 5 },
-                        { _CDU_LINE_2.Address, 6 },
-                        { _CDU_LINE_3.Address, 7 },
-                        { _CDU_LINE_4.Address, 8 },
-                        { _CDU_LINE_5.Address, 9 },
-                        { _CDU_LINE_6.Address, 10 },
-                        { _CDU_LINE_7.Address, 11 },
-                        { _CDU_LINE_8.Address, 12 },
-                        { _CDU_LINE_9.Address, 13 },
-
+                        { _CMSP1!.Address, 0 },
+                        { _CMSP2!.Address, 1 },
+                        { _CDU_LINE_0!.Address, 4 },
+                        { _CDU_LINE_1!.Address, 5 },
+                        { _CDU_LINE_2!.Address, 6 },
+                        { _CDU_LINE_3!.Address, 7 },
+                        { _CDU_LINE_4!.Address, 8 },
+                        { _CDU_LINE_5!.Address, 9 },
+                        { _CDU_LINE_6!.Address, 10 },
+                        { _CDU_LINE_7!.Address, 11 },
+                        { _CDU_LINE_8!.Address, 12 },
+                        { _CDU_LINE_9!.Address, 13 },
                     };
-
                 }
                 else
                 {
                     lineMap = new Dictionary<uint, int>
                     {
-                        { _CDU_LINE_0.Address, 0},
-                        { _CDU_LINE_1.Address, 1 },
-                        { _CDU_LINE_2.Address, 2},
-                        { _CDU_LINE_3.Address, 3 },
-                        { _CDU_LINE_4.Address, 4 },
-                        { _CDU_LINE_5.Address, 5 },
-                        { _CDU_LINE_6.Address, 6 },
-                        { _CDU_LINE_7.Address, 7 },
-                        { _CDU_LINE_8.Address, 8 },
-                        { _CDU_LINE_9.Address, 9 },
-                        { _CMSP1.Address, 12 },
-                        { _CMSP2.Address, 13 },
-
+                        { _CDU_LINE_0!.Address, 0},
+                        { _CDU_LINE_1!.Address, 1 },
+                        { _CDU_LINE_2!.Address, 2},
+                        { _CDU_LINE_3!.Address, 3 },
+                        { _CDU_LINE_4!.Address, 4 },
+                        { _CDU_LINE_5!.Address, 5 },
+                        { _CDU_LINE_6!.Address, 6 },
+                        { _CDU_LINE_7!.Address, 7 },
+                        { _CDU_LINE_8!.Address, 8 },
+                        { _CDU_LINE_9!.Address, 9 },
+                        { _CMSP1!.Address, 12 },
+                        { _CMSP2!.Address, 13 },
                     };
-
                 }
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    if (DisplayCMS || (_CMSP1.Address != e.Address && _CMSP2.Address != e.Address) ) mcdu.Output.Line(lineIndex).WriteLine(data);
+                    if (DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
+                    {
+                        mcdu.Output.Line(lineIndex).WriteLine(data);
+                    }
                 }
-                
-                if (DisplayCMS) mcdu.Output.Line(BottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+
+                if (DisplayCMS)
+                {
+                    mcdu.Output.Line(BottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+                }
             }
             catch
             {
-                // Optionnel : log l'erreur
+                // Optionnel : log error
             }
         }
     }

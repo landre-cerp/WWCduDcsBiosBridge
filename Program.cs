@@ -1,12 +1,7 @@
-using ClassLibraryCommon;
 using DCS_BIOS;
-using DCS_BIOS.ControlLocator;
 using McduDotNet;
-using Newtonsoft.Json;
 using NLog;
 using System.CommandLine;
-using System.Drawing;
-using System.Linq;
 
 namespace WWCduDcsBiosBridge
 {

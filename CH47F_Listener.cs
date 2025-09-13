@@ -2,7 +2,6 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
-using NLog;
 
 namespace WWCduDcsBiosBridge
 {
@@ -52,7 +51,6 @@ namespace WWCduDcsBiosBridge
         protected override string GetAircraftName() => "CH-47F";
 
         protected override string GetFontFile() => "resources/ch47f-font-21x31.json";
-
         const int _AircraftNumber = 50;
 
         protected string prefix;

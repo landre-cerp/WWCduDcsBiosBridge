@@ -36,13 +36,10 @@ namespace WWCduDcsBiosBridge
 
             _DisplayCDUTimer = new(_TICK_DISPLAY);
             _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
-
-
         }
 
         public void Start()
         {
-            
             initBiosControls();
 
             InitMcduFont();
@@ -52,10 +49,7 @@ namespace WWCduDcsBiosBridge
             BIOSEventHandler.AttachDataListener(this);
             BIOSEventHandler.AttachConnectionListener(this);
 
-
             _DisplayCDUTimer.Start();
-
-
         }
 
         public void Stop()
@@ -68,7 +62,6 @@ namespace WWCduDcsBiosBridge
             mcdu.Output.Clear();
             mcdu.RefreshDisplay();
             mcdu.Cleanup();
-
         }
         private void InitMcduFont()
         {
@@ -147,17 +140,5 @@ namespace WWCduDcsBiosBridge
                 }
             }
         }
-
-        protected static (bool, uint) ShouldHandleDCSBiosData(DCSBIOSDataEventArgs e, DCSBIOSOutput output)
-        {
-            if (e.Address != output.Address) return (false, 0);
-            var oldValue = output.LastUIntValue;
-            var newValue = output.GetUIntValue(e.Data);
-            if (oldValue == newValue) return (false, 0);
-
-            return (true, output.GetUIntValue(e.Data));
-        }
-
-
     }
 }
