@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCS-BIOS", "..\..\..\Projects\usb\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj", "{29198D94-C60B-5BE2-55C8-17DBE3BA52BB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,10 +20,6 @@ Global
 		{82525050-BC49-48EB-9B09-C87D1163579E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82525050-BC49-48EB-9B09-C87D1163579E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82525050-BC49-48EB-9B09-C87D1163579E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{29198D94-C60B-5BE2-55C8-17DBE3BA52BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{29198D94-C60B-5BE2-55C8-17DBE3BA52BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{29198D94-C60B-5BE2-55C8-17DBE3BA52BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{29198D94-C60B-5BE2-55C8-17DBE3BA52BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
