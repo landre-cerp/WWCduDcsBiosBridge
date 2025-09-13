@@ -28,7 +28,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 | **AH-64D** | Basic | UFD information, keyboard display |
 | **FA-18C** | Basic | UFC fields display |
 | **CH-47F** | Basic | Pilot or CoPilot CDU (requires DCS-BIOS nightly build) |
-| **F15E** | Basic | UFC Lines 1-6 by smerki |
+| **F15E** | Basic | UFC Lines 1-6 by smreki |
 
 ### LED Mappings (A10C)
 
