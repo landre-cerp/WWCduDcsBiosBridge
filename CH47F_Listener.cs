@@ -9,44 +9,43 @@ namespace WWCduDcsBiosBridge
     internal class CH47F_Listener : AircraftListener
     {
 
-        private DCSBIOSOutput _CDU_LINE_1;
-        private DCSBIOSOutput _CDU_LINE_2;
-        private DCSBIOSOutput _CDU_LINE_3;
-        private DCSBIOSOutput _CDU_LINE_4;
-        private DCSBIOSOutput _CDU_LINE_5;
-        private DCSBIOSOutput _CDU_LINE_6;
-        private DCSBIOSOutput _CDU_LINE_7;
-        private DCSBIOSOutput _CDU_LINE_8;
-        private DCSBIOSOutput _CDU_LINE_9;
-        private DCSBIOSOutput _CDU_LINE_10;
-        private DCSBIOSOutput _CDU_LINE_11;
-        private DCSBIOSOutput _CDU_LINE_12;
-        private DCSBIOSOutput _CDU_LINE_13;
-        private DCSBIOSOutput _CDU_LINE_14;
+        private DCSBIOSOutput? _CDU_LINE_1;
+        private DCSBIOSOutput? _CDU_LINE_2;
+        private DCSBIOSOutput? _CDU_LINE_3;
+        private DCSBIOSOutput? _CDU_LINE_4;
+        private DCSBIOSOutput? _CDU_LINE_5;
+        private DCSBIOSOutput? _CDU_LINE_6;
+        private DCSBIOSOutput? _CDU_LINE_7;
+        private DCSBIOSOutput? _CDU_LINE_8;
+        private DCSBIOSOutput? _CDU_LINE_9;
+        private DCSBIOSOutput? _CDU_LINE_10;
+        private DCSBIOSOutput? _CDU_LINE_11;
+        private DCSBIOSOutput? _CDU_LINE_12;
+        private DCSBIOSOutput? _CDU_LINE_13;
+        private DCSBIOSOutput? _CDU_LINE_14;
 
-        private DCSBIOSOutput _CDU_LINE1_COLOR;
-        private DCSBIOSOutput _CDU_LINE2_COLOR;
-        private DCSBIOSOutput _CDU_LINE3_COLOR;
-        private DCSBIOSOutput _CDU_LINE4_COLOR;
-        private DCSBIOSOutput _CDU_LINE5_COLOR;
-        private DCSBIOSOutput _CDU_LINE6_COLOR;
-        private DCSBIOSOutput _CDU_LINE7_COLOR;
-        private DCSBIOSOutput _CDU_LINE8_COLOR;
-        private DCSBIOSOutput _CDU_LINE9_COLOR;
-        private DCSBIOSOutput _CDU_LINE10_COLOR;
-        private DCSBIOSOutput _CDU_LINE11_COLOR;
-        private DCSBIOSOutput _CDU_LINE12_COLOR;
-        private DCSBIOSOutput _CDU_LINE13_COLOR;
-        private DCSBIOSOutput _CDU_LINE14_COLOR;
+        private DCSBIOSOutput? _CDU_LINE1_COLOR;
+        private DCSBIOSOutput? _CDU_LINE2_COLOR;
+        private DCSBIOSOutput? _CDU_LINE3_COLOR;
+        private DCSBIOSOutput? _CDU_LINE4_COLOR;
+        private DCSBIOSOutput? _CDU_LINE5_COLOR;
+        private DCSBIOSOutput? _CDU_LINE6_COLOR;
+        private DCSBIOSOutput? _CDU_LINE7_COLOR;
+        private DCSBIOSOutput? _CDU_LINE8_COLOR;
+        private DCSBIOSOutput? _CDU_LINE9_COLOR;
+        private DCSBIOSOutput? _CDU_LINE10_COLOR;
+        private DCSBIOSOutput? _CDU_LINE11_COLOR;
+        private DCSBIOSOutput? _CDU_LINE12_COLOR;
+        private DCSBIOSOutput? _CDU_LINE13_COLOR;
+        private DCSBIOSOutput? _CDU_LINE14_COLOR;
 
-        private DCSBIOSOutput _MSTR_CAUTION;
+        private DCSBIOSOutput? _MSTR_CAUTION;
 
-        private DCSBIOSOutput _CDU_BACKLIGHT;
+        private DCSBIOSOutput? _CDU_BACKLIGHT;
 
-        private Dictionary<uint, int> lineMap;
+        private Dictionary<uint, int>? lineMap;
 
-
-        private Dictionary<uint, int> colorLines;
+        private Dictionary<uint, int>? colorLines;
 
         private readonly string[] colorMap = Enumerable.Range(0, 14).Select(_ => new string(' ', 24)).ToArray();
 
@@ -165,13 +164,13 @@ namespace WWCduDcsBiosBridge
 
                 mcdu.Output.White();
 
-                if (colorLines.TryGetValue(e.Address, out int colorLine))
+                if (colorLines!.TryGetValue(e.Address, out int colorLine))
                 {
                     colorMap[colorLine - 1] = data;
                 }
 
 
-                if (lineMap.TryGetValue(e.Address, out int lineIndex))
+                if (lineMap!.TryGetValue(e.Address, out int lineIndex))
                 {
 
                     // update line with this fast method 
@@ -201,13 +200,13 @@ namespace WWCduDcsBiosBridge
         public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
         {
             var refresh = false;
-            if (e.Address == _MSTR_CAUTION.Address)
+            if (e.Address == _MSTR_CAUTION!.Address)
             {
                 mcdu.Leds.Fail = _MSTR_CAUTION.GetUIntValue(e.Data) != 0;
                 refresh = true;
             }
 
-            if (e.Address == _CDU_BACKLIGHT.Address)
+            if (e.Address == _CDU_BACKLIGHT!.Address)
             {
                 int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
                 

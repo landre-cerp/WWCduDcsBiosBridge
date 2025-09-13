@@ -65,7 +65,7 @@ namespace WWCduDcsBiosBridge
         {
 
             DCSAircraft.Init();
-            DCSAircraft.FillModulesListFromDcsBios(config.DcsBiosJsonLocation, true);
+            DCSAircraft.FillModulesListFromDcsBios(config!.DcsBiosJsonLocation, true);
             DCSBIOSControlLocator.JSONDirectory = config.DcsBiosJsonLocation;
 
             var aircraftMap = new Dictionary<int, Func<IDcsBiosListener>>

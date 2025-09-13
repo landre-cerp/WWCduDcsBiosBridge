@@ -76,8 +76,8 @@ namespace WWCduDcsBiosBridge
         private static void InitDcsBios()
         {
 
-            dcsBios = new DCSBIOS(config.ReceiveFromIpUdp, config.SendToIpUdp, 
-                                 config.ReceivePortUdp, config.SendPortUdp, 
+            dcsBios = new DCSBIOS(config!.ReceiveFromIpUdp, config!.SendToIpUdp, 
+                                 config!.ReceivePortUdp, config!.SendPortUdp, 
                                  DcsBiosNotificationMode.Parse);
             
             if (!dcsBios.HasLastException())
