@@ -184,7 +184,7 @@ namespace WWCduDcsBiosBridge
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    if (DisplayCMS || (_CMSP1.Address != e.Address && _CMSP2.Address != e.Address))
+                    if (DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
                     {
                         mcdu.Output.Line(lineIndex).WriteLine(data);
                     }
