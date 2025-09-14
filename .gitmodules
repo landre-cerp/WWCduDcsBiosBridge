@@ -1,0 +1,3 @@
+[submodule "libs/DCSFPCommon"]
+	path = libs/DCSFPCommon
+	url = https://github.com/DCS-Skunkworks/DCSFPCommon
