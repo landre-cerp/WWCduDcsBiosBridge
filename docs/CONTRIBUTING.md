@@ -25,7 +25,7 @@ _CDU_BRT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CDU_BRT");
 - Fork this repository.
 - Clone your fork locally
 - ```bash
-  git clone --recurse-submodules <<your forked-repo-url>>
+  git clone --recurse-submodules <your-forked-repo-url>
   ```
 
 ### 2. Create a Branch
