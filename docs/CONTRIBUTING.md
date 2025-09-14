@@ -87,7 +87,7 @@ or commitize style like:
 
 ## ❓ FAQ
 
-**Q: Keeps complaining that it can't find Aircraf 50 (CH47F)**
+**Q: Keeps complaining that it can't find Aircraft 50 (CH47F)**
 A: Add the CH-47F to the supported aircraft list in dcs-bios_modules.txt after the last entry (49)
 It's because the CH-47F is not yet handled in the DCSFPCommon library.
 ```
