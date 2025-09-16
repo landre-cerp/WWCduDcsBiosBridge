@@ -133,6 +133,9 @@ namespace WWCduDcsBiosBridge
 
         public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
         {
+
+            var output = new Compositor(pages[DEFAULT_PAGE]);
+
             try
             {
 
@@ -145,34 +148,34 @@ namespace WWCduDcsBiosBridge
 
                 data = data.PadRight(60).Substring(0, 60); // Ensure string is exactly 60 characters long
 
-                mcdu.Output.Green();
+                output.Green();
 
                 var time = data.Substring(46, 10);
                 var fuel = data.Substring(0, 10);
 
-                UpdateLine(mcdu.Output.Line(0), _PLT_EUFD_LINE14!, e, $"{fuel}    {time}");
+                UpdateLine(output.Line(0), _PLT_EUFD_LINE14!, e, $"{fuel}    {time}");
 
                 var incomingData = data.Substring(38, 17);
 
-                UpdateLine(mcdu.Output.Line(1), _PLT_EUFD_LINE1!, e, incomingData);
-                UpdateLine(mcdu.Output.Line(2), _PLT_EUFD_LINE2!, e, incomingData);
-                UpdateLine(mcdu.Output.Line(3), _PLT_EUFD_LINE3!, e, incomingData);
-                UpdateLine(mcdu.Output.Line(4), _PLT_EUFD_LINE4!, e, incomingData);
-                UpdateLine(mcdu.Output.Line(5), _PLT_EUFD_LINE5!, e, incomingData);
+                UpdateLine(output.Line(1), _PLT_EUFD_LINE1!, e, incomingData);
+                UpdateLine(output.Line(2), _PLT_EUFD_LINE2!, e, incomingData);
+                UpdateLine(output.Line(3), _PLT_EUFD_LINE3!, e, incomingData);
+                UpdateLine(output.Line(4), _PLT_EUFD_LINE4!, e, incomingData);
+                UpdateLine(output.Line(5), _PLT_EUFD_LINE5!, e, incomingData);
                 
-                mcdu.Output.Line(6).ClearRow();
+                output.Line(6).ClearRow();
 
                 //// Radios Frequencies
                 var radioData = data.Substring(0, 18);
-                UpdateLine(mcdu.Output.Line(7), _PLT_EUFD_LINE8!, e, radioData);
-                UpdateLine(mcdu.Output.Line(8), _PLT_EUFD_LINE9!, e, radioData);
-                UpdateLine(mcdu.Output.Line(9), _PLT_EUFD_LINE10!, e, radioData);
-                UpdateLine(mcdu.Output.Line(10), _PLT_EUFD_LINE11!, e, radioData);
-                UpdateLine(mcdu.Output.Line(11), _PLT_EUFD_LINE12!, e, radioData);
+                UpdateLine(output.Line(7), _PLT_EUFD_LINE8!, e, radioData);
+                UpdateLine(output.Line(8), _PLT_EUFD_LINE9!, e, radioData);
+                UpdateLine(output.Line(9), _PLT_EUFD_LINE10!, e, radioData);
+                UpdateLine(output.Line(10), _PLT_EUFD_LINE11!, e, radioData);
+                UpdateLine(output.Line(11), _PLT_EUFD_LINE12!, e, radioData);
 
-                mcdu.Output.Line(12).Amber().WriteLine("- Keyboard -------------");
+                output.Line(12).Amber().WriteLine("- Keyboard -------------");
 
-                UpdateLine(mcdu.Output.Line(13).Green(), _PLT_KU_DISPLAY!, e , data);
+                UpdateLine(output.Line(13).Green(), _PLT_KU_DISPLAY!, e , data);
             }
 
             catch

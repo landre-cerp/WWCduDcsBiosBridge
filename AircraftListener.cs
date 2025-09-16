@@ -24,6 +24,14 @@ namespace WWCduDcsBiosBridge
 
         protected readonly UserOptions options;
 
+        protected const string DEFAULT_PAGE = "default";
+
+        protected string _currentPage =DEFAULT_PAGE;
+
+        protected Dictionary<string, Screen> pages = new()
+        {
+              {DEFAULT_PAGE, new Screen() }
+        };
 
         public AircraftListener(ICdu mcdu, int aircraftNumber , UserOptions options)
         {
@@ -33,8 +41,13 @@ namespace WWCduDcsBiosBridge
             DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
             _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
 
+
             _DisplayCDUTimer = new(_TICK_DISPLAY);
-            _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
+            _DisplayCDUTimer.Elapsed += (_, _) =>
+            {
+                mcdu.Screen.CopyFrom(pages[_currentPage]);
+                mcdu.RefreshDisplay();
+            };
         }
 
         public void Start()

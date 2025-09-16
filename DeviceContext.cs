@@ -48,6 +48,8 @@ namespace WWCduDcsBiosBridge
                 case Key.LineSelectLeft4: SelectedAircraft = 44; break;  // F15E
                 case Key.LineSelectRight4: SelectedAircraft = 50; Pilot = false; break; // CH-47 CPLT
             }
+            Mcdu.KeyDown -= ReadMenu;
+
         }
 
         public void StartBridge()

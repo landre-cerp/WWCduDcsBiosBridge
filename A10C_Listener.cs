@@ -34,15 +34,47 @@ namespace WWCduDcsBiosBridge
         protected override string GetFontFile() => "resources/a10c-font-21x31.json";
         const int _AircraftNumber = 5;
 
+        const string TAKEOFF_PAGE = "Takeoff";
+        const string LANDING_PAGE= "Landing";
+
         public A10C_Listener(
             ICdu mcdu, 
-            UserOptions options) : base(mcdu, _AircraftNumber, options) {
+            UserOptions options) : base(mcdu, _AircraftNumber, options) 
+        {
+            pages.Add(TAKEOFF_PAGE, new Screen());
+            pages.Add(LANDING_PAGE, new Screen());
+
+            var takeoff = new Compositor(pages[TAKEOFF_PAGE]);
+            takeoff.Line(0).White().Centered("TAKEOFF PAGE");
+
+            var landing = new Compositor(pages[LANDING_PAGE]);
+            landing.Line(0).Yellow().Centered("LANDING PAGE");
+
+            mcdu.KeyDown += KeyDown;
+
         }
 
 
         ~A10C_Listener()
         {
+            mcdu.KeyDown -= KeyDown;
             Dispose(false);
+        }
+
+        private void KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key is Key.Fix)
+            {
+                _currentPage = TAKEOFF_PAGE;
+            }
+            if (e.Key is Key.Legs)
+            {
+                _currentPage = LANDING_PAGE;
+            }
+            if (e.Key is Key.InitRef or Key.Rte or Key.DepArr or Key.Altn or Key.VNav)
+            {
+                _currentPage = DEFAULT_PAGE;
+            }
         }
 
         protected override void initBiosControls()
@@ -68,7 +100,6 @@ namespace WWCduDcsBiosBridge
 
             _CMSP1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP1");
             _CMSP2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP2");
-
         }
 
         public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
@@ -133,12 +164,13 @@ namespace WWCduDcsBiosBridge
             }
         }
 
-
         public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
         {
+            
+            var output = new Compositor(pages[DEFAULT_PAGE]);
+
             try
             {
-
                 string data = e.StringData
                     .Replace("»", "→")
                     .Replace("«", "←")
@@ -148,7 +180,7 @@ namespace WWCduDcsBiosBridge
                     .Replace("±", "_")
                     .Replace("?", "%");
 
-                mcdu.Output.Green();
+                output.Green();
 
                 Dictionary<uint,int> lineMap; 
 
@@ -193,14 +225,15 @@ namespace WWCduDcsBiosBridge
                 {
                     if (options.DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
                     {
-                        mcdu.Output.Line(lineIndex).WriteLine(data);
+                        output.Line(lineIndex).WriteLine(data);
                     }
                 }
 
                 if (options.DisplayCMS)
                 {
-                    mcdu.Output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+                    output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
                 }
+
             }
             catch
             {
