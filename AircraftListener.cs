@@ -26,7 +26,7 @@ namespace WWCduDcsBiosBridge
 
         protected const string DEFAULT_PAGE = "default";
 
-        protected string _currentPage =DEFAULT_PAGE;
+        protected string _currentPage = DEFAULT_PAGE;
 
         protected Dictionary<string, Screen> pages = new()
         {
