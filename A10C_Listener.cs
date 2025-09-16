@@ -35,7 +35,7 @@ namespace WWCduDcsBiosBridge
         const int _AircraftNumber = 5;
 
         const string TAKEOFF_PAGE = "Takeoff";
-        const string LANDING_PAGE= "Landing";
+        const string LANDING_PAGE = "Landing";
 
         public A10C_Listener(
             ICdu mcdu, 
