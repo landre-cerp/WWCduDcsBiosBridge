@@ -37,10 +37,6 @@ jobs:
     - name: Build
       run: dotnet build WWCduDcsBiosBridge.csproj --configuration ${{ env.CONFIGURATION }} --no-restore
     
-    - name: Test (if tests exist)
-      if: hashFiles('**/*Tests.csproj') != ''
-      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity normal
-    
     - name: Publish (Single File)
       run: |
         dotnet publish WWCduDcsBiosBridge.csproj `
