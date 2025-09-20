@@ -35,7 +35,6 @@ namespace WWCduDcsBiosBridge
 
             _DisplayCDUTimer = new(_TICK_DISPLAY);
             _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
-            this.options = options;
         }
 
         public void Start()
