@@ -95,7 +95,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: wwcd-dcsbios-bridge-${{ github.ref_name }}-zip
-    
+        path: .
     - name: Create Release
       uses: softprops/action-gh-release@v2  # Updated to v2
       with:
