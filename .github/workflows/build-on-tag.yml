@@ -54,14 +54,14 @@ jobs:
     
     - name: Create release artifacts
       run: |
-        # Create a zip file with the published application
-        Compress-Archive -Path ./publish/* -DestinationPath wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
-        
         # Copy important files to publish directory for artifact
         Copy-Item "README.md" -Destination "./publish/" -ErrorAction SilentlyContinue
         Copy-Item "LICENSE.txt" -Destination "./publish/" -ErrorAction SilentlyContinue
         Copy-Item "thirdparty-licences.txt" -Destination "./publish/" -ErrorAction SilentlyContinue
         Copy-Item "docs/" -Destination "./publish/docs/" -Recurse -ErrorAction SilentlyContinue
+        
+        # Create a zip file with the published application and all copied files
+        Compress-Archive -Path ./publish/* -DestinationPath wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
       shell: powershell
     
     - name: Upload build artifacts
