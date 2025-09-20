@@ -98,7 +98,6 @@ namespace WWCduDcsBiosBridge
         {
             RootCommand rootCommand = new("Winwing CDU DCSBios bridge ") {
                     Options.DisplayBottomAligned,
-                    Options.AircraftNumber,
                     Options.DisplayCMS,
                     Options.CH47_LinkedBGBrightness,
                     Options.DisableLightingManagement                  
