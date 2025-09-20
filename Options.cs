@@ -16,14 +16,6 @@ namespace WWCduDcsBiosBridge
         };
 
         /// <summary>
-        /// Option to set the aircraft number.
-        /// </summary>
-        public static Option<int> AircraftNumber = new("--aircraft", "-a")
-        {
-            Description = "Set Aircraft number",
-        };
-
-        /// <summary>
         /// Option to display CMS information.
         /// </summary>
         public static Option<bool> DisplayCMS = new("--display-cms", "-cms")
