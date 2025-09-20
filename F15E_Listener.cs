@@ -19,7 +19,7 @@ namespace WWCduDcsBiosBridge
 
         const int _AircraftNumber = 44;
 
-        public F15E_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned)
+        public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
         {
         }
 

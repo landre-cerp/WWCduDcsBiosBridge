@@ -41,7 +41,7 @@ namespace WWCduDcsBiosBridge
         protected override string GetAircraftName() => "FA-18C";
         const int _AircraftNumber = 20;
 
-        public FA18C_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned)
+        public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
         {
         }
 
