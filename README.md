@@ -18,6 +18,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 4. **Update** the `dcsBiosJsonLocation` path in `config.json`
 5. **Connect** your Winwing MCDU and run the application
 6. **Launch DCS** and select your aircraft from the MCDU menu
+7. optional create a shortcut to add commandline options (see below)
 
 ## Requirements
 
@@ -129,6 +130,7 @@ supersedes -ch47lbg if both are used.
 
 ### Common Issues
 
+⚠️ Verify you use \\ in your ```DcsBiosJsonLocation``` path 
 **"Configuration file not found"**
 - The application will create a default `config.json` file
 - Update the `DcsBiosJsonLocation` path to point to your DCS-BIOS JSON files
@@ -157,16 +159,18 @@ supersedes -ch47lbg if both are used.
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
 - **A10C:** MCDU brightness is linked to the console rotary control (right pedestal)
 - **CH-47F:** Brightness is independent unless `--ch47-linked-brightness` option is used ,there's no known way to control screen birightness in the aircraft as BRT/DIM are inoperative
+- In case of flickering with SimAppPro running, try using ```-dlm``` (or change to Synchronize with game in SimAppPro)
 
 ### Logs
 
 All application activity is logged to `log.txt` in the same folder as the executable. Check this file for detailed error information.
+“Report issues [here](https://github.com/landre-cerp/McduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].”
 
 ## Known Limitations
 
 - **Aircraft switching:** Requires application restart
 - **Cursor behavior:** May appear erratic during waypoint entry (reflects DCS-BIOS data)
-- **CH-47F support:** Requires DCS-BIOS nightly build (not available in official releases)
+- **CH-47F support:** Requires DCS-BIOS nightly build (later than 0.8.4 )
 - **Brightness sync:** May not perfectly match aircraft state
 
 ## Development
@@ -187,7 +191,6 @@ See `LICENSE.txt` and `thirdparty-licences.txt` for licensing information.
 ## Support
 
 For issues and questions, please check the logs first and review the troubleshooting section above.
-
 
 [release-url]: https://github.com/landre-cerp/McduDcsBiosBridge/releases
 [release-shield]:  https://img.shields.io/github/release/landre-cerp/McduDcsBiosBridge.svg
