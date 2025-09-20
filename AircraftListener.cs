@@ -13,8 +13,6 @@ namespace WWCduDcsBiosBridge
         private static double _TICK_DISPLAY = 100;
         private readonly Timer _DisplayCDUTimer;
         protected ICdu mcdu;
-        protected readonly bool BottomAligned = false;
-        protected readonly bool DisplayCMS = false;
         protected readonly int AircraftNumber;
 
         private bool _disposed;
@@ -24,13 +22,14 @@ namespace WWCduDcsBiosBridge
         private bool _HasSyncOnce;
         private uint _Count;
 
+        protected readonly UserOptions options;
 
-        public AircraftListener(ICdu mcdu, int aircraftNumber, bool bottomAligned =false, bool displayCms = false  )
+
+        public AircraftListener(ICdu mcdu, int aircraftNumber , UserOptions options)
         {
             this.mcdu = mcdu;
-            BottomAligned = bottomAligned;
-            DisplayCMS = displayCms;
             AircraftNumber = aircraftNumber;
+            this.options = options;
             DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
             _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
 

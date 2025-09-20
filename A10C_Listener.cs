@@ -34,7 +34,9 @@ namespace WWCduDcsBiosBridge
         protected override string GetFontFile() => "resources/a10c-font-21x31.json";
         const int _AircraftNumber = 5;
 
-        public A10C_Listener(ICdu mcdu, bool bottomAligned, bool displayCMS) : base(mcdu, _AircraftNumber, bottomAligned, displayCMS) {
+        public A10C_Listener(
+            ICdu mcdu, 
+            UserOptions options) : base(mcdu, _AircraftNumber, options) {
         }
 
 
@@ -69,7 +71,6 @@ namespace WWCduDcsBiosBridge
 
         }
 
-
         public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
         {
             try
@@ -77,25 +78,31 @@ namespace WWCduDcsBiosBridge
                 bool refresh = false;
                 UpdateCounter(e.Address, e.Data);
 
-                if (e.Address == _CONSOLE_BRT!.Address)
+                if ( ! options.DisableLightingManagement)
                 {
-                    mcdu.BacklightBrightnessPercent =
-                        (int)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
-                    refresh = true;
+                    if (e.Address == _CONSOLE_BRT!.Address)
+                    {
+                        mcdu.BacklightBrightnessPercent =
+                            (int)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
+                        refresh = true;
+                    }
+
+                    if (e.Address == _CDU_BRT!.Address)
+                    {
+                        int val = (int)_CDU_BRT.GetUIntValue(e.Data);
+                        if (val == 0)
+                            mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent - 5);
+                        else if (val == 2)
+                            mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent + 5);
+                        // Always refresh Brightness. 
+                        refresh = true;
+                    }
+
                 }
+
                 if (e.Address == _CANOPY_LED!.Address)
                 {
                     mcdu.Leds.Fm2 = _CANOPY_LED!.GetUIntValue(e.Data) == 1;
-                    refresh = true;
-                }
-                if (e.Address == _CDU_BRT!.Address)
-                {
-                    int val = (int)_CDU_BRT.GetUIntValue(e.Data);
-                    if (val == 0)
-                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent - 5);
-                    else if (val == 2)
-                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent + 5);
-                    // Always refresh Brightness. 
                     refresh = true;
                 }
                 if (e.Address == _NOSE_SW_GREENLIGHT!.Address)
@@ -116,7 +123,7 @@ namespace WWCduDcsBiosBridge
 
                 if (refresh)
                 {
-                    mcdu.RefreshBrightnesses();
+                    if ( ! options.DisableLightingManagement) mcdu.RefreshBrightnesses();
                     mcdu.RefreshLeds();
                 }
             }
@@ -145,7 +152,7 @@ namespace WWCduDcsBiosBridge
 
                 Dictionary<uint,int> lineMap; 
 
-                if (BottomAligned)
+                if (options.DisplayBottomAligned)
                 {
                     lineMap = new Dictionary<uint, int>
                     {
@@ -184,15 +191,15 @@ namespace WWCduDcsBiosBridge
 
                 if (lineMap.TryGetValue(e.Address, out int lineIndex))
                 {
-                    if (DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
+                    if (options.DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
                     {
                         mcdu.Output.Line(lineIndex).WriteLine(data);
                     }
                 }
 
-                if (DisplayCMS)
+                if (options.DisplayCMS)
                 {
-                    mcdu.Output.Line(BottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+                    mcdu.Output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
                 }
             }
             catch

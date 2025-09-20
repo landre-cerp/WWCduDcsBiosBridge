@@ -55,8 +55,6 @@ namespace WWCduDcsBiosBridge
 
         protected string prefix;
 
-        private readonly bool linkedBG;
-
         private readonly Dictionary<string, Colour> _Colours = new Dictionary<string, Colour>
         {
                 { " " , Colour.Black },
@@ -65,10 +63,9 @@ namespace WWCduDcsBiosBridge
                 { "w",  Colour.White}
         };
 
-        public CH47F_Listener(ICdu mcdu, bool linkedBGBrightness,  bool pilot=true) : base(mcdu, _AircraftNumber, false)
+        public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, _AircraftNumber, options)
         {
             prefix = pilot ? "PLT_": "CPLT_";
-            linkedBG = linkedBGBrightness;
         }
 
         protected override void initBiosControls()
@@ -204,24 +201,28 @@ namespace WWCduDcsBiosBridge
                 refresh = true;
             }
 
-            if (e.Address == _CDU_BACKLIGHT!.Address)
+            if (!options.DisableLightingManagement)
             {
-                int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
-                
-                bright = bright * 100 / 65536;
-                mcdu.BacklightBrightnessPercent = bright;
-                if (linkedBG)
+
+                if (e.Address == _CDU_BACKLIGHT!.Address)
                 {
-                    mcdu.DisplayBrightnessPercent = bright;
+                    int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
+
+                    bright = bright * 100 / 65536;
+                    mcdu.BacklightBrightnessPercent = bright;
+                    if (options.LinkedScreenBrightness)
+                    {
+                        mcdu.DisplayBrightnessPercent = bright;
+                    }
+
+                    mcdu.LedBrightnessPercent = bright;
+                    refresh = true;
                 }
-                
-                mcdu.LedBrightnessPercent = bright;
-                refresh = true;
             }
 
             if (refresh)
             {
-                mcdu.RefreshBrightnesses();
+                if ( ! options.DisableLightingManagement ) mcdu.RefreshBrightnesses();
                 mcdu.RefreshLeds();
             }
         }

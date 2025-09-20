@@ -10,21 +10,15 @@ namespace WWCduDcsBiosBridge
         public ICdu Mcdu { get; }
         public int SelectedAircraft { get; private set; } = -1;
         public bool Pilot { get; private set; } = true;
-        private readonly bool displayBottomAligned;
-        private readonly bool displayCMS;
         private readonly DcsBiosConfig? config;
-        private readonly bool linkedBGbrightness;
+        private readonly UserOptions options;
 
         public DeviceContext(ICdu mcdu,
-            bool displayBottomAligned,
-            bool displayCMS,
-            bool linkedBGbrightness,
+            UserOptions options,
             DcsBiosConfig? config)
         {
             Mcdu = mcdu;
-            this.displayBottomAligned = displayBottomAligned;
-            this.displayCMS = displayCMS;
-            this.linkedBGbrightness = linkedBGbrightness;
+            this.options = options;
             this.config = config;
         }
 
@@ -65,11 +59,11 @@ namespace WWCduDcsBiosBridge
 
             var aircraftMap = new Dictionary<int, Func<IDcsBiosListener>>
             {
-                [5] = () => new A10C_Listener(Mcdu, displayBottomAligned, displayCMS),
-                [46] = () => new AH64D_Listener(Mcdu, displayBottomAligned),
-                [20] = () => new FA18C_Listener(Mcdu, displayBottomAligned),
-                [44] = () => new F15E_Listener(Mcdu, displayBottomAligned),
-                [50] = () => new CH47F_Listener(Mcdu, linkedBGbrightness, Pilot),
+                [5] = () => new A10C_Listener(Mcdu, options),
+                [46] = () => new AH64D_Listener(Mcdu, options),
+                [20] = () => new FA18C_Listener(Mcdu, options),
+                [44] = () => new F15E_Listener(Mcdu, options),
+                [50] = () => new CH47F_Listener(Mcdu, options, Pilot),
             };
 
             if (aircraftMap.TryGetValue(SelectedAircraft, out var factory))

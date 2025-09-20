@@ -39,5 +39,13 @@ namespace WWCduDcsBiosBridge
             Description = "Link BG Brightness to other",
         };
 
+        /// <summary>
+        /// Disable Lighting management for people using SimApp pro.
+        /// </summary>
+        public static Option<bool> DisableLightingManagement = new("--disable-lighting-management", "-dlm")
+        {
+            Description = "Disable lighting management (for SimApp Pro users)",
+        };
+
     }
 }

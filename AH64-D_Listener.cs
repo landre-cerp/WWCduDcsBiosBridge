@@ -37,7 +37,7 @@ namespace WWCduDcsBiosBridge
         protected override string GetAircraftName() => "AH-64D";
         const int _AircraftNumber = 46;
 
-        public AH64D_Listener(ICdu mcdu, bool bottomAligned) : base(mcdu, _AircraftNumber, bottomAligned) {
+        public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber , options) {
         }
 
         ~AH64D_Listener()
@@ -81,6 +81,8 @@ namespace WWCduDcsBiosBridge
 
         private void HandleEufdBrightness(DCSBIOSDataEventArgs e)
         {
+            if (options.DisableLightingManagement) return;
+
             int newValue = 0;
 
             if (ShouldHandleDCSBiosData(e, _PLT_EUFD_BRT!, out newValue))
@@ -90,7 +92,7 @@ namespace WWCduDcsBiosBridge
                 mcdu.BacklightBrightnessPercent = eufdBright;
                 mcdu.DisplayBrightnessPercent = eufdBright;
                 mcdu.LedBrightnessPercent = eufdBright;
-                mcdu.RefreshLeds();
+                mcdu.RefreshBrightnesses();
             }
         }
 

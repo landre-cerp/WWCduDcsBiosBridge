@@ -12,10 +12,8 @@ namespace WWCduDcsBiosBridge
         private static DcsBiosConfig? config;
 
         private static DCSBIOS? dcsBios;
+        private static readonly UserOptions ParsedOptions = new UserOptions();
 
-        private static bool displayBottomAligned = false;
-        private static bool displayCMS = false;
-        private static bool linkedScreenBrightness = false;
 
         /// <summary>
         /// Main entry point for the MCDU DCS-BIOS Bridge application.
@@ -30,7 +28,9 @@ namespace WWCduDcsBiosBridge
 
             var devices = CduFactory.FindLocalDevices().ToList();
             var contexts = devices.Select(dev => new DeviceContext(
-                CduFactory.ConnectLocal(dev), displayBottomAligned, displayCMS, linkedScreenBrightness, config)).ToList();
+                CduFactory.ConnectLocal(dev), 
+                ParsedOptions,
+                config)).ToList();
 
             foreach (var ctx in contexts)
                 ctx.ShowStartupScreen();
@@ -100,18 +100,17 @@ namespace WWCduDcsBiosBridge
                     Options.DisplayBottomAligned,
                     Options.AircraftNumber,
                     Options.DisplayCMS,
-                    Options.CH47_LinkedBGBrightness
+                    Options.CH47_LinkedBGBrightness,
+                    Options.DisableLightingManagement                  
             };
 
             rootCommand.TreatUnmatchedTokensAsErrors = true;
 
             ParseResult parsed = rootCommand.Parse(args);
-            displayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
-            displayCMS = parsed.GetValue(Options.DisplayCMS);
-            linkedScreenBrightness = parsed.GetValue(Options.CH47_LinkedBGBrightness);
+            ParsedOptions.DisplayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
+            ParsedOptions.DisplayCMS = parsed.GetValue(Options.DisplayCMS);
+            ParsedOptions.LinkedScreenBrightness = parsed.GetValue(Options.CH47_LinkedBGBrightness);
+            ParsedOptions.DisableLightingManagement = parsed.GetValue(Options.DisableLightingManagement);
         }
-
-
-
     }
 }
