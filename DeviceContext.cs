@@ -38,7 +38,7 @@ namespace WWCduDcsBiosBridge
                 .LeftLabel(2, "A10C").RightLabel(2, "AH64D")
                 .LeftLabel(3, "FA18C").RightLabel(3, "CH-47 (PLT)")
                 .LeftLabel(4, "F15E").RightLabel(4, "CH-47 (CPLT)")
-                .BottomLine().WriteLine("Menu key to exit");
+                .BottomLine().WriteLine("Close app to exit");
             Mcdu.RefreshDisplay();
             Mcdu.KeyDown += ReadMenu;
         }
@@ -53,11 +53,6 @@ namespace WWCduDcsBiosBridge
                 case Key.LineSelectRight3: SelectedAircraft = 50; Pilot = true; break; // CH-47 PLT
                 case Key.LineSelectLeft4: SelectedAircraft = 44; break;  // F15E
                 case Key.LineSelectRight4: SelectedAircraft = 50; Pilot = false; break; // CH-47 CPLT
-                case Key.Menu:
-                case Key.McduMenu:
-                    Mcdu.Cleanup();
-                    Environment.Exit(0);
-                    break;
             }
         }
 
