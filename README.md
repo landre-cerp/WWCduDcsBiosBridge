@@ -1,3 +1,9 @@
+
+[![Release][release-shield]][release-url]
+[![Discord][discord-shield]][discord-invite-url]
+![Build Status][build-shield]
+![License](https://img.shields.io/github/license/landre-cerp/McduDcsBiosBridge)
+
 # McduDCSBiosBridge
 
 This console application bridges DCS World with the Winwing MCDU hardware, enabling real-time data exchange between the simulator and the physical device.
@@ -106,9 +112,13 @@ WWCduDcsBiosBridge.exe -ba -cms
 | `--display-cms` | `-cms` | Show CMS on free screen space (A10C only) |
 | `--aircraft` | `-a` | Set aircraft number |
 | `--ch47-linked-brightness` | `-ch47lbg` | Link CH-47F brightness to other aircraft |
+| `--disable-light-management` | `-dlm` | Disable light management ( leave it to SimApp pro ) |
 
 if you add the -ch47lbg option, it will link the CH-47F brightness to the other aircraft brightness control.
 It means that when you dial the knob on the pedestal, it will change All. No options,means screen brightness is independent.
+
+-dlm is useful if you use SimApp pro to manage the lights, as it will avoid conflicts between the two applications.
+supercedes -ch47lbg if both are used.
 
 ### Controls
 
@@ -178,3 +188,11 @@ See `LICENSE.txt` and `thirdparty-licences.txt` for licensing information.
 ## Support
 
 For issues and questions, please check the logs first and review the troubleshooting section above.
+
+
+[release-url]: https://github.com/landre-cerp/McduDcsBiosBridge/releases
+[release-shield]:  https://img.shields.io/github/release/landre-cerp/McduDcsBiosBridge.svg
+[discord-shield]: https://img.shields.io/discord/231115945047883778
+[discord-invite-url]: https://discord.gg/Td2cGvMhVC
+[dcs-forum-discussion]: https://forum.dcs.world/topic/368056-winwing-mcdu-can-it-be-used-in-dcs-for-other-aircraft/page/4/
+[build-shield]: https://img.shields.io/github/actions/workflow/status/landre-cerp/McduDcsBiosBridge/build-on-tag.yml
