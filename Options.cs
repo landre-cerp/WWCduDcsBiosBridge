@@ -40,7 +40,7 @@ namespace WWCduDcsBiosBridge
         };
 
         /// <summary>
-        /// Diable Lighting management for people using SimApp pro.
+        /// Disable Lighting management for people using SimApp pro.
         /// 
         public static Option<bool> DisableLightingManagement = new("--disable-lighting-management", "-dlm")
         {
