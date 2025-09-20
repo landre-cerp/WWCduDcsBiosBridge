@@ -118,7 +118,7 @@ if you add the -ch47lbg option, it will link the CH-47F brightness to the other 
 It means that when you dial the knob on the pedestal, it will change All. No options,means screen brightness is independent.
 
 -dlm is useful if you use SimApp pro to manage the lights, as it will avoid conflicts between the two applications.
-supercedes -ch47lbg if both are used.
+supersedes -ch47lbg if both are used.
 
 ### Controls
 
