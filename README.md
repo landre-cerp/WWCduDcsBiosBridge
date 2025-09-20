@@ -66,7 +66,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 ### Application Setup
 
 1. **Extract** the application files to your chosen directory
-2. **Run** `McduDcsBiosBridge.exe` once to generate the configuration file
+2. **Run** `WWCduDcsBiosBridge.exe` once to generate the configuration file
 3. **Edit** `config.json` with your settings:
 
 ```json
@@ -91,11 +91,11 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 
 ```bash
 # Basic usage
-McduDcsBiosBridge.exe
+WWCduDcsBiosBridge.exe
 
 # With options (A10C specific)
-McduDcsBiosBridge.exe --bottom-aligned --display-cms
-McduDcsBiosBridge.exe -ba -cms
+WWCduDcsBiosBridge.exe --bottom-aligned --display-cms
+WWCduDcsBiosBridge.exe -ba -cms
 ```
 
 ### Command Line Options
