@@ -16,11 +16,9 @@ internal class F15E_Listener : AircraftListener
     private DCSBIOSOutput? F_UFC_LINE6_DISPLAY;
 
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-    protected override string GetAircraftName() => "F-15E";
+    protected override string GetAircraftName() => SupportedAircrafts.F15E_Name;
 
-    const int _AircraftNumber = 44;
-
-    public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
+    public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.F15E, options)
     {
     }
 
