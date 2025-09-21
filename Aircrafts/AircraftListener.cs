@@ -8,9 +8,9 @@ using System;
 using System.IO;
 using Timer = System.Timers.Timer;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
-    internal abstract class AircraftListener : IDcsBiosListener
+    internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
         private static double _TICK_DISPLAY = 100;
         private readonly Timer _DisplayCDUTimer;
@@ -102,11 +102,10 @@ namespace WWCduDcsBiosBridge
         {
             if (_disposed) return;
 
-            
             if (disposing)
             {
                 Stop();
-
+                _DisplayCDUTimer.Dispose(); // <-- Dispose the timer
             }
 
             _disposed = true;

@@ -1,4 +1,4 @@
-<Window x:Class="WWCduDcsBiosBridge.ConfigWindow"
+<Window x:Class="WWCduDcsBiosBridge.Config.ConfigWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="DCS-BIOS Configuration" 
@@ -16,7 +16,7 @@
 
         <!-- Header -->
         <TextBlock Grid.Row="0" 
-                   Text="DCS-BIOS Configuration Settings" 
+                   Text="DCS-BIOS Configuration" 
                    FontSize="16" 
                    FontWeight="Bold" 
                    Margin="0,0,0,20"

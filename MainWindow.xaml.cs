@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using WWCduDcsBiosBridge.Config;
 
 namespace WWCduDcsBiosBridge
 {
@@ -26,7 +27,6 @@ namespace WWCduDcsBiosBridge
             LoadUserSettings();
             SetupLogging();
             LoadConfig();
-            UpdateConfigStatus();
             UpdateOptionsUIFromSettings();
             UpdateStartButtonState();
             Loaded += MainWindow_Loaded; // Subscribe to Loaded event
@@ -77,20 +77,6 @@ namespace WWCduDcsBiosBridge
             }
         }
 
-        private void UpdateConfigStatus()
-        {
-            if (config != null)
-            {
-                ConfigStatusTextBlock.Text = $"Config: {config.ReceiveFromIpUdp}:{config.ReceivePortUdp} {config.SendToIpUdp}:{config.SendPortUdp}";
-                ConfigStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
-            }
-            else
-            {
-                ConfigStatusTextBlock.Text = "Configuration not loaded";
-                ConfigStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
-            }
-        }
-
         private void ConfigButton_Click(object sender, RoutedEventArgs e)
         {
             if (bridgeStarted)
@@ -112,7 +98,6 @@ namespace WWCduDcsBiosBridge
                 if (configWindow.ShowDialog() == true)
                 {
                     config = configWindow.Config;
-                    UpdateConfigStatus();
                     UpdateStartButtonState(); 
 
                     // If config is now valid, update status
@@ -168,40 +153,41 @@ namespace WWCduDcsBiosBridge
                     SetOptionsEnabled(true);
                     ConfigButton.IsEnabled = true;
                     return;
+                
+                }
+
+                contexts = devices.Select(dev => new DeviceContext(
+                    CduFactory.ConnectLocal(dev),
+                    userOptions ?? new UserOptions(),
+                    config)).ToList();
+
+                foreach (var ctx in contexts)
+                    ctx.ShowStartupScreen();
+
+                while (contexts.Any(c => c.SelectedAircraft == -1))
+                    await Task.Delay(100);
+
+                InitDcsBios();
+
+                foreach (var ctx in contexts)
+                    ctx.StartBridge();
+
+                    StartButton.Content = "Bridge Running";
+                ShowStatus("Bridge started successfully!", false);
+
+                bridgeStarted = true;
+
+                Logger.Info("Bridge started successfully from WPF interface");
             }
-
-            contexts = devices.Select(dev => new DeviceContext(
-                CduFactory.ConnectLocal(dev),
-                userOptions ?? new UserOptions(),
-                config)).ToList();
-
-            foreach (var ctx in contexts)
-                ctx.ShowStartupScreen();
-
-            while (contexts.Any(c => c.SelectedAircraft == -1))
-                await Task.Delay(100);
-
-            InitDcsBios();
-
-            foreach (var ctx in contexts)
-                ctx.StartBridge();
-
-                StartButton.Content = "Bridge Running";
-            ShowStatus("Bridge started successfully!", false);
-
-            bridgeStarted = true;
-
-            Logger.Info("Bridge started successfully from WPF interface");
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Failed to start bridge");
-            ShowStatus($"Failed to start bridge: {ex.Message}", true);
-                StartButton.IsEnabled = true;
-                StartButton.Content = "Start Bridge";
-            SetOptionsEnabled(true);
-            ConfigButton.IsEnabled = true;
-        }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to start bridge");
+                ShowStatus($"Failed to start bridge: {ex.Message}", true);
+                    StartButton.IsEnabled = true;
+                    StartButton.Content = "Start Bridge";
+                SetOptionsEnabled(true);
+                ConfigButton.IsEnabled = true;
+            }
         }
 
         private void LoadUserSettings()

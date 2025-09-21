@@ -4,7 +4,7 @@ using DCS_BIOS.Serialized;
 using McduDotNet;
 using System;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
     internal class FA18C_Listener : AircraftListener
     {

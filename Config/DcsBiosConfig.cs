@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Config
 {
     /// <summary>
     /// Exception thrown when configuration validation fails.

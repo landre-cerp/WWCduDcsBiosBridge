@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
     internal class CH47F_Listener : AircraftListener
     {

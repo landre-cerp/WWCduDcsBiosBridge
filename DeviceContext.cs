@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using WWCduDcsBiosBridge.Aircrafts;
+using WWCduDcsBiosBridge.Config;
+
 
 namespace WWCduDcsBiosBridge
 {

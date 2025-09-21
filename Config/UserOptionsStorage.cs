@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Config
 {
     public static class UserOptionsStorage
     {

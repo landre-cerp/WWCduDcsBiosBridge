@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <StartupObject>WWCduDcsBiosBridge.Program</StartupObject>
   </PropertyGroup>
