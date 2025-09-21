@@ -2,6 +2,9 @@
 using DCS_BIOS.ControlLocator;
 using McduDotNet;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace WWCduDcsBiosBridge
 {

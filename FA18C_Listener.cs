@@ -2,6 +2,7 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
+using System;
 
 namespace WWCduDcsBiosBridge
 {

@@ -1,115 +1,37 @@
 using DCS_BIOS;
 using McduDotNet;
 using NLog;
-using System.CommandLine;
+using System;
+using System.Windows;
 
 namespace WWCduDcsBiosBridge
 {
-    internal class Program
+    public class Program
     {
-
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private static DcsBiosConfig? config;
-
-        private static DCSBIOS? dcsBios;
-        private static readonly UserOptions ParsedOptions = new UserOptions();
-
 
         /// <summary>
         /// Main entry point for the MCDU DCS-BIOS Bridge application.
         /// </summary>
         /// <param name="args">Command line arguments</param>
-        /// <returns>Exit code (0 for success, non-zero for errors)</returns>
-        static async Task<int> Main(string[] args)
+        [STAThread]
+        public static int Main()
         {
-            SetupLogging();
-            LoadConfig();
-            ParseOptions(args);
-
-            var devices = CduFactory.FindLocalDevices().ToList();
-            var contexts = devices.Select(dev => new DeviceContext(
-                CduFactory.ConnectLocal(dev), 
-                ParsedOptions,
-                config)).ToList();
-
-            foreach (var ctx in contexts)
-                ctx.ShowStartupScreen();
-
-            while (contexts.Any(c => c.SelectedAircraft == -1))
-                await Task.Delay(100);
-            InitDcsBios();
-
-            foreach (var ctx in contexts)
-                ctx.StartBridge();
-
-            await Task.Delay(-1);
-            return 0;
-        }
-
-        /// <summary>
-        /// Sets up logging configuration.
-        /// </summary>
-        private static void SetupLogging()
-        {
-            LogManager.ThrowConfigExceptions = true;
-        }
-
-        /// <summary>
-        /// Loads configuration from the config file.
-        /// </summary>
-        private static void LoadConfig()
-        {
-            config = ConfigManager.Load();
-            if (config == null)
-                throw new InvalidOperationException("Configuration not loaded");
-        }
-
-
-        /// <summary>
-        /// Initializes the DCS-BIOS connection.
-        /// </summary>
-        private static void InitDcsBios()
-        {
-
-            dcsBios = new DCSBIOS(config!.ReceiveFromIpUdp, config!.SendToIpUdp, 
-                                 config!.ReceivePortUdp, config!.SendPortUdp, 
-                                 DcsBiosNotificationMode.Parse);
-            
-            if (!dcsBios.HasLastException())
+            try
             {
-                if (!dcsBios.IsRunning)
-                {
-                    dcsBios.Startup();
-                }
-                Logger.Info("DCS-BIOS started successfully.");
+                var app = new Application();
+                var mainWindow = new MainWindow();
+                app.Run(mainWindow);
+                // Return 0 for success, or another code if you want to indicate an error
+                return 0;
             }
-            else
+            catch (Exception ex)
             {
-                Logger.Error(dcsBios.GetLastException().Message);
+                Logger.Error(ex, "Failed to start WPF application");
+                MessageBox.Show($"Failed to start application: {ex.Message}", "Error", 
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                return 1;
             }
-        }
-
-
-        /// <summary>
-        /// Parses command line options and sets global flags.
-        /// </summary>
-        /// <param name="args">Command line arguments</param>
-        private static void ParseOptions(string[] args)
-        {
-            RootCommand rootCommand = new("Winwing CDU DCSBios bridge ") {
-                    Options.DisplayBottomAligned,
-                    Options.DisplayCMS,
-                    Options.CH47_LinkedBGBrightness,
-                    Options.DisableLightingManagement                  
-            };
-
-            rootCommand.TreatUnmatchedTokensAsErrors = true;
-
-            ParseResult parsed = rootCommand.Parse(args);
-            ParsedOptions.DisplayBottomAligned = parsed.GetValue(Options.DisplayBottomAligned);
-            ParsedOptions.DisplayCMS = parsed.GetValue(Options.DisplayCMS);
-            ParsedOptions.LinkedScreenBrightness = parsed.GetValue(Options.CH47_LinkedBGBrightness);
-            ParsedOptions.DisableLightingManagement = parsed.GetValue(Options.DisableLightingManagement);
         }
     }
 }
