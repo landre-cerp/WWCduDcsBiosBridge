@@ -4,165 +4,162 @@ using System.IO;
 using System.Net;
 using System.Windows;
 
-namespace WWCduDcsBiosBridge.Config
+namespace WWCduDcsBiosBridge.Config;
+
+public partial class ConfigWindow : Window
 {
-    public partial class ConfigWindow : Window
+    private const int MinPortNumber = 1;
+    private const int MaxPortNumber = 65535;
+
+    public DcsBiosConfig Config { get; private set; }
+
+    public ConfigWindow(DcsBiosConfig config)
     {
-        public DcsBiosConfig Config { get; private set; }
-
-        public ConfigWindow(DcsBiosConfig config)
+        InitializeComponent();
+        Config = new DcsBiosConfig
         {
-            InitializeComponent();
-            Config = new DcsBiosConfig
-            {
-                ReceiveFromIpUdp = config.ReceiveFromIpUdp,
-                SendToIpUdp = config.SendToIpUdp,
-                ReceivePortUdp = config.ReceivePortUdp,
-                SendPortUdp = config.SendPortUdp,
-                DcsBiosJsonLocation = config.DcsBiosJsonLocation
-            };
-            
-            LoadConfigToUI();
-        }
+            ReceiveFromIpUdp = config.ReceiveFromIpUdp,
+            SendToIpUdp = config.SendToIpUdp,
+            ReceivePortUdp = config.ReceivePortUdp,
+            SendPortUdp = config.SendPortUdp,
+            DcsBiosJsonLocation = config.DcsBiosJsonLocation
+        };
+        
+        LoadConfigToUI();
+    }
 
-        private void LoadConfigToUI()
+    private void LoadConfigToUI()
+    {
+        ReceiveIpTextBox.Text = Config.ReceiveFromIpUdp;
+        SendIpTextBox.Text = Config.SendToIpUdp;
+        ReceivePortTextBox.Text = Config.ReceivePortUdp.ToString();
+        SendPortTextBox.Text = Config.SendPortUdp.ToString();
+        JsonLocationTextBox.Text = Config.DcsBiosJsonLocation;
+    }
+
+    private bool ValidateAndUpdateConfig()
+    {
+        try
         {
-            ReceiveIpTextBox.Text = Config.ReceiveFromIpUdp;
-            SendIpTextBox.Text = Config.SendToIpUdp;
-            ReceivePortTextBox.Text = Config.ReceivePortUdp.ToString();
-            SendPortTextBox.Text = Config.SendPortUdp.ToString();
-            JsonLocationTextBox.Text = Config.DcsBiosJsonLocation;
-        }
-
-        private bool ValidateAndUpdateConfig()
-        {
-            try
+            // Validate IP addresses
+            if (!IPAddress.TryParse(ReceiveIpTextBox.Text.Trim(), out var receiveIp))
             {
-                // Validate IP addresses
-                if (!IPAddress.TryParse(ReceiveIpTextBox.Text.Trim(), out var receiveIp))
-                {
-                    MessageBox.Show("Receive IP address is not valid.", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    ReceiveIpTextBox.Focus();
-                    return false;
-                }
-
-                if (!IPAddress.TryParse(SendIpTextBox.Text.Trim(), out var sendIp))
-                {
-                    MessageBox.Show("Send IP address is not valid.", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    SendIpTextBox.Focus();
-                    return false;
-                }
-
-                // Validate ports
-                if (!int.TryParse(ReceivePortTextBox.Text.Trim(), out int receivePort) || 
-                    receivePort < 1 || receivePort > 65535)
-                {
-                    MessageBox.Show("Receive port must be between 1 and 65535.", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    ReceivePortTextBox.Focus();
-                    return false;
-                }
-
-                if (!int.TryParse(SendPortTextBox.Text.Trim(), out int sendPort) || 
-                    sendPort < 1 || sendPort > 65535)
-                {
-                    MessageBox.Show("Send port must be between 1 and 65535.", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    SendPortTextBox.Focus();
-                    return false;
-                }
-
-                // Validate JSON location
-                string jsonLocation = JsonLocationTextBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(jsonLocation))
-                {
-                    MessageBox.Show("DCS-BIOS JSON location cannot be empty.", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    JsonLocationTextBox.Focus();
-                    return false;
-                }
-
-                if (!Directory.Exists(jsonLocation))
-                {
-                    MessageBox.Show($"The specified directory does not exist: {jsonLocation}", "Validation Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                    JsonLocationTextBox.Focus();
-                    return false;
-                }
-
-                // Update config
-                Config.ReceiveFromIpUdp = receiveIp.ToString();
-                Config.SendToIpUdp = sendIp.ToString();
-                Config.ReceivePortUdp = receivePort;
-                Config.SendPortUdp = sendPort;
-                Config.DcsBiosJsonLocation = jsonLocation;
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Validation error: {ex.Message}", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowValidationError("Receive IP address is not valid.", ReceiveIpTextBox);
                 return false;
             }
-        }
 
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new OpenFolderDialog
+            if (!IPAddress.TryParse(SendIpTextBox.Text.Trim(), out var sendIp))
             {
-                Title = "Select DCS-BIOS JSON Files Directory"
-            };
-
-            if (!string.IsNullOrWhiteSpace(JsonLocationTextBox.Text) && Directory.Exists(JsonLocationTextBox.Text))
-            {
-                dialog.InitialDirectory = JsonLocationTextBox.Text;
+                ShowValidationError("Send IP address is not valid.", SendIpTextBox);
+                return false;
             }
 
-            if (dialog.ShowDialog() == true)
+            // Validate ports
+            if (!ValidatePort(ReceivePortTextBox.Text.Trim(), "Receive port", ReceivePortTextBox, out int receivePort))
+                return false;
+
+            if (!ValidatePort(SendPortTextBox.Text.Trim(), "Send port", SendPortTextBox, out int sendPort))
+                return false;
+
+            // Validate JSON location
+            string jsonLocation = JsonLocationTextBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(jsonLocation))
             {
-                JsonLocationTextBox.Text = dialog.FolderName;
+                ShowValidationError("DCS-BIOS JSON location cannot be empty.", JsonLocationTextBox);
+                return false;
             }
+
+            if (!Directory.Exists(jsonLocation))
+            {
+                ShowValidationError($"The specified directory does not exist: {jsonLocation}", JsonLocationTextBox);
+                return false;
+            }
+
+            // Update config
+            Config.ReceiveFromIpUdp = receiveIp.ToString();
+            Config.SendToIpUdp = sendIp.ToString();
+            Config.ReceivePortUdp = receivePort;
+            Config.SendPortUdp = sendPort;
+            Config.DcsBiosJsonLocation = jsonLocation;
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Validation error: {ex.Message}", "Validation Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
+    private bool ValidatePort(string portText, string portName, System.Windows.Controls.TextBox textBox, out int port)
+    {
+        if (!int.TryParse(portText, out port) || port is < MinPortNumber or > MaxPortNumber)
+        {
+            ShowValidationError($"{portName} must be between {MinPortNumber} and {MaxPortNumber}.", textBox);
+            return false;
+        }
+        return true;
+    }
+
+    private static void ShowValidationError(string message, System.Windows.Controls.Control controlToFocus)
+    {
+        MessageBox.Show(message, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+        controlToFocus.Focus();
+    }
+
+    private void BrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Select DCS-BIOS JSON Files Directory"
+        };
+
+        if (!string.IsNullOrWhiteSpace(JsonLocationTextBox.Text) && Directory.Exists(JsonLocationTextBox.Text))
+        {
+            dialog.InitialDirectory = JsonLocationTextBox.Text;
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        if (dialog.ShowDialog() == true)
         {
-            if (ValidateAndUpdateConfig())
-            {
-                try
-                {
-                    ConfigManager.Save(Config);
-                    MessageBox.Show("Configuration saved successfully!", "Success", 
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult = true;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to save configuration: {ex.Message}", "Save Error", 
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+            JsonLocationTextBox.Text = dialog.FolderName;
         }
+    }
 
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ValidateAndUpdateConfig()) return;
+        
+        try
         {
-            DialogResult = false;
+            ConfigManager.Save(Config);
+            MessageBox.Show("Configuration saved successfully!", "Success", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+            DialogResult = true;
         }
-
-        private void ResetToDefaultsButton_Click(object sender, RoutedEventArgs e)
+        catch (Exception ex)
         {
-            var result = MessageBox.Show("Are you sure you want to reset all settings to default values?", 
-                                        "Reset to Defaults", 
-                                        MessageBoxButton.YesNo, 
-                                        MessageBoxImage.Question);
-            
-            if (result == MessageBoxResult.Yes)
-            {
-                Config = new DcsBiosConfig();
-                LoadConfigToUI();
-            }
+            MessageBox.Show($"Failed to save configuration: {ex.Message}", "Save Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+    }
+
+    private void ResetToDefaultsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var result = MessageBox.Show("Are you sure you want to reset all settings to default values?", 
+                                    "Reset to Defaults", 
+                                    MessageBoxButton.YesNo, 
+                                    MessageBoxImage.Question);
+        
+        if (result == MessageBoxResult.Yes)
+        {
+            Config = new DcsBiosConfig();
+            LoadConfigToUI();
         }
     }
 }
