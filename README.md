@@ -113,6 +113,7 @@ if no config.json is found, it will create a default one and show you a dialog b
 
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
 - **A10C:** MCDU brightness is linked to the console rotary control (right pedestal)
+- **CH-47F:** Check the [specific documentation](docs/CH-47.md)
 - In case of flickering with SimAppPro running, check the
 
 <img width="50%" alt="image" src="https://github.com/user-attachments/assets/1cc6f86f-8fc8-457e-a9fb-11191fcd966d" />
@@ -139,7 +140,7 @@ This project is written in C# and targets .NET 8.0. It uses:
 - **System.CommandLine** for command-line parsing
 
 ## Contributing
-see `docs/CONTRIBUTING.md` for contribution guidelines.
+see `docs/CONTRIBUTING.md` for contribution guidelines. [link](docs/CONTRIBUTING.md)
 
 ## License
 
