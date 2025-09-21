@@ -1,4 +1,6 @@
-﻿namespace WWCduDcsBiosBridge
+﻿using System;
+
+namespace WWCduDcsBiosBridge.Config
 {
     /// <summary>
     /// Exception thrown when configuration validation fails.

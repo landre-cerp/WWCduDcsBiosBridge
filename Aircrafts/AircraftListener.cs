@@ -4,9 +4,11 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
+using System;
+using System.IO;
 using Timer = System.Timers.Timer;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
     internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
@@ -100,11 +102,10 @@ namespace WWCduDcsBiosBridge
         {
             if (_disposed) return;
 
-            
             if (disposing)
             {
                 Stop();
-
+                _DisplayCDUTimer.Dispose(); // Dispose the timer
             }
 
             _disposed = true;

@@ -2,8 +2,10 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
+using System;
+using System.Collections.Generic;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
     internal class A10C_Listener : AircraftListener
     {

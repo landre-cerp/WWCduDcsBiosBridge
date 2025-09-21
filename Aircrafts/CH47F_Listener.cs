@@ -2,8 +2,11 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace WWCduDcsBiosBridge
+namespace WWCduDcsBiosBridge.Aircrafts
 {
     internal class CH47F_Listener : AircraftListener
     {

@@ -1,0 +1,114 @@
+<Window x:Class="WWCduDcsBiosBridge.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MCDU DCS-BIOS Bridge Configuration" 
+        Height="500" 
+        Width="640"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="Winwing CDU DCS-BIOS Bridge Configuration" 
+                   FontSize="16" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,15"
+                   HorizontalAlignment="Center"/>
+
+        <!-- Options Panel with ScrollViewer -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            
+                <StackPanel>
+                    <!-- A10C Options Group -->
+                    <GroupBox Header="A10C Options" Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <CheckBox x:Name="DisplayBottomAlignedCheckBox" 
+                                      Content="Display Bottom Aligned"
+                                      ToolTip="Display is aligned to bottom of the screen"
+                                      Margin="0,5"
+                                      Checked="OptionCheckBox_Changed"
+                                      Unchecked="OptionCheckBox_Changed"/>
+
+                            <CheckBox x:Name="DisplayCMSCheckBox" 
+                                      Content="Display CMS"
+                                      ToolTip="Display CMS on the screen"
+                                      Margin="0,5"
+                                      Checked="OptionCheckBox_Changed"
+                                      Unchecked="OptionCheckBox_Changed"/>
+                        </StackPanel>
+                    </GroupBox>
+                    <!-- CH-47F Options Group -->
+                    <GroupBox Header="CH-47F Options" Padding="10" Margin="0,0,0,10">
+                        <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
+                              Content="CH-47 Linked Background Brightness"
+                              ToolTip="Link BG Brightness to other"
+                              Margin="0,5"
+                              Checked="OptionCheckBox_Changed"
+                              Unchecked="OptionCheckBox_Changed"/>
+                    </GroupBox>
+                    <GroupBox Header="Global Options" Padding="10" Margin="0,0,0,10">
+                        <CheckBox x:Name="DisableLightingManagementCheckBox" 
+                              Content="Disable Lighting Management"
+                              ToolTip="Disable lighting management (for SimApp Pro users)"
+                              Margin="0,5"
+                              Checked="OptionCheckBox_Changed"
+                              Unchecked="OptionCheckBox_Changed"/>
+                    </GroupBox>
+                </StackPanel>
+            
+        </ScrollViewer>
+
+        <!-- Status Indicator -->
+        <TextBlock x:Name="StatusTextBlock"
+                   Grid.Row="3"
+                   Text="Ready."
+                   FontSize="13"
+                   Margin="0,10,0,0"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   TextTrimming="CharacterEllipsis"
+                   MaxWidth="400"
+                   VerticalAlignment="Center"/>
+
+        <!-- Control Buttons Row: Replace StackPanel with Grid for left/right alignment -->
+        <Grid Grid.Row="4" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left-aligned Edit Button -->
+            <Button x:Name="ConfigButton" 
+                    Content="Edit DCS-BIOS Configuration" 
+                    Width="200" 
+                    Height="30"
+                    HorizontalAlignment="Left"
+                    Click="ConfigButton_Click"
+                    Grid.Column="0"/>
+
+            <!-- Right-aligned Start/Exit Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
+                <Button x:Name="StartButton" 
+                        Content="Start Bridge"
+                        Width="100"
+                        Height="30"
+                        Margin="0,0,10,0"
+                        Click="StartButton_Click"/>
+                <Button x:Name="ExitButton" 
+                        Content="Exit" 
+                        Width="100" 
+                        Height="30"
+                        Click="ExitButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
