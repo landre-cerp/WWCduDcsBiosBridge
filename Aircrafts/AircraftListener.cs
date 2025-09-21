@@ -105,7 +105,7 @@ namespace WWCduDcsBiosBridge.Aircrafts
             if (disposing)
             {
                 Stop();
-                _DisplayCDUTimer.Dispose(); // <-- Dispose the timer
+                _DisplayCDUTimer.Dispose(); // Dispose the timer
             }
 
             _disposed = true;
