@@ -5,7 +5,7 @@
 ⚠️ 0.8.4 is the latest named release , AND IT DOES NOT CONTAIN CDU INFORMATION YET 
 So you need to download the most recent version. 
 
-## Cdu Brightness 
+## CDU Brightness 
 
 The Dim / Brt are doing nothing in the aircraft -> should change the screen brightness , but do not work. 
 So, i provided a way to dim the physical CDU by linking it to the Key backlight information 
