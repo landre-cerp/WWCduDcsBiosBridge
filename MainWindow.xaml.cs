@@ -165,9 +165,9 @@ namespace WWCduDcsBiosBridge
                     ShowStatus("No CDU devices found. Please ensure your device is connected.", true);
                     StartButton.IsEnabled = true;
                     StartButton.Content = "Start Bridge";
-                SetOptionsEnabled(true);
-                ConfigButton.IsEnabled = true;
-                return;
+                    SetOptionsEnabled(true);
+                    ConfigButton.IsEnabled = true;
+                    return;
             }
 
             contexts = devices.Select(dev => new DeviceContext(
