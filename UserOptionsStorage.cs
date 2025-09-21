@@ -7,9 +7,8 @@ namespace WWCduDcsBiosBridge
     public static class UserOptionsStorage
     {
         public static string ConfigFilePath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "WWCduDcsBiosBridge",
-            "config.json");
+            AppDomain.CurrentDomain.BaseDirectory,
+            "useroptions.json");
 
         public static UserOptions GetDefaultOptions()
         {

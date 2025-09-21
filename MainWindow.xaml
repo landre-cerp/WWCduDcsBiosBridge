@@ -113,9 +113,9 @@
             <!-- Right-aligned Start/Exit Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
                 <Button x:Name="StartButton" 
-                        Content="Start Bridge" 
-                        Width="100" 
-                        Height="30" 
+                        Content="Start Bridge"
+                        Width="100"
+                        Height="30"
                         Margin="0,0,10,0"
                         Click="StartButton_Click"/>
                 <Button x:Name="ExitButton" 

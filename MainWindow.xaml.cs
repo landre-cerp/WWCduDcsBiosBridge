@@ -165,43 +165,43 @@ namespace WWCduDcsBiosBridge
                     ShowStatus("No CDU devices found. Please ensure your device is connected.", true);
                     StartButton.IsEnabled = true;
                     StartButton.Content = "Start Bridge";
-                    SetOptionsEnabled(true);
-                    ConfigButton.IsEnabled = true;
-                    return;
-                }
-
-                contexts = devices.Select(dev => new DeviceContext(
-                    CduFactory.ConnectLocal(dev),
-                    userOptions ?? new UserOptions(),
-                    config)).ToList();
-
-                foreach (var ctx in contexts)
-                    ctx.ShowStartupScreen();
-
-                while (contexts.Any(c => c.SelectedAircraft == -1))
-                    await Task.Delay(100);
-
-                InitDcsBios();
-
-                foreach (var ctx in contexts)
-                    ctx.StartBridge();
-
-                StartButton.Content = "Bridge Running";
-                ShowStatus("Bridge started successfully!", false);
-
-                bridgeStarted = true;
-
-                Logger.Info("Bridge started successfully from WPF interface");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to start bridge");
-                ShowStatus($"Failed to start bridge: {ex.Message}", true);
-                StartButton.IsEnabled = true;
-                StartButton.Content = "Start Bridge";
                 SetOptionsEnabled(true);
                 ConfigButton.IsEnabled = true;
+                return;
             }
+
+            contexts = devices.Select(dev => new DeviceContext(
+                CduFactory.ConnectLocal(dev),
+                userOptions ?? new UserOptions(),
+                config)).ToList();
+
+            foreach (var ctx in contexts)
+                ctx.ShowStartupScreen();
+
+            while (contexts.Any(c => c.SelectedAircraft == -1))
+                await Task.Delay(100);
+
+            InitDcsBios();
+
+            foreach (var ctx in contexts)
+                ctx.StartBridge();
+
+                StartButton.Content = "Bridge Running";
+            ShowStatus("Bridge started successfully!", false);
+
+            bridgeStarted = true;
+
+            Logger.Info("Bridge started successfully from WPF interface");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to start bridge");
+            ShowStatus($"Failed to start bridge: {ex.Message}", true);
+                StartButton.IsEnabled = true;
+                StartButton.Content = "Start Bridge";
+            SetOptionsEnabled(true);
+            ConfigButton.IsEnabled = true;
+        }
         }
 
         private void LoadUserSettings()
@@ -275,7 +275,7 @@ namespace WWCduDcsBiosBridge
             else
             {
                 var exception = dcsBios.GetLastException();
-                Logger.Error(exception.Message);
+                Logger.Error(exception);
                 throw exception;
             }
         }
