@@ -1,6 +1,6 @@
 # CH-47F
 
-**As of today CH-47F need a special version of DCSBIOS** 
+**As of today CH-47F needs a special version of DCSBIOS** 
 
 ⚠️ 0.8.4 is the latest name release , AND IT DOES NOT CONTAIN CDU INFORMATION YET 
 So you need to download a most recent version. 
