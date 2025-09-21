@@ -5,10 +5,7 @@ namespace WWCduDcsBiosBridge.Config;
 /// <summary>
 /// Exception thrown when configuration validation fails.
 /// </summary>
-public class ConfigException : Exception
-{
-    public ConfigException(string message) : base(message) { }
-}
+public class ConfigException(string message) : Exception(message);
 
 /// <summary>
 /// Configuration class for DCS-BIOS connection settings.
@@ -38,5 +35,5 @@ public class DcsBiosConfig
     /// <summary>
     /// Path to the DCS-BIOS JSON files directory.
     /// </summary>
-    public string DcsBiosJsonLocation { get; set; } = "";
+    public string DcsBiosJsonLocation { get; set; } = string.Empty;
 }

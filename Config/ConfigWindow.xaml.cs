@@ -8,6 +8,9 @@ namespace WWCduDcsBiosBridge.Config;
 
 public partial class ConfigWindow : Window
 {
+    private const int MinPortNumber = 1;
+    private const int MaxPortNumber = 65535;
+
     public DcsBiosConfig Config { get; private set; }
 
     public ConfigWindow(DcsBiosConfig config)
@@ -34,6 +37,22 @@ public partial class ConfigWindow : Window
         JsonLocationTextBox.Text = Config.DcsBiosJsonLocation;
     }
 
+    private static void ShowValidationError(string message, System.Windows.Controls.Control controlToFocus)
+    {
+        MessageBox.Show(message, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+        controlToFocus.Focus();
+    }
+
+    private bool ValidatePort(string portText, string portName, System.Windows.Controls.TextBox textBox, out int port)
+    {
+        if (!int.TryParse(portText, out port) || port is < MinPortNumber or > MaxPortNumber)
+        {
+            ShowValidationError($"{portName} must be between {MinPortNumber} and {MaxPortNumber}.", textBox);
+            return false;
+        }
+        return true;
+    }
+
     private bool ValidateAndUpdateConfig()
     {
         try
@@ -41,54 +60,34 @@ public partial class ConfigWindow : Window
             // Validate IP addresses
             if (!IPAddress.TryParse(ReceiveIpTextBox.Text.Trim(), out var receiveIp))
             {
-                MessageBox.Show("Receive IP address is not valid.", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                ReceiveIpTextBox.Focus();
+                ShowValidationError("Receive IP address is not valid.", ReceiveIpTextBox);
                 return false;
             }
 
             if (!IPAddress.TryParse(SendIpTextBox.Text.Trim(), out var sendIp))
             {
-                MessageBox.Show("Send IP address is not valid.", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                SendIpTextBox.Focus();
+                ShowValidationError("Send IP address is not valid.", SendIpTextBox);
                 return false;
             }
 
             // Validate ports
-            if (!int.TryParse(ReceivePortTextBox.Text.Trim(), out int receivePort) || 
-                receivePort < 1 || receivePort > 65535)
-            {
-                MessageBox.Show("Receive port must be between 1 and 65535.", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                ReceivePortTextBox.Focus();
+            if (!ValidatePort(ReceivePortTextBox.Text.Trim(), "Receive port", ReceivePortTextBox, out int receivePort))
                 return false;
-            }
 
-            if (!int.TryParse(SendPortTextBox.Text.Trim(), out int sendPort) || 
-                sendPort < 1 || sendPort > 65535)
-            {
-                MessageBox.Show("Send port must be between 1 and 65535.", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                SendPortTextBox.Focus();
+            if (!ValidatePort(SendPortTextBox.Text.Trim(), "Send port", SendPortTextBox, out int sendPort))
                 return false;
-            }
 
             // Validate JSON location
             string jsonLocation = JsonLocationTextBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(jsonLocation))
             {
-                MessageBox.Show("DCS-BIOS JSON location cannot be empty.", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                JsonLocationTextBox.Focus();
+                ShowValidationError("DCS-BIOS JSON location cannot be empty.", JsonLocationTextBox); 
                 return false;
             }
 
             if (!Directory.Exists(jsonLocation))
             {
-                MessageBox.Show($"The specified directory does not exist: {jsonLocation}", "Validation Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                JsonLocationTextBox.Focus();
+                ShowValidationError($"The specified directory does not exist: {jsonLocation}", JsonLocationTextBox); 
                 return false;
             }
 
@@ -129,21 +128,21 @@ public partial class ConfigWindow : Window
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ValidateAndUpdateConfig())
+        if (!ValidateAndUpdateConfig()) return;
+
+        try
         {
-            try
-            {
-                ConfigManager.Save(Config);
-                MessageBox.Show("Configuration saved successfully!", "Success", 
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to save configuration: {ex.Message}", "Save Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            ConfigManager.Save(Config);
+            MessageBox.Show("Configuration saved successfully!", "Success", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+            DialogResult = true;
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to save configuration: {ex.Message}", "Save Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
