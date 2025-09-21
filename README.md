@@ -91,7 +91,10 @@ if no config.json is found, it will create a default one and show you a dialog b
 
 ### Common Issues
 
-
+**"PLT_CDU_LINE1" does not exist (CH-47 Chinook)**
+- Wrong dcsbios version installed.
+- You need a version later than 0.8.4 (not including 0.8.4 itself)
+  
 **"Connection failed" or MCDU not responding**
 - Ensure your Winwing MCDU is properly connected
 - Try unplugging and reconnecting the device
