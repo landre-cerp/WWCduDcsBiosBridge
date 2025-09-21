@@ -39,10 +39,9 @@ internal class FA18C_Listener : AircraftListener
     uint _masterCaution = 0;
 
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-    protected override string GetAircraftName() => "FA-18C";
-    const int _AircraftNumber = 20;
+    protected override string GetAircraftName() => SupportedAircrafts.FA18C_Name;
 
-    public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
+    public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options)
     {
     }
 

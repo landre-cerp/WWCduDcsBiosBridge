@@ -49,24 +49,25 @@ internal class CH47F_Listener : AircraftListener
 
     private Dictionary<uint, int>? colorLines;
 
-    private readonly string[] colorMap = Enumerable.Range(0, 14).Select(_ => new string(' ', 24)).ToArray();
+    private static readonly string[] ColorMap = Enumerable.Range(0, 14)
+        .Select(_ => new string(' ', 24))
+        .ToArray();
 
-    protected override string GetAircraftName() => "CH-47F";
+    protected override string GetAircraftName() => SupportedAircrafts.CH47_Name;
 
     protected override string GetFontFile() => "resources/ch47f-font-21x31.json";
-    const int _AircraftNumber = 50;
 
     protected string prefix;
 
-    private readonly Dictionary<string, Colour> _Colours = new Dictionary<string, Colour>
+    private readonly Dictionary<string, Colour> _Colours = new()
     {
-            { " " , Colour.Black },
-            { "g",  Colour.Green} ,
-            { "p",  Colour.Magenta} ,
-            { "w",  Colour.White}
+        [" "] = Colour.Black,
+        ["g"] = Colour.Green,
+        ["p"] = Colour.Magenta,
+        ["w"] = Colour.White
     };
 
-    public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, _AircraftNumber, options)
+    public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
     {
         prefix = pilot ? "PLT_": "CPLT_";
     }
@@ -164,7 +165,7 @@ internal class CH47F_Listener : AircraftListener
 
             if (colorLines!.TryGetValue(e.Address, out int colorLine))
             {
-                colorMap[colorLine - 1] = data;
+                ColorMap[colorLine - 1] = data;
             }
 
 
@@ -174,7 +175,7 @@ internal class CH47F_Listener : AircraftListener
                 // update line with this fast method 
                 var screen = mcdu.Screen;
                 var row = screen.Rows[lineIndex - 1];
-                var color = colorMap[lineIndex - 1];
+                var color = ColorMap[lineIndex - 1];
                 for (var cellIdx = 0; cellIdx < row.Cells.Length; ++cellIdx)
                 {
                     var cell = row.Cells[cellIdx];

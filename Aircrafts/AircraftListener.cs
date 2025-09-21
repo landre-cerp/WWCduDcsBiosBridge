@@ -4,7 +4,6 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
-using System;
 using System.IO;
 using Timer = System.Timers.Timer;
 
@@ -64,6 +63,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.RefreshDisplay();
         mcdu.Cleanup();
     }
+
     private void InitMcduFont()
     {
         var fontFile = GetFontFile();

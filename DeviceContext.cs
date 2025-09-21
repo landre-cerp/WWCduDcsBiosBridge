@@ -2,8 +2,6 @@
 using DCS_BIOS.ControlLocator;
 using McduDotNet;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using WWCduDcsBiosBridge.Aircrafts;
 using WWCduDcsBiosBridge.Config;
@@ -13,11 +11,13 @@ namespace WWCduDcsBiosBridge;
 
 internal class DeviceContext
 {
+    const int NO_AIRCRAFT_SELECTED = -1;
     public ICdu Mcdu { get; }
-    public int SelectedAircraft { get; private set; } = -1;
+    public int SelectedAircraft { get; private set; } = NO_AIRCRAFT_SELECTED;
     public bool Pilot { get; private set; } = true;
     private readonly DcsBiosConfig? config;
     private readonly UserOptions options;
+
 
     public DeviceContext(ICdu mcdu,
         UserOptions options,
@@ -35,9 +35,12 @@ internal class DeviceContext
             .Line(0).Centered("DCSbios/WWCDU Bridge")
             .NewLine().Large().Yellow().Centered("by Cerppo")
             .White()
-            .LeftLabel(2, "A10C").RightLabel(2, "AH64D")
-            .LeftLabel(3, "FA18C").RightLabel(3, "CH-47 (PLT)")
-            .LeftLabel(4, "F15E").RightLabel(4, "CH-47 (CPLT)")
+            .LeftLabel(2, SupportedAircrafts.A10C_Name )
+            .RightLabel(2, SupportedAircrafts.AH64D_Name)
+            .LeftLabel(3, SupportedAircrafts.FA18C_Name)
+            .RightLabel(3,$"{SupportedAircrafts.CH47_Name} (PLT)")
+            .LeftLabel(4, SupportedAircrafts.F15E_Name)
+            .RightLabel(4, $"{SupportedAircrafts.CH47_Name} (CPLT)")
             .BottomLine().WriteLine("Close app to exit");
         Mcdu.RefreshDisplay();
         Mcdu.KeyDown += ReadMenu;
@@ -47,13 +50,19 @@ internal class DeviceContext
     {
         switch (e.Key)
         {
-            case Key.LineSelectLeft2: SelectedAircraft = 5; break;   // A10
-            case Key.LineSelectRight2: SelectedAircraft = 46; break; // AH64D
-            case Key.LineSelectLeft3: SelectedAircraft = 20; break;  // FA18C
-            case Key.LineSelectRight3: SelectedAircraft = 50; Pilot = true; break; // CH-47 PLT
-            case Key.LineSelectLeft4: SelectedAircraft = 44; break;  // F15E
-            case Key.LineSelectRight4: SelectedAircraft = 50; Pilot = false; break; // CH-47 CPLT
+            case Key.LineSelectLeft2: SelectedAircraft = SupportedAircrafts.A10C ; break;  
+            case Key.LineSelectRight2: SelectedAircraft = SupportedAircrafts.AH64D; break; 
+            case Key.LineSelectLeft3: SelectedAircraft = SupportedAircrafts.FA18C; break;  
+            case Key.LineSelectRight3: SelectedAircraft = SupportedAircrafts.CH47; Pilot = true; break; 
+            case Key.LineSelectLeft4: SelectedAircraft = SupportedAircrafts.F15E; break;  
+            case Key.LineSelectRight4: SelectedAircraft = SupportedAircrafts.CH47; Pilot = false; break; 
         }
+
+        if (SelectedAircraft is NO_AIRCRAFT_SELECTED) return;
+
+        // Aircraft selected, remove this handler
+        Mcdu.KeyDown -= ReadMenu;
+
     }
 
     public void StartBridge()
@@ -62,22 +71,14 @@ internal class DeviceContext
         DCSAircraft.Init();
         DCSAircraft.FillModulesListFromDcsBios(config!.DcsBiosJsonLocation, true);
         DCSBIOSControlLocator.JSONDirectory = config.DcsBiosJsonLocation;
-
-        var aircraftMap = new Dictionary<int, Func<IDcsBiosListener>>
+        try
         {
-            [5] = () => new A10C_Listener(Mcdu, options),
-            [46] = () => new AH64D_Listener(Mcdu, options),
-            [20] = () => new FA18C_Listener(Mcdu, options),
-            [44] = () => new F15E_Listener(Mcdu, options),
-            [50] = () => new CH47F_Listener(Mcdu, options, Pilot),
-        };
-
-        if (aircraftMap.TryGetValue(SelectedAircraft, out var factory))
-            factory().Start();
-        else
-        {
-            Mcdu.Output.Newline().Red().WriteLine("Unknown Aircraft");
+            new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu, options, Pilot).Start();
+        }
+        catch (NotSupportedException ex) {             
+            Mcdu.Output.Newline().Red().WriteLine(ex.Message);
             Mcdu.RefreshDisplay();
+            return;
         }
     }
 }

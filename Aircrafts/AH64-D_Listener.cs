@@ -36,10 +36,10 @@ internal class AH64D_Listener : AircraftListener
     private Dictionary<uint, Action<DCSBIOSDataEventArgs>>? _dataHandlers;
 
     protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
-    protected override string GetAircraftName() => "AH-64D";
-    const int _AircraftNumber = 46;
+    protected override string GetAircraftName() => SupportedAircrafts.AH64D_Name;
+    
 
-    public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber , options) {
+    public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.AH64D , options) {
     }
 
     ~AH64D_Listener()
