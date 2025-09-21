@@ -19,7 +19,8 @@ namespace WWCduDcsBiosBridge
         {
             try
             {
-                var app = new Application();
+                var app = new App();
+                app.InitializeComponent();
                 var mainWindow = new MainWindow();
                 app.Run(mainWindow);
                 // Return 0 for success, or another code if you want to indicate an error
