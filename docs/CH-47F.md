@@ -19,6 +19,6 @@ Just turn the knob and it should react.
 if you want it to behave like in DCS, leave the CH47 checkbox unticked.
 Knob only controls Key backlight (and leds i think) 
 
-And i you don't want light management at all, and leave it to SimAppPro for example, tick the Global option that says that 🙂
+And if you don't want light management at all, and leave it to SimAppPro for example, tick the Global option that says that 🙂
 
 <img width="2103" height="1242" alt="image" src="https://github.com/user-attachments/assets/2ff01622-d4da-43ef-87ec-fac9aa7bdb22" />
