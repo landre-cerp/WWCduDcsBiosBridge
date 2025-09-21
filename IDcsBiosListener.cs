@@ -1,11 +1,10 @@
 ﻿using DCS_BIOS.Interfaces;
 
-namespace WWCduDcsBiosBridge
-{
-    internal interface IDcsBiosListener : IDcsBiosConnectionListener , IDcsBiosDataListener, IDCSBIOSStringListener
-    {
-        public void Start();
+namespace WWCduDcsBiosBridge;
 
-        public void Stop();
-    }
+internal interface IDcsBiosListener : IDcsBiosConnectionListener , IDcsBiosDataListener, IDCSBIOSStringListener
+{
+    public void Start();
+
+    public void Stop();
 }
