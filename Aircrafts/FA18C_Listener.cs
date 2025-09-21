@@ -87,8 +87,9 @@ internal class FA18C_Listener : AircraftListener
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS data");
         }
     }
 
@@ -232,8 +233,9 @@ internal class FA18C_Listener : AircraftListener
             mcdu.Output.Line(10).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue5, _option5, filler));
             mcdu.Output.Line(11).ClearRow();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 }

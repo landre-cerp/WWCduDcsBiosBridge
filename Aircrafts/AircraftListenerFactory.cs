@@ -11,9 +11,13 @@ internal interface IAircraftListenerFactory
 
 internal class AircraftListenerFactory : IAircraftListenerFactory
 {
-    public AircraftListener CreateListener(int aircraftNumber, ICdu mcdu, UserOptions options, bool pilot=false)
-    {
-        return aircraftNumber switch
+    public AircraftListener CreateListener(
+        int aircraftNumber, 
+        ICdu mcdu, 
+        UserOptions options, 
+        bool pilot=false) =>
+    
+        aircraftNumber switch
         {
             SupportedAircrafts.A10C => new A10C_Listener(mcdu, options),
             SupportedAircrafts.AH64D => new AH64D_Listener(mcdu, options),
@@ -23,6 +27,5 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
             _ => throw new NotSupportedException($"Aircraft {aircraftNumber} not supported")
 
         };
-    }
 
 }

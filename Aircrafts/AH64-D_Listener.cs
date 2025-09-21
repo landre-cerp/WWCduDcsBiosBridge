@@ -127,8 +127,9 @@ internal class AH64D_Listener : AircraftListener
                 handler(e);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCSBios data");
         }
 
     }
@@ -177,9 +178,9 @@ internal class AH64D_Listener : AircraftListener
             UpdateLine(mcdu.Output.Line(13).Green(), _PLT_KU_DISPLAY!, e , data);
         }
 
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log l'erreur
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 

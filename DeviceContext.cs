@@ -30,7 +30,11 @@ internal class DeviceContext
 
     public void ShowStartupScreen()
     {
-        Mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(File.ReadAllText("resources/a10c-font-21x31.json")), true);
+        using var fileStream = new FileStream("resources/a10c-font-21x31.json", FileMode.Open, FileAccess.Read);
+        using var reader = new StreamReader(fileStream);
+        var fontJson = reader.ReadToEnd();
+
+        Mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(fontJson), true);
         Mcdu.Output.Clear().Green()
             .Line(0).Centered("DCSbios/WWCDU Bridge")
             .NewLine().Large().Yellow().Centered("by Cerppo")

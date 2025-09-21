@@ -191,8 +191,7 @@ internal class CH47F_Listener : AircraftListener
         }
         catch (Exception ex)
         {
-            // Optional: log the error
-            Console.WriteLine(ex.ToString());
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 

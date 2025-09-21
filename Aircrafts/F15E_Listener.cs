@@ -54,8 +54,9 @@ internal class F15E_Listener : AircraftListener
             UpdateLine(mcdu.Output.Line(10).White(), F_UFC_LINE5_DISPLAY, e);
             UpdateLine(mcdu.Output.Line(12).White(), F_UFC_LINE6_DISPLAY, e);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 

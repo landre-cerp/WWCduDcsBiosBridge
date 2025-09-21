@@ -111,9 +111,9 @@ internal class A10C_Listener : AircraftListener
                 mcdu.RefreshLeds();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log error
+            App.Logger.Error(ex, "Failed to process DCS-BIOS data");
         }
     }
 
@@ -186,9 +186,9 @@ internal class A10C_Listener : AircraftListener
                 mcdu.Output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log error
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 }
