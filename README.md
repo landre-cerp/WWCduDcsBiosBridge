@@ -14,11 +14,9 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 
 1. **Install DCS-BIOS** (see detailed instructions below)
 2. **Download and extract** this application to your preferred folder
-3. **Configure** by running the application once to generate `config.json`
-4. **Update** the `dcsBiosJsonLocation` path in `config.json`
-5. **Connect** your Winwing MCDU and run the application
-6. **Launch DCS** and select your aircraft from the MCDU menu
-7. optional create a shortcut to add commandline options (see below)
+5. **Connect** your Winwing MCDU ( before starting bridge )
+6. **run** the application
+7. **Launch DCS** and select your aircraft from the MCDU menu
 
 ## Requirements
 
