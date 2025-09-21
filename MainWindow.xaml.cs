@@ -56,8 +56,8 @@ namespace WWCduDcsBiosBridge
                     {
                         ReceiveFromIpUdp = "239.255.50.10",
                         SendToIpUdp = "127.0.0.1",
-                        ReceivePortUdp = 7778,
-                        SendPortUdp = 7779,
+                        ReceivePortUdp = 5010,
+                        SendPortUdp = 7778,
                         DcsBiosJsonLocation = ""
                     };
                     ConfigManager.Save(config);

@@ -6,7 +6,6 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>WWCduDcsBiosBridge.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
