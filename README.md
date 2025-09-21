@@ -76,7 +76,9 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 
 1. **Extract** the application files to your chosen directory
 2. **Run** `WWCduDcsBiosBridge.exe`
-if no config.json is found, it will create a default one and show you a dialog box to edit it. 
+if no config.json is found, it will create a default one and show you a dialog box to edit it.
+
+<img width="441" height="368" alt="image" src="https://github.com/user-attachments/assets/dca3d830-970d-4741-aeb5-7358658f82f0" />
 
 ⚠️ **Important:** When updating the application, do not overwrite your existing `config.json` file.
 
@@ -110,12 +112,15 @@ if no config.json is found, it will create a default one and show you a dialog b
 
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
 - **A10C:** MCDU brightness is linked to the console rotary control (right pedestal)
-- In case of flickering with SimAppPro running, check the 
+- In case of flickering with SimAppPro running, check the
+
+<img width="50%" alt="image" src="https://github.com/user-attachments/assets/1cc6f86f-8fc8-457e-a9fb-11191fcd966d" />
 
 ### Logs
 
 All application activity is logged to `log.txt` in the same folder as the executable. Check this file for detailed error information.
-“Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].”
+
+Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].
 
 ## Known Limitations
 
