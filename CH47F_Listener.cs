@@ -145,6 +145,7 @@ namespace WWCduDcsBiosBridge
 
         public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
         {
+            
             try
             {
 
@@ -155,9 +156,7 @@ namespace WWCduDcsBiosBridge
                     .Replace("}", "↓")
                     .Replace("{", "↑")
                     .Replace("®", "Δ");
-                    
-
-                mcdu.Output.White();
+                
 
                 if (colorLines!.TryGetValue(e.Address, out int colorLine))
                 {
@@ -169,7 +168,7 @@ namespace WWCduDcsBiosBridge
                 {
 
                     // update line with this fast method 
-                    var screen = mcdu.Screen;
+                    var screen = pages[DEFAULT_PAGE];
                     var row = screen.Rows[lineIndex - 1];
                     var color = colorMap[lineIndex - 1];
                     for (var cellIdx = 0; cellIdx < row.Cells.Length; ++cellIdx)
