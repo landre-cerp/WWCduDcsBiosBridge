@@ -16,11 +16,9 @@ internal class F15E_Listener : AircraftListener
     private DCSBIOSOutput? F_UFC_LINE6_DISPLAY;
 
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-    protected override string GetAircraftName() => "F-15E";
+    protected override string GetAircraftName() => SupportedAircrafts.F15E_Name;
 
-    const int _AircraftNumber = 44;
-
-    public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
+    public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.F15E, options)
     {
     }
 
@@ -56,8 +54,9 @@ internal class F15E_Listener : AircraftListener
             UpdateLine(mcdu.Output.Line(10).White(), F_UFC_LINE5_DISPLAY, e);
             UpdateLine(mcdu.Output.Line(12).White(), F_UFC_LINE6_DISPLAY, e);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 

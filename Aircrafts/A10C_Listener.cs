@@ -2,24 +2,12 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
-using System;
-using System.Collections.Generic;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal class A10C_Listener : AircraftListener
 {
-
-    private DCSBIOSOutput? _CDU_LINE_0;
-    private DCSBIOSOutput? _CDU_LINE_1;
-    private DCSBIOSOutput? _CDU_LINE_2;
-    private DCSBIOSOutput? _CDU_LINE_3;
-    private DCSBIOSOutput? _CDU_LINE_4;
-    private DCSBIOSOutput? _CDU_LINE_5;
-    private DCSBIOSOutput? _CDU_LINE_6;
-    private DCSBIOSOutput? _CDU_LINE_7;
-    private DCSBIOSOutput? _CDU_LINE_8;
-    private DCSBIOSOutput? _CDU_LINE_9;
+    private readonly DCSBIOSOutput?[] cduLines = new DCSBIOSOutput?[10];
 
     private DCSBIOSOutput? _CDU_BRT; 
     private DCSBIOSOutput? _MASTER_CAUTION; 
@@ -32,13 +20,12 @@ internal class A10C_Listener : AircraftListener
     private DCSBIOSOutput? _CMSP1;
     private DCSBIOSOutput? _CMSP2;
 
-    protected override string GetAircraftName() => "A-10C";
+    protected override string GetAircraftName() => SupportedAircrafts.A10C_Name;
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-    const int _AircraftNumber = 5;
 
     public A10C_Listener(
         ICdu mcdu, 
-        UserOptions options) : base(mcdu, _AircraftNumber, options) {
+        UserOptions options) : base(mcdu, SupportedAircrafts.A10C, options) {
     }
 
 
@@ -49,16 +36,11 @@ internal class A10C_Listener : AircraftListener
 
     protected override void initBiosControls()
     {
-        _CDU_LINE_0 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE0");
-        _CDU_LINE_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE1");
-        _CDU_LINE_2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE2");
-        _CDU_LINE_3 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE3");
-        _CDU_LINE_4 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE4");
-        _CDU_LINE_5 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE5");
-        _CDU_LINE_6 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE6");
-        _CDU_LINE_7 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE7");
-        _CDU_LINE_8 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE8");
-        _CDU_LINE_9 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CDU_LINE9");
+
+        for (int i = 0; i < 10; i++)
+        {
+            cduLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"CDU_LINE{i}");
+        }
 
         _CDU_BRT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CDU_BRT");
         _MASTER_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("MASTER_CAUTION");
@@ -129,9 +111,9 @@ internal class A10C_Listener : AircraftListener
                 mcdu.RefreshLeds();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log error
+            App.Logger.Error(ex, "Failed to process DCS-BIOS data");
         }
     }
 
@@ -160,32 +142,32 @@ internal class A10C_Listener : AircraftListener
                 {
                     { _CMSP1!.Address, 0 },
                     { _CMSP2!.Address, 1 },
-                    { _CDU_LINE_0!.Address, 4 },
-                    { _CDU_LINE_1!.Address, 5 },
-                    { _CDU_LINE_2!.Address, 6 },
-                    { _CDU_LINE_3!.Address, 7 },
-                    { _CDU_LINE_4!.Address, 8 },
-                    { _CDU_LINE_5!.Address, 9 },
-                    { _CDU_LINE_6!.Address, 10 },
-                    { _CDU_LINE_7!.Address, 11 },
-                    { _CDU_LINE_8!.Address, 12 },
-                    { _CDU_LINE_9!.Address, 13 },
+                    { cduLines[0]!.Address, 4 },
+                    { cduLines[1]!.Address, 5 },
+                    { cduLines[2]!.Address, 6 },
+                    { cduLines[3]!.Address, 7 },
+                    { cduLines[4]!.Address, 8 },
+                    { cduLines[5]!.Address, 9 },
+                    { cduLines[6]!.Address, 10 },
+                    { cduLines[7]!.Address, 11 },
+                    { cduLines[8]!.Address, 12 },
+                    { cduLines[9]!.Address, 13 },
                 };
             }
             else
             {
                 lineMap = new Dictionary<uint, int>
                 {
-                    { _CDU_LINE_0!.Address, 0},
-                    { _CDU_LINE_1!.Address, 1 },
-                    { _CDU_LINE_2!.Address, 2},
-                    { _CDU_LINE_3!.Address, 3 },
-                    { _CDU_LINE_4!.Address, 4 },
-                    { _CDU_LINE_5!.Address, 5 },
-                    { _CDU_LINE_6!.Address, 6 },
-                    { _CDU_LINE_7!.Address, 7 },
-                    { _CDU_LINE_8!.Address, 8 },
-                    { _CDU_LINE_9!.Address, 9 },
+                    { cduLines[0]!.Address, 0},
+                    { cduLines[1]!.Address, 1 },
+                    { cduLines[2]!.Address, 2},
+                    { cduLines[3]!.Address, 3 },
+                    { cduLines[4]!.Address, 4 },
+                    { cduLines[5]!.Address, 5 },
+                    { cduLines[6]!.Address, 6 },
+                    { cduLines[7]!.Address, 7 },
+                    { cduLines[8]!.Address, 8 },
+                    { cduLines[9]!.Address, 9 },
                     { _CMSP1!.Address, 12 },
                     { _CMSP2!.Address, 13 },
                 };
@@ -204,9 +186,9 @@ internal class A10C_Listener : AircraftListener
                 mcdu.Output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log error
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 }

@@ -36,10 +36,10 @@ internal class AH64D_Listener : AircraftListener
     private Dictionary<uint, Action<DCSBIOSDataEventArgs>>? _dataHandlers;
 
     protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
-    protected override string GetAircraftName() => "AH-64D";
-    const int _AircraftNumber = 46;
+    protected override string GetAircraftName() => SupportedAircrafts.AH64D_Name;
+    
 
-    public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber , options) {
+    public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.AH64D , options) {
     }
 
     ~AH64D_Listener()
@@ -127,8 +127,9 @@ internal class AH64D_Listener : AircraftListener
                 handler(e);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCSBios data");
         }
 
     }
@@ -177,9 +178,9 @@ internal class AH64D_Listener : AircraftListener
             UpdateLine(mcdu.Output.Line(13).Green(), _PLT_KU_DISPLAY!, e , data);
         }
 
-        catch
+        catch (Exception ex)
         {
-            // Optionnel : log l'erreur
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 

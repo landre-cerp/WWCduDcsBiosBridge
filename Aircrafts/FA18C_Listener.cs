@@ -39,10 +39,9 @@ internal class FA18C_Listener : AircraftListener
     uint _masterCaution = 0;
 
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
-    protected override string GetAircraftName() => "FA-18C";
-    const int _AircraftNumber = 20;
+    protected override string GetAircraftName() => SupportedAircrafts.FA18C_Name;
 
-    public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, _AircraftNumber, options)
+    public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options)
     {
     }
 
@@ -88,8 +87,9 @@ internal class FA18C_Listener : AircraftListener
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS data");
         }
     }
 
@@ -233,8 +233,9 @@ internal class FA18C_Listener : AircraftListener
             mcdu.Output.Line(10).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue5, _option5, filler));
             mcdu.Output.Line(11).ClearRow();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
     }
 }
