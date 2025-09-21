@@ -1,0 +1,32 @@
+name: Build on Push
+
+on:
+  push:
+    branches:
+      - '**' # Triggers on push to any branch
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  CONFIGURATION: 'Release'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore WWCduDcsBiosBridge.csproj
+
+      - name: Build
+        run: dotnet build WWCduDcsBiosBridge.csproj --configuration ${{ env.CONFIGURATION }} --no-restore

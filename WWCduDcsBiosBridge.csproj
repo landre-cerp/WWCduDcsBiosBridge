@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\workflows\build-on-push.yml" />
     <None Include=".github\workflows\build-on-tag.yml" />
   </ItemGroup>
 

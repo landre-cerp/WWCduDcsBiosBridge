@@ -2,9 +2,9 @@
 [![Release][release-shield]][release-url]
 [![Discord][discord-shield]][discord-invite-url]
 ![Build Status][build-shield]
-![License](https://img.shields.io/github/license/landre-cerp/McduDcsBiosBridge)
+![License](https://img.shields.io/github/license/landre-cerp/WWCduDcsBiosBridge)
 
-# McduDCSBiosBridge
+# WWCduDCSBiosBridge
 
 This console application bridges DCS World with the Winwing MCDU hardware, enabling real-time data exchange between the simulator and the physical device.
 
@@ -164,7 +164,7 @@ supersedes -ch47lbg if both are used.
 ### Logs
 
 All application activity is logged to `log.txt` in the same folder as the executable. Check this file for detailed error information.
-“Report issues [here](https://github.com/landre-cerp/McduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].”
+“Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].”
 
 ## Known Limitations
 
@@ -192,9 +192,9 @@ See `LICENSE.txt` and `thirdparty-licences.txt` for licensing information.
 
 For issues and questions, please check the logs first and review the troubleshooting section above.
 
-[release-url]: https://github.com/landre-cerp/McduDcsBiosBridge/releases
-[release-shield]:  https://img.shields.io/github/release/landre-cerp/McduDcsBiosBridge.svg
+[release-url]: https://github.com/landre-cerp/WWCduDcsBiosBridge/releases
+[release-shield]:  https://img.shields.io/github/release/landre-cerp/WWCduDcsBiosBridge.svg
 [discord-shield]: https://img.shields.io/discord/231115945047883778
 [discord-invite-url]: https://discord.gg/Td2cGvMhVC
 [dcs-forum-discussion]: https://forum.dcs.world/topic/368056-winwing-mcdu-can-it-be-used-in-dcs-for-other-aircraft/page/4/
-[build-shield]: https://img.shields.io/github/actions/workflow/status/landre-cerp/McduDcsBiosBridge/build-on-tag.yml
+[build-shield]: https://img.shields.io/github/actions/workflow/status/landre-cerp/WWCduDcsBiosBridge/build-on-tag.yml
