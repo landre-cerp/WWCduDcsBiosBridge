@@ -3,13 +3,14 @@ using DCS_BIOS.ControlLocator;
 using McduDotNet;
 using Newtonsoft.Json;
 using System.IO;
+using System.Net;
 using WWCduDcsBiosBridge.Aircrafts;
 using WWCduDcsBiosBridge.Config;
 
 
 namespace WWCduDcsBiosBridge;
 
-internal class DeviceContext
+internal class DeviceContext: IDisposable
 {
     const int NO_AIRCRAFT_SELECTED = -1;
     public ICdu Mcdu { get; }
@@ -17,6 +18,7 @@ internal class DeviceContext
     public bool Pilot { get; private set; } = true;
     private readonly DcsBiosConfig? config;
     private readonly UserOptions options;
+    private AircraftListener? listener;
 
 
     public DeviceContext(ICdu mcdu,
@@ -77,12 +79,18 @@ internal class DeviceContext
         DCSBIOSControlLocator.JSONDirectory = config.DcsBiosJsonLocation;
         try
         {
-            new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu, options, Pilot).Start();
+            listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu, options, Pilot);
+            listener.Start();
         }
         catch (NotSupportedException ex) {             
             Mcdu.Output.Newline().Red().WriteLine(ex.Message);
             Mcdu.RefreshDisplay();
             return;
         }
+    }
+
+    public void Dispose()
+    {
+        listener?.Dispose();
     }
 }
