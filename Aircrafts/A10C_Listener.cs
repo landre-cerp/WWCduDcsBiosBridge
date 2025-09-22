@@ -7,6 +7,7 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal class A10C_Listener : AircraftListener
 {
+    private const int BRT_STEP = 5;
     private readonly DCSBIOSOutput?[] cduLines = new DCSBIOSOutput?[10];
 
     private DCSBIOSOutput? _CDU_BRT; 
@@ -34,7 +35,7 @@ internal class A10C_Listener : AircraftListener
         Dispose(false);
     }
 
-    protected override void initBiosControls()
+    protected override void InitializeDcsBiosControls()
     {
 
         for (int i = 0; i < 10; i++)
@@ -62,7 +63,7 @@ internal class A10C_Listener : AircraftListener
             bool refresh = false;
             UpdateCounter(e.Address, e.Data);
 
-            if ( ! options.DisableLightingManagement)
+            if ( !options.DisableLightingManagement)
             {
                 if (e.Address == _CONSOLE_BRT!.Address)
                 {
@@ -75,9 +76,9 @@ internal class A10C_Listener : AircraftListener
                 {
                     int val = (int)_CDU_BRT.GetUIntValue(e.Data);
                     if (val == 0)
-                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent - 5);
+                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent - BRT_STEP);
                     else if (val == 2)
-                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent + 5);
+                        mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent + BRT_STEP);
                     // Always refresh Brightness. 
                     refresh = true;
                 }
@@ -120,6 +121,8 @@ internal class A10C_Listener : AircraftListener
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
+        var output = GetCompositor(DEFAULT_PAGE);
+
         try
         {
 
@@ -132,7 +135,7 @@ internal class A10C_Listener : AircraftListener
                 .Replace("±", "_")
                 .Replace("?", "%");
 
-            mcdu.Output.Green();
+            output.Green();
 
             Dictionary<uint,int> lineMap; 
 
@@ -177,13 +180,13 @@ internal class A10C_Listener : AircraftListener
             {
                 if (options.DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
                 {
-                    mcdu.Output.Line(lineIndex).WriteLine(data);
+                    output.Line(lineIndex).WriteLine(data);
                 }
             }
 
             if (options.DisplayCMS)
             {
-                mcdu.Output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
+                output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
         }
         catch (Exception ex)

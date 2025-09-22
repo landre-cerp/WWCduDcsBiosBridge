@@ -45,7 +45,7 @@ internal class FA18C_Listener : AircraftListener
     {
     }
 
-    protected override void initBiosControls()
+    protected override void InitializeDcsBiosControls()
     {
         UFC_OPTION_DISPLAY_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("UFC_OPTION_DISPLAY_1");
         UFC_OPTION_CUEING_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("UFC_OPTION_CUEING_1");
@@ -95,12 +95,13 @@ internal class FA18C_Listener : AircraftListener
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
+        var output = GetCompositor(DEFAULT_PAGE);
         try
         {
             string incomingData;
             const string filler = "                   ";
 
-            mcdu.Output.Green().Line(0).ClearRow();
+            output.Green().Line(0).ClearRow();
 
             if (UFC_SCRATCHPAD_NUMBER_DISPLAY != null && e.Address.Equals(UFC_SCRATCHPAD_NUMBER_DISPLAY.Address))
             {
@@ -131,7 +132,7 @@ internal class FA18C_Listener : AircraftListener
                 }
             }
 
-            mcdu.Output.Line(1).WriteLine(string.Format("{0,2}{1,2}{2,8}", _scratchPad1, _scratchPad2, _scratchPadNumber));
+            output.Line(1).WriteLine(string.Format("{0,2}{1,2}{2,8}", _scratchPad1, _scratchPad2, _scratchPadNumber));
 
             if (UFC_OPTION_DISPLAY_1 != null && e.Address.Equals(UFC_OPTION_DISPLAY_1.Address))
             {
@@ -150,8 +151,8 @@ internal class FA18C_Listener : AircraftListener
                     _cue1 = incomingData;
                 }
             }
-            mcdu.Output.Line(2).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue1, _option1, filler));
-            mcdu.Output.Line(3).ClearRow();
+            output.Line(2).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue1, _option1, filler));
+            output.Line(3).ClearRow();
 
             if (UFC_OPTION_DISPLAY_2 != null && e.Address.Equals(UFC_OPTION_DISPLAY_2.Address))
             {
@@ -170,8 +171,8 @@ internal class FA18C_Listener : AircraftListener
                     _cue2 = incomingData;
                 }
             }
-            mcdu.Output.Line(4).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue2, _option2, filler));
-            mcdu.Output.Line(5).ClearRow();
+            output.Line(4).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue2, _option2, filler));
+            output.Line(5).ClearRow();
 
             if (UFC_OPTION_DISPLAY_3 != null && e.Address.Equals(UFC_OPTION_DISPLAY_3.Address))
             {
@@ -190,8 +191,8 @@ internal class FA18C_Listener : AircraftListener
                     _cue3 = incomingData;
                 }
             }
-            mcdu.Output.Line(6).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue3, _option3, filler));
-            mcdu.Output.Line(7).ClearRow();
+            output.Line(6).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue3, _option3, filler));
+            output.Line(7).ClearRow();
 
             if (UFC_OPTION_DISPLAY_4 != null && e.Address.Equals(UFC_OPTION_DISPLAY_4.Address))
             {
@@ -210,8 +211,8 @@ internal class FA18C_Listener : AircraftListener
                     _cue4 = incomingData;
                 }
             }
-            mcdu.Output.Line(8).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue4, _option4, filler));
-            mcdu.Output.Line(9).ClearRow();
+            output.Line(8).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue4, _option4, filler));
+            output.Line(9).ClearRow();
 
             if (UFC_OPTION_DISPLAY_5 != null && e.Address.Equals(UFC_OPTION_DISPLAY_5.Address))
             {
@@ -230,8 +231,8 @@ internal class FA18C_Listener : AircraftListener
                     _cue5 = incomingData;
                 }
             }
-            mcdu.Output.Line(10).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue5, _option5, filler));
-            mcdu.Output.Line(11).ClearRow();
+            output.Line(10).WriteLine(string.Format("{2,19}{0,1}{1,4}", _cue5, _option5, filler));
+            output.Line(11).ClearRow();
         }
         catch (Exception ex)
         {
