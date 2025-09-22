@@ -5,6 +5,16 @@
 ⚠️ 0.8.4 is the latest named release , AND IT DOES NOT CONTAIN CDU INFORMATION YET 
 So you need to download the most recent version. 
 
+## Single CDU 
+
+If you only have 1 CDU, you can now use it for both pilot and co-pilot, by ticking the checkbox.
+
+**YOU ABSOLUTELY NEED TO INSTALL DCS BIOS VERSION DCS-BIOS Nightly 2025-09-21 and Later**
+as the Seat position is not handled in previous versions
+<img width="900" height="154" alt="image" src="https://github.com/user-attachments/assets/580f88ae-8b9d-419d-900d-1df5249cd680" />
+
+
+
 ## CDU Brightness 
 
 The Dim / Brt are doing nothing in the aircraft -> should change the screen brightness , but do not work. 
@@ -23,9 +33,3 @@ And if you don't want light management at all, and leave it to SimAppPro for exa
 
 <img width="2103" height="1242" alt="image" src="https://github.com/user-attachments/assets/2ff01622-d4da-43ef-87ec-fac9aa7bdb22" />
 
-## Single CDU 
-
-If you only have 1 CDU, you can now use it for both pilot and co-pilot, by ticking the checkbox.
-
-**YOU ABSOLUTELY NEED TO INSTALL DCS BIOS VERSION DCS-BIOS Nightly 2025-09-21 and Later**
-as the Seat position is not handled in previous versions
