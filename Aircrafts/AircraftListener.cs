@@ -14,7 +14,6 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     private static double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
     protected ICdu mcdu;
-    protected readonly int AircraftNumber;
 
     private bool _disposed;
 
@@ -25,23 +24,32 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     protected readonly UserOptions options;
 
+    protected const string DEFAULT_PAGE = "default";
+    protected string _currentPage = DEFAULT_PAGE;
+
+    protected Dictionary<string, Screen> pages = new()
+        {
+              {DEFAULT_PAGE, new Screen() }
+        };
 
     public AircraftListener(ICdu mcdu, int aircraftNumber , UserOptions options)
     {
         this.mcdu = mcdu;
-        AircraftNumber = aircraftNumber;
         this.options = options;
-        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(AircraftNumber);
+        DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
         _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
 
         _DisplayCDUTimer = new(_TICK_DISPLAY);
-        _DisplayCDUTimer.Elapsed += (_, _) => mcdu.RefreshDisplay();
+        _DisplayCDUTimer.Elapsed += (_, _) =>
+        {
+            mcdu.Screen.CopyFrom(pages[_currentPage]);
+            mcdu.RefreshDisplay();
+        };
     }
 
     public void Start()
     {
-        initBiosControls();
-
+        InitializeDcsBiosControls();
         InitMcduFont();
         ShowStartupMessage();
 
@@ -54,11 +62,12 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     public void Stop()
     {
+        _DisplayCDUTimer.Stop();
+
         BIOSEventHandler.DetachConnectionListener(this);
         BIOSEventHandler.DetachDataListener(this);
         BIOSEventHandler.DetachStringListener(this);
-
-        _DisplayCDUTimer.Stop();
+        
         mcdu.Output.Clear();
         mcdu.RefreshDisplay();
         mcdu.Cleanup();
@@ -81,13 +90,27 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.RefreshDisplay();
     }
 
-    protected virtual void initBiosControls() { }
+    protected abstract void InitializeDcsBiosControls();
 
     public void DcsBiosConnectionActive(object sender, DCSBIOSConnectionEventArgs e)
     {
     }
 
+    protected Compositor GetCompositor(string pageName)
+    {
+        if (!pages.ContainsKey(pageName))
+        {
+            pages[pageName] = new Screen();
+        }
+        return new Compositor(pages[pageName]);
+    }
 
+    /// <summary>
+    /// Called when DCS-BIOS data is received
+    /// Note that the same address may concern multiple controls
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
 
     public abstract void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e);

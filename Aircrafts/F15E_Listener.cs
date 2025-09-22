@@ -22,7 +22,7 @@ internal class F15E_Listener : AircraftListener
     {
     }
 
-    protected override void initBiosControls()
+    protected override void InitializeDcsBiosControls()
     {
         F_UFC_LINE1_DISPLAY = DCSBIOSControlLocator.GetStringDCSBIOSOutput("F_UFC_LINE1_DISPLAY");
         F_UFC_LINE2_DISPLAY = DCSBIOSControlLocator.GetStringDCSBIOSOutput("F_UFC_LINE2_DISPLAY");
@@ -45,14 +45,15 @@ internal class F15E_Listener : AircraftListener
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
+        var output = GetCompositor(DEFAULT_PAGE);
         try
         {
-            UpdateLine(mcdu.Output.Line(2).White(), F_UFC_LINE1_DISPLAY, e);
-            UpdateLine(mcdu.Output.Line(4).Red(), F_UFC_LINE2_DISPLAY, e);
-            UpdateLine(mcdu.Output.Line(6).Red(), F_UFC_LINE3_DISPLAY, e);
-            UpdateLine(mcdu.Output.Line(8).Red(), F_UFC_LINE4_DISPLAY, e);
-            UpdateLine(mcdu.Output.Line(10).White(), F_UFC_LINE5_DISPLAY, e);
-            UpdateLine(mcdu.Output.Line(12).White(), F_UFC_LINE6_DISPLAY, e);
+            UpdateLine(output.Line(2).White(), F_UFC_LINE1_DISPLAY, e);
+            UpdateLine(output.Line(4).Red(), F_UFC_LINE2_DISPLAY, e);
+            UpdateLine(output.Line(6).Red(), F_UFC_LINE3_DISPLAY, e);
+            UpdateLine(output.Line(8).Red(), F_UFC_LINE4_DISPLAY, e);
+            UpdateLine(output.Line(10).White(), F_UFC_LINE5_DISPLAY, e);
+            UpdateLine(output.Line(12).White(), F_UFC_LINE6_DISPLAY, e);
         }
         catch (Exception ex)
         {
