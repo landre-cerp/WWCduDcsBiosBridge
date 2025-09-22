@@ -150,6 +150,8 @@ See `LICENSE.txt` and `thirdparty-licences.txt` for licensing information.
 
 For issues and questions, please check the logs first and review the troubleshooting section above.
 
+and if you want, no need, you can [Buy Me a Coffee](https://www.buymeacoffee.com/cerppo)
+
 [release-url]: https://github.com/landre-cerp/WWCduDcsBiosBridge/releases
 [release-shield]:  https://img.shields.io/github/release/landre-cerp/WWCduDcsBiosBridge.svg
 [discord-shield]: https://img.shields.io/discord/231115945047883778
