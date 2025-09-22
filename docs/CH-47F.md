@@ -22,3 +22,10 @@ Knob only controls Key backlight (and leds i think)
 And if you don't want light management at all, and leave it to SimAppPro for example, tick the Global option that says that 🙂
 
 <img width="2103" height="1242" alt="image" src="https://github.com/user-attachments/assets/2ff01622-d4da-43ef-87ec-fac9aa7bdb22" />
+
+## Single CDU 
+
+If you only have 1 CDU, you can now use it for both pilot and co-pilot, by ticking the checkbox.
+
+**YOU ABSOLUTELY NEED TO INSTALL DCS BIOS VERSION DCS-BIOS Nightly 2025-09-21 and Later**
+as the Seat position is not handled in previous versions
