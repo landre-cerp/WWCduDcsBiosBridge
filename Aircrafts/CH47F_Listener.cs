@@ -4,7 +4,6 @@ using DCS_BIOS.Serialized;
 using McduDotNet;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
