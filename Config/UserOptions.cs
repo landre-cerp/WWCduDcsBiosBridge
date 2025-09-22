@@ -5,4 +5,5 @@ public class UserOptions
     public bool DisplayCMS { get; set; } 
     public bool LinkedScreenBrightness { get; set; }
     public bool DisableLightingManagement { get; set; }
+    public bool Ch47CduSwitchWithSeat { get; set; }
 }

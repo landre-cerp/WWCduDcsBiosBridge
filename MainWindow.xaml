@@ -48,13 +48,23 @@
                     </GroupBox>
                     <!-- CH-47F Options Group -->
                     <GroupBox Header="CH-47F Options" Padding="10" Margin="0,0,0,10">
+                    <StackPanel>
                         <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
-                              Content="CH-47 Linked Background Brightness"
-                              ToolTip="Link BG Brightness to other"
+                              Content="Linked Background Brightness"
+                              ToolTip="when ticked everything is bound to the CDU knob"
                               Margin="0,5"
                               Checked="OptionCheckBox_Changed"
                               Unchecked="OptionCheckBox_Changed"/>
-                    </GroupBox>
+
+                        <CheckBox x:Name="CH47SingleCduSwitch" 
+                              Content="Switches CDU display with seat position"
+                              ToolTip="Usefull if you have only 1 cdu"
+                              Margin="0,5"
+                              Checked="OptionCheckBox_Changed"
+                              Unchecked="OptionCheckBox_Changed"/>
+                    </StackPanel>
+                </GroupBox>
+                    
                     <GroupBox Header="Global Options" Padding="10" Margin="0,0,0,10">
                         <CheckBox x:Name="DisableLightingManagementCheckBox" 
                               Content="Disable Lighting Management"

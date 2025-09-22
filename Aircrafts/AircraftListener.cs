@@ -4,6 +4,7 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
+using System.ComponentModel;
 using System.IO;
 using Timer = System.Timers.Timer;
 
@@ -83,7 +84,16 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     protected abstract string GetFontFile();
     protected abstract string GetAircraftName();
-    
+
+    protected Screen AddNewPage(string pageName)
+    {
+        if (!pages.ContainsKey(pageName))
+        {
+            pages[pageName] = new Screen();
+        }
+        return pages[pageName];
+    }
+
     private void ShowStartupMessage()
     {
         mcdu.Output.Clear().Green();
