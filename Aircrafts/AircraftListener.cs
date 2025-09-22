@@ -70,8 +70,9 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.DetachStringListener(this);
         
         mcdu.Output.Clear();
-        mcdu.RefreshDisplay();
         mcdu.Cleanup();
+        mcdu.RefreshDisplay();
+        
     }
 
     private void InitMcduFont()

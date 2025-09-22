@@ -6,7 +6,7 @@ using WWCduDcsBiosBridge.Config;
 
 namespace WWCduDcsBiosBridge;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IDisposable
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private DcsBiosConfig? config;
@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private UserOptions? userOptions;
     private bool bridgeStarted = false;
     private bool needsConfigEdit = false;
+    private bool _disposed = false;
 
     public MainWindow()
     {
@@ -265,13 +266,44 @@ public partial class MainWindow : Window
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
     {
+        Dispose();
         Application.Current.Shutdown();
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        dcsBios?.Shutdown();
-        SaveUserSettings();
+        Dispose();
         base.OnClosed(e);
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    // Protected virtual Dispose(bool disposing) method
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            // Dispose managed resources here
+            if (contexts != null)
+            {
+                foreach (var ctx in contexts)
+                    ctx?.Dispose();
+                contexts = null;
+            }
+            // Dispose other managed resources here
+            dcsBios?.Shutdown();
+            SaveUserSettings();
+        }
+
+        // Free unmanaged resources here (if any)
+
+        _disposed = true;
+    }
+
 }
