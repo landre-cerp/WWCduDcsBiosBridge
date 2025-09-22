@@ -58,7 +58,7 @@
 
                         <CheckBox x:Name="CH47SingleCduSwitch" 
                               Content="Switches CDU display with seat position"
-                              ToolTip="Usefull if you have only 1 cdu"
+                              ToolTip="Useful if you have only 1 cdu"
                               Margin="0,5"
                               Checked="OptionCheckBox_Changed"
                               Unchecked="OptionCheckBox_Changed"/>
