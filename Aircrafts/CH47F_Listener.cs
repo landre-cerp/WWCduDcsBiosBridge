@@ -13,15 +13,22 @@ internal class CH47F_Listener : AircraftListener
     protected const int MAX_CDU_LINES = 14;
 
     // Buffers for CDU lines and colors
-    private readonly DCSBIOSOutput?[] cduLines = new DCSBIOSOutput?[MAX_CDU_LINES];
-    private readonly DCSBIOSOutput?[] cduColorLines = new DCSBIOSOutput?[MAX_CDU_LINES];
+    private readonly DCSBIOSOutput?[] pilotCduLines = new DCSBIOSOutput?[MAX_CDU_LINES];
+    private readonly DCSBIOSOutput?[] pilotCduColorLines = new DCSBIOSOutput?[MAX_CDU_LINES];
+
+    private readonly DCSBIOSOutput?[] copilotCduLines = new DCSBIOSOutput?[MAX_CDU_LINES];
+    private readonly DCSBIOSOutput?[] copilotCduColorLines = new DCSBIOSOutput?[MAX_CDU_LINES];
 
     private DCSBIOSOutput? _MSTR_CAUTION;
     private DCSBIOSOutput? _CDU_BACKLIGHT;
+    private DCSBIOSOutput? _SEAT_POSITION;
 
     // Which address maps to which line
-    private Dictionary<uint, int>? lineMap;
-    private Dictionary<uint, int>? colorLines;
+    private Dictionary<uint, int>? pilotLineMap;
+    private Dictionary<uint, int>? pilotColorLines;
+
+    private Dictionary<uint, int>? copilotLineMap;
+    private Dictionary<uint, int>? copilotColorLines;
 
     private static readonly string[] ColorMap = Enumerable.Range(0, 14)
         .Select(_ => new string(' ', 24))
@@ -31,7 +38,10 @@ internal class CH47F_Listener : AircraftListener
 
     protected override string GetFontFile() => "resources/ch47f-font-21x31.json";
 
-    protected string prefix;
+    const int PILOT_SEAT = 0;
+    const int COPILOT_SEAT = 1;
+
+    protected int seatPosition = 0;
 
     private readonly Dictionary<string, Colour> _Colours = new()
     {
@@ -43,41 +53,58 @@ internal class CH47F_Listener : AircraftListener
 
     public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
     {
-        prefix = pilot ? "PLT_": "CPLT_";
+        seatPosition = pilot ? PILOT_SEAT : COPILOT_SEAT;
+
+        if (options.Ch47CduSwitchWithSeat) {
+            AddNewPage("Copilot");
+        }
     }
 
     protected override void InitializeDcsBiosControls()
     {
+        // we need to instantiate both PLT and CPLT CDUs to switch between them
+        // even if we are only interested in one of them with 2 CDU connected
         for (int i = 0; i < MAX_CDU_LINES; i++)
         {
-            cduLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"{prefix}CDU_LINE{i+1}");
-            cduColorLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"{prefix}CDU_LINE{i+1}_COLOR");
+            pilotCduLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"PLT_CDU_LINE{i+1}");
+            pilotCduColorLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"PLT_CDU_LINE{i+1}_COLOR");
+            copilotCduLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"CPLT_CDU_LINE{i + 1}");
+            copilotCduColorLines[i] = DCSBIOSControlLocator.GetStringDCSBIOSOutput($"CPLT_CDU_LINE{i + 1}_COLOR");
+
         }
 
-        _MSTR_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput(prefix + "MASTER_CAUTION_LIGHT");
-        _CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput(prefix + "INT_LIGHT_CDU");
+        _MSTR_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_MASTER_CAUTION_LIGHT");
+        _CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_INT_LIGHT_CDU");
+        _SEAT_POSITION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("SEAT_POSITION");
 
-        lineMap = new Dictionary<uint, int>();
+        pilotLineMap = new Dictionary<uint, int>();
+        pilotColorLines = new Dictionary<uint, int>();
+
+        copilotLineMap = new Dictionary<uint, int>();
+        copilotColorLines = new Dictionary<uint, int>();
+
         for (int i = 0; i < MAX_CDU_LINES; i++)
         {
-            if (cduLines[i] != null)
-            {
-                lineMap.Add(cduLines[i]!.Address, i + 1);
-            }
+            pilotLineMap.Add(pilotCduLines[i]!.Address, i + 1);
+            pilotColorLines.Add(pilotCduColorLines[i]!.Address, i + 1);
+            copilotLineMap.Add(copilotCduLines[i]!.Address, i + 1);
+            copilotColorLines.Add(copilotCduColorLines[i]!.Address, i + 1);
         }
-        colorLines = new Dictionary<uint, int>();
-        for (int i = 0; i < MAX_CDU_LINES; i++)
-        {
-            if (cduColorLines[i] != null)
-            {
-                colorLines.Add(cduColorLines[i]!.Address, i + 1);
-            }
-        }
+
     }
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
-        var output = GetCompositor(DEFAULT_PAGE);
+        var output = GetCompositor("Default");
+        var lineMap = pilotLineMap;
+        var colorLines = pilotColorLines;
+
+        if (seatPosition == COPILOT_SEAT) { 
+
+            output = GetCompositor("Copilot");
+            lineMap = copilotLineMap;
+            colorLines = copilotColorLines;
+        }
 
         try
         {
@@ -126,6 +153,12 @@ internal class CH47F_Listener : AircraftListener
         {
             mcdu.Leds.Fail = _MSTR_CAUTION.GetUIntValue(e.Data) != 0;
             refresh = true;
+        }
+
+        if (options.Ch47CduSwitchWithSeat && e.Address == _SEAT_POSITION?.Address)
+        {
+            seatPosition = (int)_SEAT_POSITION.GetUIntValue(e.Data);
+            
         }
 
         if (!options.DisableLightingManagement)

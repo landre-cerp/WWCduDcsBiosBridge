@@ -220,6 +220,7 @@ public partial class MainWindow : Window
         userOptions.DisplayCMS = DisplayCMSCheckBox.IsChecked ?? false;
         userOptions.LinkedScreenBrightness = CH47LinkedBrightnessCheckBox.IsChecked ?? false;
         userOptions.DisableLightingManagement = DisableLightingManagementCheckBox.IsChecked ?? false;
+        userOptions.Ch47CduSwitchWithSeat = CH47SingleCduSwitch.IsChecked ?? false;
     }
 
     private void UpdateOptionsUIFromSettings()
@@ -229,6 +230,7 @@ public partial class MainWindow : Window
         DisplayCMSCheckBox.IsChecked = userOptions.DisplayCMS;
         CH47LinkedBrightnessCheckBox.IsChecked = userOptions.LinkedScreenBrightness;
         DisableLightingManagementCheckBox.IsChecked = userOptions.DisableLightingManagement;
+        CH47SingleCduSwitch.IsChecked = userOptions.Ch47CduSwitchWithSeat;
     }
 
     private void SetOptionsEnabled(bool enabled)
