@@ -53,7 +53,7 @@ internal class CH47F_Listener : AircraftListener
 
     public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
     {
-        seatPosition = pilot ? PILOT_SEAT :COPILOT_SEAT;
+        seatPosition = pilot ? PILOT_SEAT : COPILOT_SEAT;
 
         if (options.Ch47CduSwitchWithSeat) {
             AddNewPage("Copilot");
