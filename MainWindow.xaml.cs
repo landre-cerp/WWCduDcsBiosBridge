@@ -17,6 +17,7 @@ public partial class MainWindow : Window, IDisposable
     private bool needsConfigEdit = false;
     private bool _disposed = false;
 
+
     public MainWindow()
     {
         InitializeComponent();
@@ -25,7 +26,7 @@ public partial class MainWindow : Window, IDisposable
         LoadConfig();
         UpdateOptionsUIFromSettings();
         UpdateStartButtonState();
-        Loaded += MainWindow_Loaded; // Subscribe to Loaded event
+        Loaded += MainWindow_Loaded; 
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -58,7 +59,7 @@ public partial class MainWindow : Window, IDisposable
                 };
                 ConfigManager.Save(config);
                 ShowStatus("Please edit DCS-BIOS config", true);
-                needsConfigEdit = true; // Set flag instead of opening editor
+                needsConfigEdit = true; 
             }
         }
         catch (ConfigException)
@@ -96,7 +97,6 @@ public partial class MainWindow : Window, IDisposable
                 config = configWindow.Config;
                 UpdateStartButtonState(); 
 
-                // If config is now valid, update status
                 if (!string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation))
                 {
                     ShowStatus("Configuration loaded. Ready to start bridge.", false);
@@ -125,65 +125,121 @@ public partial class MainWindow : Window, IDisposable
     {
         try
         {
-            if (config == null)
+            if (!bridgeStarted)
             {
-                ShowStatus("Configuration not loaded. Please check the configuration settings.", true);
-                return;
+                await StartBridge();
             }
-
-            UpdateUserOptionsFromUI();
-            SaveUserSettings();
-
-            StartButton.IsEnabled = false;
-            StartButton.Content = "Starting...";
-
-            SetOptionsEnabled(false);
-            ConfigButton.IsEnabled = false; // Disable config editing after bridge starts
-
-            var devices = CduFactory.FindLocalDevices().ToList();
-            if (!devices.Any())
+            else
             {
-                ShowStatus("No CDU devices found. Please ensure your device is connected.", true);
-                StartButton.IsEnabled = true;
-                StartButton.Content = "Start Bridge";
-                SetOptionsEnabled(true);
-                ConfigButton.IsEnabled = true;
-                return;
-            
+                await StopBridge();
             }
-
-            contexts = devices.Select(dev => new DeviceContext(
-                CduFactory.ConnectLocal(dev),
-                userOptions ?? new UserOptions(),
-                config)).ToList();
-
-            foreach (var ctx in contexts)
-                ctx.ShowStartupScreen();
-
-            while (contexts.Any(c => c.SelectedAircraft == -1))
-                await Task.Delay(100);
-
-            InitDcsBios();
-
-            foreach (var ctx in contexts)
-                ctx.StartBridge();
-
-                StartButton.Content = "Bridge Running";
-            ShowStatus("Bridge started successfully!", false);
-
-            bridgeStarted = true;
-
-            Logger.Info("Bridge started successfully from WPF interface");
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Failed to start bridge");
-            ShowStatus($"Failed to start bridge: {ex.Message}", true);
-                StartButton.IsEnabled = true;
-                StartButton.Content = "Start Bridge";
-            SetOptionsEnabled(true);
-            ConfigButton.IsEnabled = true;
+            Logger.Error(ex, "Failed to start/stop bridge");
+            ShowStatus($"Failed to start/stop bridge: {ex.Message}", true);
+            ResetStartButton();
         }
+    }
+
+    private async Task StartBridge()
+    {
+        if (config == null)
+        {
+            ShowStatus("Configuration not loaded. Please check the configuration settings.", true);
+            return;
+        }
+
+        UpdateUserOptionsFromUI();
+        SaveUserSettings();
+
+        StartButton.IsEnabled = false;
+        StartButton.Content = "Starting...";
+
+        SetOptionsEnabled(false);
+        ConfigButton.IsEnabled = false; 
+
+        var devices = CduFactory.FindLocalDevices().ToList();
+        if (!devices.Any())
+        {
+            ShowStatus("No CDU devices found. Please ensure your device is connected.", true);
+            ResetStartButton();
+            return;
+        }
+
+        contexts = devices.Select(dev => new DeviceContext(
+            CduFactory.ConnectLocal(dev),
+            userOptions ?? new UserOptions(),
+            config)).ToList();
+
+        foreach (var ctx in contexts)
+            ctx.ShowStartupScreen();
+
+        while (contexts.Any(c => c.SelectedAircraft == -1))
+            await Task.Delay(100);
+
+        InitDcsBios();
+
+        foreach (var ctx in contexts)
+            ctx.StartBridge();
+
+        ShowStatus("Bridge started successfully!", false);
+        bridgeStarted = true;
+        StartButton.Content = "Stop Bridge";
+        StartButton.IsEnabled = true;
+
+        Logger.Info("Bridge started successfully from WPF interface");
+    }
+
+    private Task StopBridge()
+    {
+        StartButton.IsEnabled = false;
+        StartButton.Content = "Stopping...";
+
+        try
+        {
+            dcsBios?.Shutdown();
+            dcsBios = null;
+
+            DisposeContexts();
+
+            ShowStatus("Bridge stopped successfully!", false);
+            bridgeStarted = false;
+            StartButton.Content = "Start Bridge";
+            StartButton.IsEnabled = true;
+
+            SetOptionsEnabled(true);
+            ConfigButton.IsEnabled = true; 
+
+            Logger.Info("Bridge stopped successfully from WPF interface");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error occurred while stopping bridge");
+            ShowStatus($"Error stopping bridge: {ex.Message}", true);
+            ResetStartButton();
+            throw;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void DisposeContexts()
+    {
+        if (contexts != null)
+        {
+            foreach (var ctx in contexts)
+                ctx?.Dispose();
+            contexts = null;
+        }
+    }
+
+    private void ResetStartButton()
+    {
+        StartButton.IsEnabled = true;
+        StartButton.Content = bridgeStarted ? "Stop Bridge" : "Start Bridge";
+        SetOptionsEnabled(!bridgeStarted);
+        ConfigButton.IsEnabled = !bridgeStarted;
     }
 
     private void LoadUserSettings()
@@ -208,10 +264,11 @@ public partial class MainWindow : Window, IDisposable
         SaveUserSettings();
     }
 
-    // Call this method whenever DcsBiosJsonLocation changes
     private void UpdateStartButtonState()
     {
-        StartButton.IsEnabled = config != null && !string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation);
+        bool configValid = config != null && !string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation);
+        StartButton.IsEnabled = configValid;
+        StartButton.Content = "Start Bridge";
     }
 
     private void UpdateUserOptionsFromUI()
@@ -289,15 +346,22 @@ public partial class MainWindow : Window, IDisposable
 
         if (disposing)
         {
-            // Dispose managed resources here
-            if (contexts != null)
+            // Stop bridge if it's running before disposing
+            if (bridgeStarted)
             {
-                foreach (var ctx in contexts)
-                    ctx?.Dispose();
-                contexts = null;
+                try
+                {
+                    dcsBios?.Shutdown();
+                    dcsBios = null;
+                    bridgeStarted = false;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Error shutting down bridge during dispose");
+                }
             }
-            // Dispose other managed resources here
-            dcsBios?.Shutdown();
+
+            DisposeContexts();
             SaveUserSettings();
         }
 
