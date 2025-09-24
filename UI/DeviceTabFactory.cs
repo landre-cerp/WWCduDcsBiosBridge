@@ -92,7 +92,6 @@ public class DeviceTabFactory
         
         deviceInfoStack.Children.Add(description);
 
-
         return deviceInfoStack;
     }
 
