@@ -236,7 +236,6 @@ public partial class MainWindow : Window, IDisposable
             if (bridgeManager != null)
             {
                 await bridgeManager.StopAsync();
-                bridgeManager.Dispose();
                 bridgeManager = null;
             }
 
@@ -343,15 +342,52 @@ public partial class MainWindow : Window, IDisposable
         CH47SingleCduSwitch.IsEnabled = enabled;
     }
 
-    private void ExitButton_Click(object sender, RoutedEventArgs e)
+    private async void ExitButton_Click(object sender, RoutedEventArgs e)
     {
-        Dispose();
+        // Simplifié : pas besoin de multiple dispose calls
+        if (bridgeManager != null)
+        {
+            try
+            {
+                // Si démarré ou en cours de démarrage, arrêter proprement
+                if (bridgeManager.IsStarted)
+                {
+                    await bridgeManager.StopAsync();
+                }
+                else if (bridgeManager.Contexts != null)
+                {
+                    // Si en cours de démarrage, nettoyer manuellement les écrans
+                    foreach (var ctx in bridgeManager.Contexts)
+                    {
+                        try
+                        {
+                            ctx?.Mcdu?.Output?.Clear();
+                            ctx?.Mcdu?.RefreshDisplay();
+                        }
+                        catch { }
+                    }
+                }
+                
+                bridgeManager.Dispose();
+                bridgeManager = null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error stopping bridge during exit");
+            }
+        }
+
+        // Pas besoin d'appeler Dispose() ici car OnClosed le fera
         Application.Current.Shutdown();
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        Dispose();
+        // Simplifié : dispose une seule fois
+        if (!_disposed)
+        {
+            Dispose();
+        }
         base.OnClosed(e);
     }
 
@@ -368,6 +404,7 @@ public partial class MainWindow : Window, IDisposable
 
         if (disposing)
         {
+            // Plus besoin de dispose le bridgeManager ici s'il est déjà null
             bridgeManager?.Dispose();
             SaveUserSettings();
             DeviceManager.DisposeDevices(detectedDevices ?? []);
