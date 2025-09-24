@@ -362,7 +362,10 @@ public partial class MainWindow : Window, IDisposable
                             ctx?.Mcdu?.Output?.Clear();
                             ctx?.Mcdu?.RefreshDisplay();
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "Error clearing or refreshing MCDU output during bridge shutdown");
+                        }
                     }
                 }
                 
