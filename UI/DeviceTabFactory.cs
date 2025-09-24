@@ -36,6 +36,7 @@ public class DeviceTabFactory
         var stackPanel = new StackPanel();
 
         stackPanel.Children.Add(CreateDeviceInfoSection(deviceInfo));
+        // TODO: Enable LED mapping UI when feature is ready
         //stackPanel.Children.Add(CreateLedCheckBoxes(deviceInfo.Cdu));
 
         scrollViewer.Content = stackPanel;
