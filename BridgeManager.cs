@@ -141,7 +141,7 @@ public class BridgeManager : IDisposable
             {
                 try
                 {
-                    StopAsync().Wait();
+                    StopAsync().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
