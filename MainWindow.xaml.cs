@@ -340,6 +340,7 @@ public partial class MainWindow : Window, IDisposable
         DisplayCMSCheckBox.IsEnabled = enabled;
         CH47LinkedBrightnessCheckBox.IsEnabled = enabled;
         DisableLightingManagementCheckBox.IsEnabled = enabled;
+        CH47SingleCduSwitch.IsEnabled = enabled;
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
