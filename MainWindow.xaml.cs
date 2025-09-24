@@ -344,19 +344,19 @@ public partial class MainWindow : Window, IDisposable
 
     private async void ExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // Simplifié : pas besoin de multiple dispose calls
+        // SimplifiÃ© : pas besoin de multiple dispose calls
         if (bridgeManager != null)
         {
             try
             {
-                // Si démarré ou en cours de démarrage, arrêter proprement
+                // Si dÃ©marrÃ© ou en cours de dÃ©marrage, arrÃªter proprement
                 if (bridgeManager.IsStarted)
                 {
                     await bridgeManager.StopAsync();
                 }
                 else if (bridgeManager.Contexts != null)
                 {
-                    // Si en cours de démarrage, nettoyer manuellement les écrans
+                    // Si en cours de dÃ©marrage, nettoyer manuellement les Ã©crans
                     foreach (var ctx in bridgeManager.Contexts)
                     {
                         try
@@ -383,7 +383,7 @@ public partial class MainWindow : Window, IDisposable
 
     protected override void OnClosed(EventArgs e)
     {
-        // Simplifié : dispose une seule fois
+        // SimplifiÃ© : dispose une seule fois
         if (!_disposed)
         {
             Dispose();
@@ -404,7 +404,7 @@ public partial class MainWindow : Window, IDisposable
 
         if (disposing)
         {
-            // Plus besoin de dispose le bridgeManager ici s'il est déjà null
+            // Plus besoin de dispose le bridgeManager ici s'il est dÃ©jÃ  null
             bridgeManager?.Dispose();
             SaveUserSettings();
             DeviceManager.DisposeDevices(detectedDevices ?? []);
