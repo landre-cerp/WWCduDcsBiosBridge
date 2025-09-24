@@ -12,7 +12,7 @@ public class BridgeManager : IDisposable
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     
     public bool IsStarted { get; private set; }
-    internal List<DeviceContext>? Contexts { get; private set; } // Changed from public to internal
+    internal List<DeviceContext>? Contexts { get; private set; }
     
     private DCSBIOS? dcsBios;
     private bool _disposed = false;
