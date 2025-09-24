@@ -344,19 +344,17 @@ public partial class MainWindow : Window, IDisposable
 
     private async void ExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // Simplifié : pas besoin de multiple dispose calls
         if (bridgeManager != null)
         {
             try
             {
-                // Si démarré ou en cours de démarrage, arrêter proprement
+
                 if (bridgeManager.IsStarted)
                 {
                     await bridgeManager.StopAsync();
                 }
                 else if (bridgeManager.Contexts != null)
                 {
-                    // Si en cours de démarrage, nettoyer manuellement les écrans
                     foreach (var ctx in bridgeManager.Contexts)
                     {
                         try
@@ -377,13 +375,11 @@ public partial class MainWindow : Window, IDisposable
             }
         }
 
-        // Pas besoin d'appeler Dispose() ici car OnClosed le fera
         Application.Current.Shutdown();
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        // Simplifié : dispose une seule fois
         if (!_disposed)
         {
             Dispose();
@@ -404,7 +400,6 @@ public partial class MainWindow : Window, IDisposable
 
         if (disposing)
         {
-            // Plus besoin de dispose le bridgeManager ici s'il est déjà null
             bridgeManager?.Dispose();
             SaveUserSettings();
             DeviceManager.DisposeDevices(detectedDevices ?? []);
