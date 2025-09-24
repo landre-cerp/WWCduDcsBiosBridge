@@ -290,7 +290,9 @@ public partial class MainWindow : Window, IDisposable
     private void SaveUserSettings()
     {
         if (userOptions != null)
+        {
             UserOptionsStorage.Save(userOptions);
+        }
     }
 
     private void ShowStatus(string message, bool isError)
