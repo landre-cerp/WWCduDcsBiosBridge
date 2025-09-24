@@ -1,8 +1,9 @@
-using DCS_BIOS;
-using McduDotNet;
 using NLog;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using WWCduDcsBiosBridge.Config;
+using WWCduDcsBiosBridge.UI;
 
 namespace WWCduDcsBiosBridge;
 
@@ -10,13 +11,11 @@ public partial class MainWindow : Window, IDisposable
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private DcsBiosConfig? config;
-    private DCSBIOS? dcsBios;
-    private List<DeviceContext>? contexts;
     private UserOptions? userOptions;
-    private bool bridgeStarted = false;
     private bool needsConfigEdit = false;
     private bool _disposed = false;
-
+    private List<DeviceInfo>? detectedDevices;
+    private BridgeManager? bridgeManager;
 
     public MainWindow()
     {
@@ -26,7 +25,47 @@ public partial class MainWindow : Window, IDisposable
         LoadConfig();
         UpdateOptionsUIFromSettings();
         UpdateStartButtonState();
-        Loaded += MainWindow_Loaded; 
+        DetectAndCreateDeviceTabs();
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void DetectAndCreateDeviceTabs()
+    {
+        try
+        {
+            var tabsToRemove = MainTabControl.Items.Cast<TabItem>()
+                .Where(tab => tab != ConfigurationTab)
+                .ToList();
+
+            foreach (var tab in tabsToRemove)
+            {
+                MainTabControl.Items.Remove(tab);
+            }
+
+            detectedDevices = DeviceManager.DetectAndConnectDevices();
+
+            if (detectedDevices.Any())
+            {
+                ShowStatus($"Detected {detectedDevices.Count} CDU device(s)", false);
+
+                foreach (var deviceInfo in detectedDevices)
+                {
+                    var deviceTab = DeviceTabFactory.CreateDeviceTab(
+                        deviceInfo,
+                        bridgeManager?.IsStarted ?? false);
+                    MainTabControl.Items.Add(deviceTab);
+                }
+            }
+            else
+            {
+                ShowStatus("No CDU devices detected. Please ensure your device is connected.", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to detect devices");
+            ShowStatus($"Failed to detect devices: {ex.Message}", true);
+        }
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -59,7 +98,7 @@ public partial class MainWindow : Window, IDisposable
                 };
                 ConfigManager.Save(config);
                 ShowStatus("Please edit DCS-BIOS config", true);
-                needsConfigEdit = true; 
+                needsConfigEdit = true;
             }
         }
         catch (ConfigException)
@@ -76,7 +115,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void ConfigButton_Click(object sender, RoutedEventArgs e)
     {
-        if (bridgeStarted)
+        if (bridgeManager?.IsStarted == true)
         {
             ShowStatus("Cannot edit DCS-BIOS configuration while bridge is running.", true);
             return;
@@ -95,7 +134,7 @@ public partial class MainWindow : Window, IDisposable
             if (configWindow.ShowDialog() == true)
             {
                 config = configWindow.Config;
-                UpdateStartButtonState(); 
+                UpdateStartButtonState();
 
                 if (!string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation))
                 {
@@ -108,7 +147,7 @@ public partial class MainWindow : Window, IDisposable
                     needsConfigEdit = true;
                 }
 
-                if (dcsBios?.IsRunning == true)
+                if (bridgeManager?.IsStarted == true)
                 {
                     ShowStatus("Configuration updated. Please restart the bridge for changes to take effect.", false);
                 }
@@ -125,7 +164,7 @@ public partial class MainWindow : Window, IDisposable
     {
         try
         {
-            if (!bridgeStarted)
+            if (bridgeManager?.IsStarted != true)
             {
                 await StartBridge();
             }
@@ -150,6 +189,13 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
+        if (detectedDevices == null || !detectedDevices.Any())
+        {
+            ShowStatus("No CDU devices found. Please ensure your device is connected and refresh.", true);
+            DetectAndCreateDeviceTabs();
+            return;
+        }
+
         UpdateUserOptionsFromUI();
         SaveUserSettings();
 
@@ -157,59 +203,50 @@ public partial class MainWindow : Window, IDisposable
         StartButton.Content = "Starting...";
 
         SetOptionsEnabled(false);
-        ConfigButton.IsEnabled = false; 
+        SetDeviceTabsEnabled(false);
+        ConfigButton.IsEnabled = false;
 
-        var devices = CduFactory.FindLocalDevices().ToList();
-        if (!devices.Any())
+        try
         {
-            ShowStatus("No CDU devices found. Please ensure your device is connected.", true);
-            ResetStartButton();
-            return;
+            bridgeManager = new BridgeManager();
+            await bridgeManager.StartAsync(detectedDevices, userOptions ?? new UserOptions(), config);
+
+            ShowStatus($"Bridge started successfully with {bridgeManager.Contexts?.Count ?? 0} device(s)!", false);
+            StartButton.Content = "Stop Bridge";
+            StartButton.IsEnabled = true;
+
+            Logger.Info("Bridge started successfully from WPF interface");
         }
-
-        contexts = devices.Select(dev => new DeviceContext(
-            CduFactory.ConnectLocal(dev),
-            userOptions ?? new UserOptions(),
-            config)).ToList();
-
-        foreach (var ctx in contexts)
-            ctx.ShowStartupScreen();
-
-        while (contexts.Any(c => c.SelectedAircraft == -1))
-            await Task.Delay(100);
-
-        InitDcsBios();
-
-        foreach (var ctx in contexts)
-            ctx.StartBridge();
-
-        ShowStatus("Bridge started successfully!", false);
-        bridgeStarted = true;
-        StartButton.Content = "Stop Bridge";
-        StartButton.IsEnabled = true;
-
-        Logger.Info("Bridge started successfully from WPF interface");
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to start bridge");
+            ShowStatus($"Failed to start bridge: {ex.Message}", true);
+            ResetStartButton();
+            throw;
+        }
     }
 
-    private Task StopBridge()
+    private async Task StopBridge()
     {
         StartButton.IsEnabled = false;
         StartButton.Content = "Stopping...";
 
         try
         {
-            dcsBios?.Shutdown();
-            dcsBios = null;
-
-            DisposeContexts();
+            if (bridgeManager != null)
+            {
+                await bridgeManager.StopAsync();
+                bridgeManager.Dispose();
+                bridgeManager = null;
+            }
 
             ShowStatus("Bridge stopped successfully!", false);
-            bridgeStarted = false;
             StartButton.Content = "Start Bridge";
             StartButton.IsEnabled = true;
 
             SetOptionsEnabled(true);
-            ConfigButton.IsEnabled = true; 
+            SetDeviceTabsEnabled(true);
+            ConfigButton.IsEnabled = true;
 
             Logger.Info("Bridge stopped successfully from WPF interface");
         }
@@ -220,26 +257,29 @@ public partial class MainWindow : Window, IDisposable
             ResetStartButton();
             throw;
         }
-
-        return Task.CompletedTask;
     }
 
-    private void DisposeContexts()
+    private void SetDeviceTabsEnabled(bool enabled)
     {
-        if (contexts != null)
+        foreach (TabItem tabItem in MainTabControl.Items)
         {
-            foreach (var ctx in contexts)
-                ctx?.Dispose();
-            contexts = null;
+            if (tabItem == ConfigurationTab) continue;
+
+            if (tabItem.Content is ScrollViewer scrollViewer &&
+                scrollViewer.Content is StackPanel stackPanel)
+            {
+                UIHelpers.SetChildControlsEnabled(stackPanel, enabled);
+            }
         }
     }
 
     private void ResetStartButton()
     {
         StartButton.IsEnabled = true;
-        StartButton.Content = bridgeStarted ? "Stop Bridge" : "Start Bridge";
-        SetOptionsEnabled(!bridgeStarted);
-        ConfigButton.IsEnabled = !bridgeStarted;
+        StartButton.Content = (bridgeManager?.IsStarted == true) ? "Stop Bridge" : "Start Bridge";
+        SetOptionsEnabled(bridgeManager?.IsStarted != true);
+        SetDeviceTabsEnabled(bridgeManager?.IsStarted != true);
+        ConfigButton.IsEnabled = bridgeManager?.IsStarted != true;
     }
 
     private void LoadUserSettings()
@@ -249,13 +289,16 @@ public partial class MainWindow : Window, IDisposable
 
     private void SaveUserSettings()
     {
-        UserOptionsStorage.Save(userOptions);
+        if (userOptions != null)
+        {
+            UserOptionsStorage.Save(userOptions);
+        }
     }
 
     private void ShowStatus(string message, bool isError)
     {
         StatusTextBlock.Text = message;
-        StatusTextBlock.Foreground = isError ? System.Windows.Media.Brushes.Red : System.Windows.Media.Brushes.Green;
+        StatusTextBlock.Foreground = isError ? Brushes.Red : Brushes.Green;
     }
 
     private void OptionCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -299,28 +342,6 @@ public partial class MainWindow : Window, IDisposable
         DisableLightingManagementCheckBox.IsEnabled = enabled;
     }
 
-    private void InitDcsBios()
-    {
-        dcsBios = new DCSBIOS(config!.ReceiveFromIpUdp, config!.SendToIpUdp,
-                             config!.ReceivePortUdp, config!.SendPortUdp,
-                             DcsBiosNotificationMode.Parse);
-
-        if (!dcsBios.HasLastException())
-        {
-            if (!dcsBios.IsRunning)
-            {
-                dcsBios.Startup();
-            }
-            Logger.Info("DCS-BIOS started successfully.");
-        }
-        else
-        {
-            var exception = dcsBios.GetLastException();
-            Logger.Error(exception);
-            throw exception;
-        }
-    }
-
     private void ExitButton_Click(object sender, RoutedEventArgs e)
     {
         Dispose();
@@ -338,7 +359,7 @@ public partial class MainWindow : Window, IDisposable
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-    // Protected virtual Dispose(bool disposing) method
+
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
@@ -346,28 +367,11 @@ public partial class MainWindow : Window, IDisposable
 
         if (disposing)
         {
-            // Stop bridge if it's running before disposing
-            if (bridgeStarted)
-            {
-                try
-                {
-                    dcsBios?.Shutdown();
-                    dcsBios = null;
-                    bridgeStarted = false;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Error shutting down bridge during dispose");
-                }
-            }
-
-            DisposeContexts();
+            bridgeManager?.Dispose();
             SaveUserSettings();
+            DeviceManager.DisposeDevices(detectedDevices ?? []);
         }
-
-        // Free unmanaged resources here (if any)
 
         _disposed = true;
     }
-
 }

@@ -10,7 +10,6 @@
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -24,62 +23,66 @@
                    Margin="0,0,0,15"
                    HorizontalAlignment="Center"/>
 
-        <!-- Options Panel with ScrollViewer -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            
-                <StackPanel>
-                    <!-- A10C Options Group -->
-                    <GroupBox Header="A10C Options" Padding="10" Margin="0,0,0,10">
-                        <StackPanel>
-                            <CheckBox x:Name="DisplayBottomAlignedCheckBox" 
-                                      Content="Display Bottom Aligned"
-                                      ToolTip="Display is aligned to bottom of the screen"
+        <!-- Tab Control -->
+        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15">
+            <!-- Configuration Tab -->
+            <TabItem Header="Configuration" x:Name="ConfigurationTab">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <!-- A10C Options Group -->
+                        <GroupBox Header="A10C Options" Padding="10" Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="DisplayBottomAlignedCheckBox" 
+                                          Content="Display Bottom Aligned"
+                                          ToolTip="Display is aligned to bottom of the screen"
+                                          Margin="0,5"
+                                          Checked="OptionCheckBox_Changed"
+                                          Unchecked="OptionCheckBox_Changed"/>
+
+                                <CheckBox x:Name="DisplayCMSCheckBox" 
+                                          Content="Display CMS"
+                                          ToolTip="Display CMS on the screen"
+                                          Margin="0,5"
+                                          Checked="OptionCheckBox_Changed"
+                                          Unchecked="OptionCheckBox_Changed"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- CH-47F Options Group -->
+                        <GroupBox Header="CH-47F Options" Padding="10" Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
+                                      Content="Linked Background Brightness"
+                                      ToolTip="when ticked everything is bound to the CDU knob"
                                       Margin="0,5"
                                       Checked="OptionCheckBox_Changed"
                                       Unchecked="OptionCheckBox_Changed"/>
 
-                            <CheckBox x:Name="DisplayCMSCheckBox" 
-                                      Content="Display CMS"
-                                      ToolTip="Display CMS on the screen"
+                                <CheckBox x:Name="CH47SingleCduSwitch" 
+                                      Content="Switches CDU display with seat position"
+                                      ToolTip="Useful if you have only 1 cdu"
                                       Margin="0,5"
                                       Checked="OptionCheckBox_Changed"
                                       Unchecked="OptionCheckBox_Changed"/>
-                        </StackPanel>
-                    </GroupBox>
-                    <!-- CH-47F Options Group -->
-                    <GroupBox Header="CH-47F Options" Padding="10" Margin="0,0,0,10">
-                    <StackPanel>
-                        <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
-                              Content="Linked Background Brightness"
-                              ToolTip="when ticked everything is bound to the CDU knob"
-                              Margin="0,5"
-                              Checked="OptionCheckBox_Changed"
-                              Unchecked="OptionCheckBox_Changed"/>
-
-                        <CheckBox x:Name="CH47SingleCduSwitch" 
-                              Content="Switches CDU display with seat position"
-                              ToolTip="Useful if you have only 1 cdu"
-                              Margin="0,5"
-                              Checked="OptionCheckBox_Changed"
-                              Unchecked="OptionCheckBox_Changed"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Global Options" Padding="10" Margin="0,0,0,10">
+                            <CheckBox x:Name="DisableLightingManagementCheckBox" 
+                                  Content="Disable Lighting Management"
+                                  ToolTip="Disable lighting management (for SimApp Pro users)"
+                                  Margin="0,5"
+                                  Checked="OptionCheckBox_Changed"
+                                  Unchecked="OptionCheckBox_Changed"/>
+                        </GroupBox>
                     </StackPanel>
-                </GroupBox>
-                    
-                    <GroupBox Header="Global Options" Padding="10" Margin="0,0,0,10">
-                        <CheckBox x:Name="DisableLightingManagementCheckBox" 
-                              Content="Disable Lighting Management"
-                              ToolTip="Disable lighting management (for SimApp Pro users)"
-                              Margin="0,5"
-                              Checked="OptionCheckBox_Changed"
-                              Unchecked="OptionCheckBox_Changed"/>
-                    </GroupBox>
-                </StackPanel>
-            
-        </ScrollViewer>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
 
         <!-- Status Indicator -->
         <TextBlock x:Name="StatusTextBlock"
-                   Grid.Row="3"
+                   Grid.Row="2"
                    Text="Ready."
                    FontSize="13"
                    Margin="0,10,0,0"
@@ -89,8 +92,8 @@
                    MaxWidth="400"
                    VerticalAlignment="Center"/>
 
-        <!-- Control Buttons Row: Replace StackPanel with Grid for left/right alignment -->
-        <Grid Grid.Row="4" Margin="0,20,0,0">
+        <!-- Control Buttons Row -->
+        <Grid Grid.Row="3" Margin="0,20,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
