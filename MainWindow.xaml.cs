@@ -236,7 +236,6 @@ public partial class MainWindow : Window, IDisposable
             if (bridgeManager != null)
             {
                 await bridgeManager.StopAsync();
-                bridgeManager.Dispose();
                 bridgeManager = null;
             }
 
@@ -343,15 +342,51 @@ public partial class MainWindow : Window, IDisposable
         CH47SingleCduSwitch.IsEnabled = enabled;
     }
 
-    private void ExitButton_Click(object sender, RoutedEventArgs e)
+    private async void ExitButton_Click(object sender, RoutedEventArgs e)
     {
-        Dispose();
+        if (bridgeManager != null)
+        {
+            try
+            {
+
+                if (bridgeManager.IsStarted)
+                {
+                    await bridgeManager.StopAsync();
+                }
+                else if (bridgeManager.Contexts != null)
+                {
+                    foreach (var ctx in bridgeManager.Contexts)
+                    {
+                        try
+                        {
+                            ctx?.Mcdu?.Output?.Clear();
+                            ctx?.Mcdu?.RefreshDisplay();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "Error clearing or refreshing MCDU output during bridge shutdown");
+                        }
+                    }
+                }
+                
+                bridgeManager.Dispose();
+                bridgeManager = null;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error stopping bridge during exit");
+            }
+        }
+
         Application.Current.Shutdown();
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        Dispose();
+        if (!_disposed)
+        {
+            Dispose();
+        }
         base.OnClosed(e);
     }
 
