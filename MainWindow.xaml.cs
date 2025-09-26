@@ -24,8 +24,8 @@ public partial class MainWindow : Window, IDisposable
         SetupLogging();
         LoadConfig();
         UpdateOptionsUIFromSettings();
-        UpdateStartButtonState();
         DetectAndCreateDeviceTabs();
+        UpdateStartButtonState();
         Loaded += MainWindow_Loaded;
     }
 
@@ -309,7 +309,9 @@ public partial class MainWindow : Window, IDisposable
     private void UpdateStartButtonState()
     {
         bool configValid = config != null && !string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation);
-        StartButton.IsEnabled = configValid;
+        bool hasDevices = detectedDevices != null && detectedDevices.Any();
+        
+        StartButton.IsEnabled = configValid && hasDevices;
         StartButton.Content = "Start Bridge";
     }
 
