@@ -270,7 +270,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     private void UpdateStartButtonState()
     {
         StartButton.IsEnabled = !IsBridgeRunning && IsConfigValid() && devices.Count > 0;
-        if (!IsBridgeRunning && StartButton.Content is not string { Length: > 0 })
+        if (!IsBridgeRunning && !(StartButton.Content?.ToString()?.Length > 0))
         {
             StartButton.Content = "Start Bridge";
         }
