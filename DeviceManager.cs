@@ -55,53 +55,52 @@ public class DeviceManager
     /// <summary>
     /// Asynchronously detects and connects to all available CDU devices with progress reporting
     /// </summary>
-    public static Task<List<DeviceInfo>> DetectAndConnectDevicesAsync(
+    public static async Task<List<DeviceInfo>> DetectAndConnectDevicesAsync(
         IProgress<DeviceDetectionProgress>? progress = null, 
         CancellationToken cancellationToken = default)
     {
-        return Task.Run(() =>
+        var detectedDevices = new List<DeviceInfo>();
+        try
         {
-            var detectedDevices = new List<DeviceInfo>();
-            try
+            cancellationToken.ThrowIfCancellationRequested();
+            // If FindLocalDevicesAsync exists, use it. Otherwise, wrap in Task.Run.
+            var deviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+            progress?.Report(new DeviceDetectionProgress(0, deviceIdentifiers.Count, deviceIdentifiers.Count == 0 ? "No devices found" : $"Found {deviceIdentifiers.Count} device(s). Connecting..."));
+
+            for (int i = 0; i < deviceIdentifiers.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var deviceIdentifiers = CduFactory.FindLocalDevices().ToList();
-                progress?.Report(new DeviceDetectionProgress(0, deviceIdentifiers.Count, deviceIdentifiers.Count == 0 ? "No devices found" : $"Found {deviceIdentifiers.Count} device(s). Connecting..."));
-
-                for (int i = 0; i < deviceIdentifiers.Count; i++)
+                var deviceId = deviceIdentifiers[i];
+                progress?.Report(new DeviceDetectionProgress(i, deviceIdentifiers.Count, $"Connecting device {i + 1}/{deviceIdentifiers.Count}..."));
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var deviceId = deviceIdentifiers[i];
-                    progress?.Report(new DeviceDetectionProgress(i, deviceIdentifiers.Count, $"Connecting device {i + 1}/{deviceIdentifiers.Count}..."));
-                    try
-                    {
-                        var cdu = CduFactory.ConnectLocal(deviceId);
-                        initCdu(cdu);
-                        var displayName = GetDeviceName(deviceId);
-                        var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
-                        detectedDevices.Add(deviceInfo);
-                        progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Connected {displayName} ({i + 1}/{deviceIdentifiers.Count})"));
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex, $"Failed to connect to device {i + 1}");
-                        progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Failed to connect device {i + 1}: {ex.Message}"));
-                    }
+                    // If ConnectLocalAsync exists, use it. Otherwise, wrap in Task.Run.
+                    var cdu = await Task.Run(() => CduFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    initCdu(cdu);
+                    var displayName = GetDeviceName(deviceId);
+                    var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
+                    detectedDevices.Add(deviceInfo);
+                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Connected {displayName} ({i + 1}/{deviceIdentifiers.Count})"));
                 }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Failed to connect to device {i + 1}");
+                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Failed to connect device {i + 1}: {ex.Message}"));
+                }
+            }
 
-                progress?.Report(new DeviceDetectionProgress(deviceIdentifiers.Count, deviceIdentifiers.Count, $"Detection complete. {detectedDevices.Count} connected."));
-            }
-            catch (OperationCanceledException)
-            {
-                progress?.Report(new DeviceDetectionProgress(0, 0, "Device detection cancelled"));
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to detect devices");
-                progress?.Report(new DeviceDetectionProgress(0, 0, $"Detection error: {ex.Message}"));
-            }
-            return detectedDevices;
-        }, cancellationToken);
+            progress?.Report(new DeviceDetectionProgress(deviceIdentifiers.Count, deviceIdentifiers.Count, $"Detection complete. {detectedDevices.Count} connected."));
+        }
+        catch (OperationCanceledException)
+        {
+            progress?.Report(new DeviceDetectionProgress(0, 0, "Device detection cancelled"));
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to detect devices");
+            progress?.Report(new DeviceDetectionProgress(0, 0, $"Detection error: {ex.Message}"));
+        }
+        return detectedDevices;
     }
 
     private static void initCdu(ICdu mcdu)
