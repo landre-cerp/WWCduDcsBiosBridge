@@ -47,15 +47,8 @@ internal class AircraftSelectionMenu : IDisposable
         mcdu.RefreshDisplay();
     }
 
-    private void AttachEventHandlers()
-    {
-        mcdu.KeyDown += HandleKeyDown;
-    }
-
-    private void DetachEventHandlers()
-    {
-        mcdu.KeyDown -= HandleKeyDown;
-    }
+    private void AttachEventHandlers() => mcdu.KeyDown += HandleKeyDown;
+    private void DetachEventHandlers() => mcdu.KeyDown -= HandleKeyDown;
 
     private void HandleKeyDown(object? sender, KeyEventArgs e)
     {
@@ -77,23 +70,10 @@ internal class AircraftSelectionMenu : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        Hide();
-    }
+    public void Dispose() => Hide();
 }
 
-internal class AircraftSelection
-{
-    public int AircraftId { get; }
-    public bool IsPilot { get; }
-
-    public AircraftSelection(int aircraftId, bool isPilot)
-    {
-        AircraftId = aircraftId;
-        IsPilot = isPilot;
-    }
-}
+internal sealed record AircraftSelection(int AircraftId, bool IsPilot);
 
 internal class AircraftSelectedEventArgs : EventArgs
 {
