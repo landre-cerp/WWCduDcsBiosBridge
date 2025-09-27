@@ -205,7 +205,8 @@ public partial class MainWindow : Window, IDisposable
             await bridgeManager.StartAsync(detectedDevices, userOptions ?? new UserOptions(), config);
 
             ShowStatus($"Bridge started successfully with {bridgeManager.Contexts?.Count ?? 0} device(s)!", false);
-            StartButton.Content = "Started";
+            StartButton.Content = "Bridge Running";
+            StartButton.IsEnabled = false;
 
             Logger.Info("Bridge started successfully from WPF interface");
         }
