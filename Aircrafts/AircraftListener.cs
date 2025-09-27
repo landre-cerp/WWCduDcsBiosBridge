@@ -67,7 +67,6 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.BacklightBrightnessPercent = 100;
         mcdu.LedBrightnessPercent = 100;
         mcdu.DisplayBrightnessPercent = 100;
-
     }
 
     public void Stop()
