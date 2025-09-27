@@ -13,17 +13,20 @@ public class DeviceManager
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     /// <summary>
-    /// Detects and connects to all available CDU devices
+    /// Progress info for async device detection
+    /// </summary>
+    public sealed record DeviceDetectionProgress(int Current, int Total, string Message);
+
+    /// <summary>
+    /// Detects and connects to all available CDU devices synchronously
     /// </summary>
     /// <returns>List of connected devices</returns>
     public static List<DeviceInfo> DetectAndConnectDevices()
     {
         var detectedDevices = new List<DeviceInfo>();
-        
         try
         {
             var deviceIdentifiers = CduFactory.FindLocalDevices().ToList();
-            
             for (int i = 0; i < deviceIdentifiers.Count; i++)
             {
                 var deviceId = deviceIdentifiers[i];
@@ -46,7 +49,57 @@ public class DeviceManager
             Logger.Error(ex, "Failed to detect devices");
             throw;
         }
+        return detectedDevices;
+    }
 
+    /// <summary>
+    /// Asynchronously detects and connects to all available CDU devices with progress reporting
+    /// </summary>
+    public static async Task<List<DeviceInfo>> DetectAndConnectDevicesAsync(
+        IProgress<DeviceDetectionProgress>? progress = null, 
+        CancellationToken cancellationToken = default)
+    {
+        var detectedDevices = new List<DeviceInfo>();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // If FindLocalDevicesAsync exists, use it. Otherwise, wrap in Task.Run.
+            var deviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+            progress?.Report(new DeviceDetectionProgress(0, deviceIdentifiers.Count, deviceIdentifiers.Count == 0 ? "No devices found" : $"Found {deviceIdentifiers.Count} device(s). Connecting..."));
+
+            for (int i = 0; i < deviceIdentifiers.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var deviceId = deviceIdentifiers[i];
+                progress?.Report(new DeviceDetectionProgress(i, deviceIdentifiers.Count, $"Connecting device {i + 1}/{deviceIdentifiers.Count}..."));
+                try
+                {
+                    // If ConnectLocalAsync exists, use it. Otherwise, wrap in Task.Run.
+                    var cdu = await Task.Run(() => CduFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    initCdu(cdu);
+                    var displayName = GetDeviceName(deviceId);
+                    var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
+                    detectedDevices.Add(deviceInfo);
+                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Connected {displayName} ({i + 1}/{deviceIdentifiers.Count})"));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Failed to connect to device {i + 1}");
+                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Failed to connect device {i + 1}: {ex.Message}"));
+                }
+            }
+
+            progress?.Report(new DeviceDetectionProgress(deviceIdentifiers.Count, deviceIdentifiers.Count, $"Detection complete. {detectedDevices.Count} connected."));
+        }
+        catch (OperationCanceledException)
+        {
+            progress?.Report(new DeviceDetectionProgress(0, 0, "Device detection cancelled"));
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to detect devices");
+            progress?.Report(new DeviceDetectionProgress(0, 0, $"Detection error: {ex.Message}"));
+        }
         return detectedDevices;
     }
 
@@ -61,17 +114,11 @@ public class DeviceManager
     /// <summary>
     /// Gets a friendly name for a device
     /// </summary>
-    /// <param name="deviceId">The device identifier</param>
-    /// <returns>Device display name</returns>
-    public static string GetDeviceName(DeviceIdentifier deviceId)
-    {
-        return deviceId.Description;
-    }
+    public static string GetDeviceName(DeviceIdentifier deviceId) => deviceId.Description;
 
     /// <summary>
     /// Tests a device display by showing a test pattern
     /// </summary>
-    /// <param name="device">The device to test</param>
     public static void TestDeviceDisplay(ICdu device)
     {
         try
@@ -80,7 +127,6 @@ public class DeviceManager
                 .Line(0).Centered($"TEST DEVICE {device.DeviceId}")
                 .Line(2).Yellow().Centered("Display Test")
                 .Line(4).White().WriteLine("Device is working!");
-
             device.RefreshDisplay();
         }
         catch (Exception ex)
@@ -93,7 +139,6 @@ public class DeviceManager
     /// <summary>
     /// Clears a device display
     /// </summary>
-    /// <param name="device">The device to clear</param>
     public static void ClearDeviceDisplay(ICdu device)
     {
         try
@@ -111,11 +156,9 @@ public class DeviceManager
     /// <summary>
     /// Disposes a list of devices safely
     /// </summary>
-    /// <param name="devices">Devices to dispose</param>
     public static void DisposeDevices(IEnumerable<DeviceInfo> devices)
     {
         if (devices == null) return;
-
         foreach (var deviceInfo in devices)
         {
             try

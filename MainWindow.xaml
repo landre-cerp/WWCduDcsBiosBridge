@@ -5,7 +5,19 @@
         Height="500" 
         Width="640"
         ResizeMode="CanResize"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <Window.Resources>
+        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Green" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -24,7 +36,7 @@
                    HorizontalAlignment="Center"/>
 
         <!-- Tab Control -->
-        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15">
+        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15" IsEnabled="{Binding CanEdit}">
             <!-- Configuration Tab -->
             <TabItem Header="Configuration" x:Name="ConfigurationTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -83,7 +95,8 @@
         <!-- Status Indicator -->
         <TextBlock x:Name="StatusTextBlock"
                    Grid.Row="2"
-                   Text="Ready."
+                   Text="{Binding StatusMessage}" 
+                   Style="{StaticResource StatusTextStyle}"
                    FontSize="13"
                    Margin="0,10,0,0"
                    HorizontalAlignment="Center"
@@ -106,7 +119,8 @@
                     Height="30"
                     HorizontalAlignment="Left"
                     Click="ConfigButton_Click"
-                    Grid.Column="0"/>
+                    Grid.Column="0"
+                    IsEnabled="{Binding CanEdit}"/>
 
             <!-- Right-aligned Start/Exit Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
