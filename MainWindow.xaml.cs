@@ -19,9 +19,9 @@ public partial class MainWindow : Window, IDisposable
 
     public MainWindow()
     {
+        SetupLogging();
         InitializeComponent();
         LoadUserSettings();
-        SetupLogging();
         LoadConfig();
         UpdateOptionsUIFromSettings();
         DetectAndCreateDeviceTabs();
@@ -162,21 +162,14 @@ public partial class MainWindow : Window, IDisposable
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            if (bridgeManager?.IsStarted != true)
-            {
-                await StartBridge();
-            }
-            else
-            {
-                await StopBridge();
-            }
+        try 
+        { 
+            await StartBridge();
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Failed to start/stop bridge");
-            ShowStatus($"Failed to start/stop bridge: {ex.Message}", true);
+            Logger.Error(ex, "Failed to start bridge");
+            ShowStatus($"Failed to start bridge: {ex.Message}", true);
             ResetStartButton();
         }
     }
@@ -212,8 +205,8 @@ public partial class MainWindow : Window, IDisposable
             await bridgeManager.StartAsync(detectedDevices, userOptions ?? new UserOptions(), config);
 
             ShowStatus($"Bridge started successfully with {bridgeManager.Contexts?.Count ?? 0} device(s)!", false);
-            StartButton.Content = "Stop Bridge";
-            StartButton.IsEnabled = true;
+            StartButton.Content = "Bridge Running";
+            StartButton.IsEnabled = false;
 
             Logger.Info("Bridge started successfully from WPF interface");
         }
@@ -225,39 +218,7 @@ public partial class MainWindow : Window, IDisposable
             throw;
         }
     }
-
-    private async Task StopBridge()
-    {
-        StartButton.IsEnabled = false;
-        StartButton.Content = "Stopping...";
-
-        try
-        {
-            if (bridgeManager != null)
-            {
-                await bridgeManager.StopAsync();
-                bridgeManager = null;
-            }
-
-            ShowStatus("Bridge stopped successfully!", false);
-            StartButton.Content = "Start Bridge";
-            StartButton.IsEnabled = true;
-
-            SetOptionsEnabled(true);
-            SetDeviceTabsEnabled(true);
-            ConfigButton.IsEnabled = true;
-
-            Logger.Info("Bridge stopped successfully from WPF interface");
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Error occurred while stopping bridge");
-            ShowStatus($"Error stopping bridge: {ex.Message}", true);
-            ResetStartButton();
-            throw;
-        }
-    }
-
+    
     private void SetDeviceTabsEnabled(bool enabled)
     {
         foreach (TabItem tabItem in MainTabControl.Items)
@@ -275,7 +236,7 @@ public partial class MainWindow : Window, IDisposable
     private void ResetStartButton()
     {
         StartButton.IsEnabled = true;
-        StartButton.Content = (bridgeManager?.IsStarted == true) ? "Stop Bridge" : "Start Bridge";
+        StartButton.Content = "Start Bridge";
         SetOptionsEnabled(bridgeManager?.IsStarted != true);
         SetDeviceTabsEnabled(bridgeManager?.IsStarted != true);
         ConfigButton.IsEnabled = bridgeManager?.IsStarted != true;
@@ -350,7 +311,6 @@ public partial class MainWindow : Window, IDisposable
         {
             try
             {
-
                 if (bridgeManager.IsStarted)
                 {
                     await bridgeManager.StopAsync();
