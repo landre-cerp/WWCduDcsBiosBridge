@@ -1,5 +1,7 @@
 using McduDotNet;
+using Newtonsoft.Json;
 using NLog;
+using System.IO;
 
 namespace WWCduDcsBiosBridge;
 
@@ -28,6 +30,7 @@ public class DeviceManager
                 try
                 {
                     var cdu = CduFactory.ConnectLocal(deviceId);
+                    initCdu(cdu);
                     var displayName = GetDeviceName(deviceId);
                     var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
@@ -45,6 +48,14 @@ public class DeviceManager
         }
 
         return detectedDevices;
+    }
+
+    private static void initCdu(ICdu mcdu)
+    {
+        using var fileStream = new FileStream("resources/a10c-font-21x31.json", FileMode.Open, FileAccess.Read);
+        using var reader = new StreamReader(fileStream);
+        var fontJson = reader.ReadToEnd();
+        mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(fontJson), true);
     }
 
     /// <summary>

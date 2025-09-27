@@ -4,7 +4,6 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using Newtonsoft.Json;
-using System.ComponentModel;
 using System.IO;
 using Timer = System.Timers.Timer;
 
@@ -52,6 +51,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
         InitializeDcsBiosControls();
         InitMcduFont();
+        InitMcduBrightness(options.DisableLightingManagement);
         ShowStartupMessage();
 
         BIOSEventHandler.AttachStringListener(this);
@@ -59,6 +59,15 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.AttachConnectionListener(this);
 
         _DisplayCDUTimer.Start();
+    }
+
+    private void InitMcduBrightness(bool disabledBrightness)
+    {
+        if (disabledBrightness) return;
+        mcdu.BacklightBrightnessPercent = 100;
+        mcdu.LedBrightnessPercent = 100;
+        mcdu.DisplayBrightnessPercent = 100;
+
     }
 
     public void Stop()

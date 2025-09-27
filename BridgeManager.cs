@@ -42,7 +42,7 @@ public class BridgeManager : IDisposable
                 ctx.ShowStartupScreen();
 
             // Wait for aircraft selection
-            while (Contexts.Any(c => c.SelectedAircraft == -1))
+            while (Contexts.Any(c => !c.IsSelectedAircraft))
                 await Task.Delay(100);
 
             // Initialize DCS-BIOS
