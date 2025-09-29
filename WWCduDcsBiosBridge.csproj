@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="libs\A10C-PerfLib\PerformanceLib\a10c-perf-lib.csproj" />
     <ProjectReference Include="libs\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
   </ItemGroup>
 

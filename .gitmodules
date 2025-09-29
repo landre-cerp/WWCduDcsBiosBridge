@@ -1,3 +1,6 @@
 [submodule "libs/DCSFPCommon"]
 	path = libs/DCSFPCommon
 	url = https://github.com/DCS-Skunkworks/DCSFPCommon
+[submodule "libs/A10C-PerfLib"]
+	path = libs/A10C-PerfLib
+	url = https://github.com/landre-cerp/A10C-PerfLib
