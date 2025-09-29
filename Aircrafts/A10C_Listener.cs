@@ -2,6 +2,7 @@
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
+using a10c_perf_lib.src;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -27,6 +28,8 @@ internal class A10C_Listener : AircraftListener
     public A10C_Listener(
         ICdu mcdu, 
         UserOptions options) : base(mcdu, SupportedAircrafts.A10C, options) {
+
+        var takeoffIndex = A10CPerfCalculator.TakeoffIndex(20, new PressureAltitude(500, QNH.StdInHg));
     }
 
 
