@@ -5,6 +5,9 @@ on:
     branches:
       - '**' # Triggers on push to any branch
 
+permissions:
+  contents: read
+
 env:
   DOTNET_VERSION: '8.0.x'
   CONFIGURATION: 'Release'
