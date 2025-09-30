@@ -1,7 +1,0 @@
-﻿name: "CodeQL Configuration"
-
-paths-ignore:
-  - "**/*.Designer.cs"
-  - "**/obj/**"
-  - "**/bin/**"
-  - "libs/**/*.g.cs"
