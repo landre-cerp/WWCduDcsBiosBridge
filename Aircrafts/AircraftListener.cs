@@ -27,6 +27,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     protected const string DEFAULT_PAGE = "default";
     protected string _currentPage = DEFAULT_PAGE;
 
+    // Design choice, scratchpad is shared among all pages (except default ? )
+    // future will teach us if this is a good idea or not
+    protected Scratchpad scratchpad = new();
+
     protected Dictionary<string, Screen> pages = new()
         {
               {DEFAULT_PAGE, new Screen() }
@@ -45,6 +49,8 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             mcdu.Screen.CopyFrom(pages[_currentPage]);
             mcdu.RefreshDisplay();
         };
+        mcdu.KeyDown += (sender, e) => OnKeyDown(e.Key);
+        mcdu.KeyUp += (sender, e) => OnKeyUp(e.Key);
     }
 
     public void Start()
@@ -80,7 +86,6 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.Output.Clear();
         mcdu.Cleanup();
         mcdu.RefreshDisplay();
-        
     }
 
     private void InitMcduFont()
@@ -123,6 +128,30 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         }
         return new Compositor(pages[pageName]);
     }
+
+    public virtual void OnKeyDown(Key key)
+    {
+        scratchpad?.KeyDown(key);
+        CopyScratchpadIntoDisplay();
+    }
+
+    public virtual void OnKeyUp(Key key)
+    {
+        scratchpad?.KeyUp(key);
+    }
+
+    protected virtual Row GetScratchpadTargetRow()
+    {
+        return pages[_currentPage].Rows[^1];
+    }
+
+    protected virtual void CopyScratchpadIntoDisplay()
+    {
+        var screenRow = GetScratchpadTargetRow();
+        scratchpad?.Row.CopyTo(screenRow);
+    }
+
+
 
     /// <summary>
     /// Called when DCS-BIOS data is received

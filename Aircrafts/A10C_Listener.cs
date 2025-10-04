@@ -121,6 +121,12 @@ internal class A10C_Listener : AircraftListener
         }
     }
 
+    protected override Row GetScratchpadTargetRow()
+    {
+        return pages[_currentPage].Rows[ options.DisplayBottomAligned ? 3 : 10];
+    }
+
+
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
