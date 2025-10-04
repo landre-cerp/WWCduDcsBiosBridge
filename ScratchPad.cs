@@ -222,7 +222,7 @@ public class Scratchpad
     {
         if (ShowLowercaseInSmallUppercase)
         {
-            if (ch <= 'a' || ch >= 'z')
+            if (ch < 'a' || ch > 'z')
             {
                 cell.Small = false;
             }
