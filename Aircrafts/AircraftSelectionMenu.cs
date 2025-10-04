@@ -7,7 +7,7 @@ internal class AircraftSelectionMenu : IDisposable
     private readonly ICdu mcdu;
     private bool isActive;
 
-    public event EventHandler<AircraftSelectedEventArgs>? AircraftSelected;
+    public event EventHandler<AircraftSelectedEventArgs>? OnAircraftSelected;
 
     public AircraftSelectionMenu(ICdu mcdu)
     {
@@ -68,7 +68,7 @@ internal class AircraftSelectionMenu : IDisposable
         if (selection != null)
         {
             Hide();
-            AircraftSelected?.Invoke(this, new AircraftSelectedEventArgs(selection));
+            OnAircraftSelected?.Invoke(this, new AircraftSelectedEventArgs(selection));
         }
     }
 
