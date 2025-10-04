@@ -26,7 +26,7 @@ internal class DeviceContext : IDisposable
         this.options = options;
         this.config = config;
         menu = new AircraftSelectionMenu(mcdu);
-        menu.AircraftSelected += OnAircraftSelected;
+        menu.OnAircraftSelected += OnAircraftSelected;
     }
 
     public void ShowStartupScreen()
