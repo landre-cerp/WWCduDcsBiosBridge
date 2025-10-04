@@ -3,6 +3,7 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using McduDotNet;
 using a10c_perf_lib.src;
+using System.ComponentModel.DataAnnotations;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -30,6 +31,9 @@ internal class A10C_Listener : AircraftListener
         UserOptions options) : base(mcdu, SupportedAircrafts.A10C, options) {
 
         var takeoffIndex = A10CPerfCalculator.TakeoffIndex(20, new PressureAltitude(500, QNH.StdInHg));
+
+        AddNewPage("Takeoff");
+        AddNewPage("Landing");
     }
 
 
@@ -123,10 +127,25 @@ internal class A10C_Listener : AircraftListener
 
     protected override Row GetScratchpadTargetRow()
     {
+        // this is the "free line" based on the user options
         return pages[_currentPage].Rows[ options.DisplayBottomAligned ? 3 : 10];
     }
 
-
+    protected override void OnKeyDown(Key key)
+    {
+        if (key == Key.Menu)
+        {
+            _currentPage = "Takeoff";
+        }
+        else if (new[] { Key.InitRef, Key.Rte, Key.FPln, Key.Clr, Key.Altn,  Key.VNav, Key.DepArr }.Contains(key))
+        {
+            _currentPage = DEFAULT_PAGE;
+        }
+        else
+        {
+            base.OnKeyDown(key);
+        }
+    }
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {

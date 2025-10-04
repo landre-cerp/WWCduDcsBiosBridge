@@ -129,13 +129,13 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         return new Compositor(pages[pageName]);
     }
 
-    public virtual void OnKeyDown(Key key)
+    protected virtual void OnKeyDown(Key key)
     {
         scratchpad?.KeyDown(key);
         CopyScratchpadIntoDisplay();
     }
 
-    public virtual void OnKeyUp(Key key)
+    protected virtual void OnKeyUp(Key key)
     {
         scratchpad?.KeyUp(key);
     }
