@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <None Include=".github\ISSUE_TEMPLATE\bug_report.md" />
+    <None Include=".github\ISSUE_TEMPLATE\config.yaml" />
     <None Include=".github\ISSUE_TEMPLATE\enhancement.md" />
     <None Include=".github\workflows\build-on-push.yml" />
     <None Include=".github\workflows\build-on-tag.yml" />
