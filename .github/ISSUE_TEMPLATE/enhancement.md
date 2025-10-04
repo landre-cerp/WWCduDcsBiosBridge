@@ -1,4 +1,4 @@
-﻿---
+---
 name: "💡 Enhancement / Feature Request"
 about: "Suggest an idea or request a new feature"
 title: "[Enhancement]: "
