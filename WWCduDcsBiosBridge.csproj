@@ -15,6 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\issue_template\bug_report.md" />
+    <None Include=".github\issue_template\enhancement.md" />
     <None Include=".github\workflows\build-on-push.yml" />
     <None Include=".github\workflows\build-on-tag.yml" />
   </ItemGroup>
@@ -42,6 +44,11 @@
     <None Update="Resources\a10c-font-21x31.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include=".github\ISSUE_TEMPLATE\" />
   </ItemGroup>
 
 </Project>
