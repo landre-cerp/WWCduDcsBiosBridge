@@ -17,12 +17,15 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -37,7 +40,6 @@
 
         <!-- Tab Control -->
         <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15" IsEnabled="{Binding CanEdit}">
-            <!-- Configuration Tab -->
             <TabItem Header="Configuration" x:Name="ConfigurationTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
@@ -92,9 +94,35 @@
             </TabItem>
         </TabControl>
 
+        <!-- Update Notification Banner -->
+        <Border Grid.Row="2"
+                Background="#FFFDF5D7"
+                BorderBrush="#FFE6C200"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="8"
+                Margin="0,0,0,10"
+                Visibility="{Binding IsUpdateVisible, Converter={StaticResource BoolToVisibility}}">
+            <DockPanel LastChildFill="False">
+                <TextBlock Text="{Binding UpdateMessage}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"
+                           Foreground="#664400"/>
+                <Button Content="Open release"
+                        Click="OpenUpdateLink_Click"
+                        Margin="0,0,6,0"
+                        Padding="10,4"
+                        MinWidth="110" />
+                <Button Content="Dismiss"
+                        Click="DismissUpdate_Click"
+                        Padding="10,4"
+                        MinWidth="90" />
+            </DockPanel>
+        </Border>
+
         <!-- Status Indicator -->
         <TextBlock x:Name="StatusTextBlock"
-                   Grid.Row="2"
+                   Grid.Row="3"
                    Text="{Binding StatusMessage}" 
                    Style="{StaticResource StatusTextStyle}"
                    FontSize="13"
@@ -106,13 +134,12 @@
                    VerticalAlignment="Center"/>
 
         <!-- Control Buttons Row -->
-        <Grid Grid.Row="3" Margin="0,20,0,0">
+        <Grid Grid.Row="4" Margin="0,20,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left-aligned Edit Button -->
             <Button x:Name="ConfigButton" 
                     Content="Edit DCS-BIOS Configuration" 
                     Width="200" 
@@ -122,7 +149,6 @@
                     Grid.Column="0"
                     IsEnabled="{Binding CanEdit}"/>
 
-            <!-- Right-aligned Start/Exit Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
                 <Button x:Name="StartButton" 
                         Content="Start Bridge"

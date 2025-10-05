@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using WWCduDcsBiosBridge.Config;
-using System.Threading;
+using System.Diagnostics;
+using WWCduDcsBiosBridge.Services;
 
 namespace WWCduDcsBiosBridge;
 
@@ -24,11 +25,27 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     private string _statusMessage = "Ready.";
     private bool _statusIsError;
 
+    private const string GitHubOwner = "landre-cerp";
+    private const string GitHubRepo = "WWCduDcsBiosBridge";
+
+    // Dedicated update notification state
+    private string? _updateMessage;
+    private string? _updateUrl;
+    private bool _isUpdateVisible;
+
+    // Update service
+    private readonly GitHubUpdateService _updateService = new(GitHubOwner, GitHubRepo);
+
     public string StatusMessage { get => _statusMessage; private set { _statusMessage = value; OnPropertyChanged(); } }
     public bool StatusIsError { get => _statusIsError; private set { _statusIsError = value; OnPropertyChanged(); } }
+    public string? UpdateMessage { get => _updateMessage; private set { _updateMessage = value; OnPropertyChanged(); } }
+    public string? UpdateUrl { get => _updateUrl; private set { _updateUrl = value; OnPropertyChanged(); } }
+    public bool IsUpdateVisible { get => _isUpdateVisible; private set { _isUpdateVisible = value; OnPropertyChanged(); } }
 
     public bool IsBridgeRunning => bridgeManager?.IsStarted == true;
     public bool CanEdit => !IsBridgeRunning;
+
+    public string AppVersion { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -37,6 +54,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     {
         SetupLogging();
         InitializeComponent();
+
+        AppVersion = AppVersionProvider.GetAppVersion();
+        Title = $"WWCduDcsBiosBridge v{AppVersion}";
+
         LoadConfig();
         LoadUserSettings();
         _ = DetectDevicesAsync();
@@ -104,11 +125,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         UpdateStartButtonState();
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
         if (NeedsConfigEdit)
         {
             OpenConfigEditor();
+        }
+
+        try
+        {
+            await CheckForUpdatesAndNotifyAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Failed to check GitHub for latest release");
         }
     }
 
@@ -363,5 +393,47 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         }
 
         _disposed = true;
+    }
+
+    private async Task CheckForUpdatesAndNotifyAsync()
+    {
+        try
+        {
+            var result = await _updateService.CheckForUpdatesAsync(AppVersion);
+            if (result is { HasUpdate: true })
+            {
+                SetUpdateNotification($"New version available: {result.LatestTag}", result.HtmlUrl);
+                Logger.Info($"New release available: {result.LatestTag} - {result.HtmlUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Failed to check GitHub for latest release");
+        }
+    }
+
+    private void SetUpdateNotification(string message, string? url)
+    {
+        UpdateMessage = message;
+        UpdateUrl = url;
+        IsUpdateVisible = true;
+    }
+
+    private void DismissUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        IsUpdateVisible = false;
+    }
+
+    private void OpenUpdateLink_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(UpdateUrl)) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo(UpdateUrl) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "Failed to open update URL");
+        }
     }
 }
