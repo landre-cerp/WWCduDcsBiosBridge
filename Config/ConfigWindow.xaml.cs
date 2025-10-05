@@ -57,7 +57,6 @@ public partial class ConfigWindow : Window
     {
         try
         {
-            // Validate IP addresses
             if (!IPAddress.TryParse(ReceiveIpTextBox.Text.Trim(), out var receiveIp))
             {
                 ShowValidationError("Receive IP address is not valid.", ReceiveIpTextBox);
@@ -70,14 +69,12 @@ public partial class ConfigWindow : Window
                 return false;
             }
 
-            // Validate ports
             if (!ValidatePort(ReceivePortTextBox.Text.Trim(), "Receive port", ReceivePortTextBox, out int receivePort))
                 return false;
 
             if (!ValidatePort(SendPortTextBox.Text.Trim(), "Send port", SendPortTextBox, out int sendPort))
                 return false;
-
-            // Validate JSON location
+            
             string jsonLocation = JsonLocationTextBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(jsonLocation))
             {
@@ -91,12 +88,33 @@ public partial class ConfigWindow : Window
                 return false;
             }
 
-            // Update config
             Config.ReceiveFromIpUdp = receiveIp.ToString();
             Config.SendToIpUdp = sendIp.ToString();
             Config.ReceivePortUdp = receivePort;
             Config.SendPortUdp = sendPort;
             Config.DcsBiosJsonLocation = jsonLocation;
+
+            try
+            {
+                ConfigManager.Validate(Config);
+            }
+            catch (ConfigException ex)
+            {
+                ShowValidationError(ex.Message, JsonLocationTextBox);
+                return false;
+            }
+
+            var missing = ConfigManager.GetMissingExpectedJsonFiles(Config.DcsBiosJsonLocation);
+            if (missing.Count > 0)
+            {
+                var files = string.Join(Environment.NewLine + " - ", missing);
+                MessageBox.Show(
+                    "Some expected DCS-BIOS JSON files are missing. You can continue, but related aircraft may not work until these files are present:" +
+                    Environment.NewLine + " - " + files,
+                    "Missing JSON Files",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
 
             return true;
         }
@@ -142,7 +160,6 @@ public partial class ConfigWindow : Window
             MessageBox.Show($"Failed to save configuration: {ex.Message}", "Save Error", 
                             MessageBoxButton.OK, MessageBoxImage.Error);
         }
-
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)

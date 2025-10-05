@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
+using WWCduDcsBiosBridge.Aircrafts;
 
 namespace WWCduDcsBiosBridge.Config;
 
@@ -31,7 +34,6 @@ public static class ConfigManager
         var config = JsonSerializer.Deserialize<DcsBiosConfig>(json) ?? new DcsBiosConfig();
 
         CheckIsValid(config);
-                            
         return config;
     }
 
@@ -46,6 +48,31 @@ public static class ConfigManager
     }
 
     /// <summary>
+    /// Public validation entry point for UI and callers.
+    /// Throws ConfigException if invalid.
+    /// </summary>
+    public static void Validate(DcsBiosConfig config) => CheckIsValid(config);
+
+    /// <summary>
+    /// Returns the list of expected DCS-BIOS JSON files that are missing under the provided directory.
+    /// This is a soft check (no exceptions thrown).
+    /// </summary>
+    public static IReadOnlyList<string> GetMissingExpectedJsonFiles(string rootDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(rootDirectory) || !Directory.Exists(rootDirectory))
+            return Array.Empty<string>();
+
+        var present = new HashSet<string>(
+            Directory.EnumerateFiles(rootDirectory, "*.json", SearchOption.AllDirectories)
+                     .Select(f => Path.GetFileName(f)!.ToLowerInvariant())
+        );
+
+        return SupportedAircrafts.expected_json
+            .Where(name => !present.Contains(name.ToLowerInvariant()))
+            .ToArray();
+    }
+
+    /// <summary>
     /// Validates the configuration settings to ensure they are correct.
     /// </summary>
     /// <param name="config">The configuration to validate</param>
@@ -54,17 +81,12 @@ public static class ConfigManager
     {
         if (string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation))
         {
-            throw new ConfigException("The 'DcsBiosJsonLocation' field in the configuration file cannot be empty. Please specify a valid path to the DCS-BIOS JSON file.");
+            throw new ConfigException("The 'DcsBiosJsonLocation' field in the configuration file cannot be empty. Please specify a valid path to the DCS-BIOS JSON file(s).");
         }
 
         if (!Directory.Exists(config.DcsBiosJsonLocation))
         {
             throw new ConfigException($"The folder specified by 'DcsBiosJsonLocation' does not exist: {config.DcsBiosJsonLocation}");
-        }
-
-        if (Directory.GetFiles(config.DcsBiosJsonLocation).Length == 0)
-        {
-            throw new ConfigException($"The folder specified by 'DcsBiosJsonLocation' is empty: {config.DcsBiosJsonLocation}");
         }
 
         if (config.ReceivePortUdp < 1 || config.ReceivePortUdp > 65535)
