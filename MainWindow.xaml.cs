@@ -399,7 +399,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     {
         try
         {
-            var result = await _updateService.CheckForUpdatesAsync(AppVersion);
+            var channel = AppVersionProvider.IsPreRelease(AppVersion) ? UpdateChannel.Prerelease : UpdateChannel.Stable;
+            var result = await _updateService.CheckForUpdatesAsync(AppVersion, channel);
             if (result is { HasUpdate: true })
             {
                 SetUpdateNotification($"New version available: {result.LatestTag}", result.HtmlUrl);
