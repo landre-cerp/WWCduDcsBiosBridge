@@ -38,7 +38,11 @@ jobs:
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME#v}"                     # e.g. 1.8.1-beta
-          PRERELEASE_PART="${TAG#*-}"                    # beta (if any)
+          if [[ "$TAG" == *-* ]]; then
+            PRERELEASE_PART="${TAG#*-}"                  # beta (if any)
+          else
+            PRERELEASE_PART=""
+          fi
           BASE="${TAG%%-*}"                              # 1.8.1 (strip -beta/-rc etc.)
 
           # Normalize base numeric version to x.y.z
