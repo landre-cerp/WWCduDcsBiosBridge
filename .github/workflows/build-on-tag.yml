@@ -6,7 +6,6 @@ on:
       - 'v*' # Triggers on version tags like v1.0.0, v2.1.3, etc.
       - 'release-*' # Triggers on release tags like release-1.0.0
 
-# Add this permissions block at the top level
 permissions:
   contents: write # Required to create releases
   actions: read # Required to download artifacts
@@ -34,8 +33,24 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore WWCduDcsBiosBridge.csproj
 
+      - name: Compute version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"            # e.g. 1.7
+          VER="$TAG"
+          [[ "$VER" =~ ^[0-9]+\.[0-9]+$ ]] && VER="${VER}.0"   # 1.7 -> 1.7.0
+          FILEVER="$VER"
+          [[ "$FILEVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && FILEVER="${FILEVER}.0"  # 1.7.0 -> 1.7.0.0
+          echo "VER=$VER" >> $GITHUB_ENV
+          echo "FILEVER=$FILEVER" >> $GITHUB_ENV
+
       - name: Build
-        run: dotnet build WWCduDcsBiosBridge.csproj --configuration ${{ env.CONFIGURATION }} --no-restore
+        run: dotnet build -c Release ^
+          -p:Version=${{ env.VER }} ^
+          -p:AssemblyVersion=${{ env.FILEVER }} ^
+          -p:FileVersion=${{ env.FILEVER }} ^
+          -p:InformationalVersion=v${{ env.VER }}
 
       - name: Publish (Single File)
         run: |
@@ -77,9 +92,8 @@ jobs:
   create-release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') # Only create releases for version tags
+    if: startsWith(github.ref, 'refs/tags/v') 
 
-    # Add permissions specifically for this job too
     permissions:
       contents: write
 
@@ -93,7 +107,7 @@ jobs:
           name: wwcd-dcsbios-bridge-${{ github.ref_name }}-zip
           path: .
       - name: Create Release
-        uses: softprops/action-gh-release@v2 # Updated to v2
+        uses: softprops/action-gh-release@v2
         with:
           files: wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
           generate_release_notes: true
