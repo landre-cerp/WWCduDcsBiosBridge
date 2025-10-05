@@ -46,10 +46,10 @@ jobs:
           echo "FILEVER=$FILEVER" >> $GITHUB_ENV
 
       - name: Build
-        run: dotnet build -c Release ^
-          -p:Version=${{ env.VER }} ^
-          -p:AssemblyVersion=${{ env.FILEVER }} ^
-          -p:FileVersion=${{ env.FILEVER }} ^
+        run: dotnet build -c Release \
+          -p:Version=${{ env.VER }} \
+          -p:AssemblyVersion=${{ env.FILEVER }} \
+          -p:FileVersion=${{ env.FILEVER }} \
           -p:InformationalVersion=v${{ env.VER }}
 
       - name: Publish (Single File)
