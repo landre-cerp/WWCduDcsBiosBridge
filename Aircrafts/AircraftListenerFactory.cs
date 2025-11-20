@@ -22,6 +22,7 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
             SupportedAircrafts.FA18C => new FA18C_Listener(mcdu, options),
             SupportedAircrafts.CH47=> new CH47F_Listener(mcdu, options, aircraft.IsPilot),
             SupportedAircrafts.F15E => new F15E_Listener(mcdu, options),
+            SupportedAircrafts.M2000C => new M2000C_Listener(mcdu, options),
             _ => throw new NotSupportedException($"Aircraft {aircraft.AircraftId} not supported")
 
         };
