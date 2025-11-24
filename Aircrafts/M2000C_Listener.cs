@@ -10,18 +10,23 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal class M2000C_Listener : AircraftListener
 {
-    // --- Adresses des Registres ---
+    // --- Register addresses ---
+    // Note: DCS-BIOS does not currently expose named outputs for the M-2000C Caution Light Panel (CLP) and PCN light flags.
+    // We therefore reuse existing string display outputs (PCN_DISP_*) as placeholder DCSBIOSOutput objects and override their
+    // Address property with the raw register addresses documented here. This allows the generic listener infrastructure to
+    // subscribe without adding custom lower-level parsing code. Each CLP register (CLP_ADDR_1..3) and the PCN lights register
+    // (PCN_LIGHTS_ADDRESS) is a 16-bit bitfield whose individual bits are decoded via the masks defined below.
     private const uint PCN_LIGHTS_ADDRESS = 29380; 
     private const uint CLP_ADDR_1 = 29248; 
     private const uint CLP_ADDR_2 = 29238;
     private const uint CLP_ADDR_3 = 29250;
 
-    // --- Masques PCN ---
+    // --- PCN lights masks (bit flags in PCN_LIGHTS_ADDRESS register) ---
     private const uint MASK_ALN = 4096;
     private const uint MASK_PRET = 2048;
     private const uint MASK_NDEG = 16384;
 
-    // --- Masques CLP (Caution Light Panel) - Registre 29248 ---
+    // --- CLP masks (Caution Light Panel) - Register 29248 (CLP_ADDR_1) ---
     private const uint MASK_CLP_BP_D = 1;
     private const uint MASK_CLP_TRANSF = 2;
     private const uint MASK_CLP_NIVEAU = 4; 
@@ -36,7 +41,7 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_CLP_CC = 16384;
     private const uint MASK_CLP_DSV = 32768;
 
-    // --- Masques CLP - Registre 29238 ---
+    // --- CLP masks - Register 29238 (CLP_ADDR_2) ---
     private const uint MASK_CLP_HYD_1 = 8;
     private const uint MASK_CLP_HYD_2 = 16;
     private const uint MASK_CLP_BATT = 32;
@@ -51,7 +56,7 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_CLP_BP = 16384;
     private const uint MASK_CLP_BP_G = 32768;
 
-    // --- Masques CLP - Registre 29250 ---
+    // --- CLP masks - Register 29250 (CLP_ADDR_3) ---
     private const uint MASK_CLP_CONDIT = 1;
     private const uint MASK_CLP_CONF = 2;
     private const uint MASK_CLP_PA = 4;
@@ -65,7 +70,7 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_CLP_PARK = 2048;
     private const uint MASK_CLP_O2_HA = 4096;
 
-    // --- Contrôles DCS-BIOS ---
+    // --- DCS-BIOS controls (string outputs used as placeholders, addresses overridden) ---
     private DCSBIOSOutput? PCN_LIGHTS_REGISTER; 
     private DCSBIOSOutput? CLP_REGISTER_1; 
     private DCSBIOSOutput? CLP_REGISTER_2; 
@@ -85,12 +90,21 @@ internal class M2000C_Listener : AircraftListener
     private ushort _clpValue2 = 0;
     private ushort _clpValue3 = 0;
 
-    private struct CautionItem 
+    private enum CautionSeverity { Advisory, Warning, Critical }
+    private readonly struct CautionItem
     {
-        public string Text;
-        public bool IsRed; 
-        public CautionItem(string text, bool isRed) { Text = text; IsRed = isRed; }
+        public readonly string Text;
+        public readonly CautionSeverity Severity;
+        public CautionItem(string text, CautionSeverity severity)
+        {
+            Text = text; Severity = severity;
+        }
+        public bool IsCritical => Severity == CautionSeverity.Critical;
+        public bool IsWarning => Severity == CautionSeverity.Warning;
     }
+
+    // Reusable buffer to avoid allocations every frame
+    private readonly List<CautionItem> _cautionBuffer = new(32);
 
     protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
     protected override string GetAircraftName() => SupportedAircrafts.M2000C_Name;
@@ -105,10 +119,11 @@ internal class M2000C_Listener : AircraftListener
         PCN_DISP_R = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_R");
         PCN_DISP_PREP = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_PREP");
         PCN_DISP_DEST = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_DEST");
-        
+        // Reuse an existing PCN display output object and repoint its address to the raw lights register.
         PCN_LIGHTS_REGISTER = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_L");
         if (PCN_LIGHTS_REGISTER != null) PCN_LIGHTS_REGISTER.Address = PCN_LIGHTS_ADDRESS;
 
+        // Reuse PCN display outputs as generic DCSBIOSOutput instances for CLP bitfield registers.
         CLP_REGISTER_1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_R");
         if (CLP_REGISTER_1 != null) CLP_REGISTER_1.Address = CLP_ADDR_1;
 
@@ -154,7 +169,7 @@ internal class M2000C_Listener : AircraftListener
         }
         catch (Exception ex)
         {
-             Debug.WriteLine($"Error: {ex.Message}");
+            App.Logger.Error(ex, "M2000C_Listener.DcsBiosDataReceived failed");
         }
     }
 
@@ -194,159 +209,142 @@ internal class M2000C_Listener : AircraftListener
     
     private void UpdateCautionPanel()
     {
+        _cautionBuffer.Clear();
+        DecodeRegister29238(_clpValue2, _cautionBuffer);
+        DecodeRegister29248(_clpValue1, _cautionBuffer);
+        DecodeRegister29250(_clpValue3, _cautionBuffer);
+        // Priority sorting: Critical > Warning > Advisory, stable within same severity
+        _cautionBuffer.Sort(static (a,b) =>
+            a.Severity == b.Severity ? 0 : a.Severity switch
+            {
+                CautionSeverity.Critical => -1, // a first
+                CautionSeverity.Warning => b.Severity == CautionSeverity.Critical ? 1 : -1,
+                _ => 1 // Advisory last
+            });
+        RenderCautions(_cautionBuffer);
+    }
+
+    private static void DecodeRegister29238(ushort value, List<CautionItem> items)
+    {
+        // Hydraulic / power / generic cautions
+        if ((value & MASK_CLP_HUILE) != 0) items.Add(new("HUILE", CautionSeverity.Critical));
+        if ((value & MASK_CLP_BP) != 0) items.Add(new("B.P.", CautionSeverity.Critical));
+        if ((value & MASK_CLP_T7) != 0) items.Add(new("T7", CautionSeverity.Critical));
+        if ((value & MASK_CLP_BATT) != 0) items.Add(new("BATT", CautionSeverity.Warning));
+        if ((value & MASK_CLP_TRN) != 0) items.Add(new("TR", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_ALT_1) != 0) items.Add(new("ALT.1", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_ALT_2) != 0) items.Add(new("ALT.2", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_CALC) != 0) items.Add(new("CALC", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_SOURIS) != 0) items.Add(new("SOURIS", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_PELLES) != 0) items.Add(new("PELLE", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_BP_G) != 0) items.Add(new("BP.G", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_HYD_1) != 0) items.Add(new("HYD.1", CautionSeverity.Warning));
+        if ((value & MASK_CLP_HYD_2) != 0) items.Add(new("HYD.2", CautionSeverity.Warning));
+    }
+
+    private static void DecodeRegister29248(ushort value, List<CautionItem> items)
+    {
+        // Fuel / oxygen / transfer related cautions
+        if ((value & MASK_CLP_DSV) != 0) items.Add(new("DSV", CautionSeverity.Critical));
+        if ((value & MASK_CLP_HYD_S) != 0) items.Add(new("HYD.S", CautionSeverity.Critical));
+        if ((value & MASK_CLP_P_CAB) != 0) items.Add(new("P.CAB", CautionSeverity.Critical));
+        if ((value & MASK_CLP_REG_O2) != 0) items.Add(new("REG.O2", CautionSeverity.Critical));
+        if ((value & MASK_CLP_EP) != 0) items.Add(new("EP", CautionSeverity.Critical));
+        if ((value & MASK_CLP_ANEMO) != 0) items.Add(new("ANEMO", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_CC) != 0) items.Add(new("CC", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_TEMP) != 0) items.Add(new("TEMP", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_5MN_O2) != 0) items.Add(new("5mn.O2", CautionSeverity.Warning));
+        if ((value & MASK_CLP_TRANSF) != 0) items.Add(new("TRANSF", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_BINGO) != 0) items.Add(new("BINGO", CautionSeverity.Warning));
+        if ((value & MASK_CLP_NIVEAU) != 0) items.Add(new("NIVEAU", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_BP_D) != 0) items.Add(new("BP.D", CautionSeverity.Advisory));
+    }
+
+    private static void DecodeRegister29250(ushort value, List<CautionItem> items)
+    {
+        // Flight control & configuration cautions
+        if ((value & MASK_CLP_PA) != 0) items.Add(new("PA", CautionSeverity.Critical));
+        if ((value & MASK_CLP_GAIN) != 0) items.Add(new("GAIN", CautionSeverity.Critical));
+        if ((value & MASK_CLP_DOM) != 0) items.Add(new("DOM", CautionSeverity.Critical));
+        if ((value & MASK_CLP_CONDIT) != 0) items.Add(new("CONDIT", CautionSeverity.Critical));
+        if ((value & MASK_CLP_RPM) != 0) items.Add(new("RPM", CautionSeverity.Critical));
+        if ((value & MASK_CLP_DECOL) != 0) items.Add(new("DECOL", CautionSeverity.Critical));
+        if ((value & MASK_CLP_MAN) != 0) items.Add(new("MAN", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_BECS) != 0) items.Add(new("BECS", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_CONF) != 0) items.Add(new("CONF", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_PARK) != 0) items.Add(new("PARK", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_O2_HA) != 0) items.Add(new("O2 HA", CautionSeverity.Advisory));
+        if ((value & MASK_CLP_INCIDENCE) != 0) items.Add(new("ALPHA", CautionSeverity.Advisory));
+    }
+
+    private void RenderCautions(List<CautionItem> items)
+    {
         var output = GetCompositor(DEFAULT_PAGE);
-        var activeItems = new List<CautionItem>();
-
-        // --- Vérification des voyants (Couleurs mises à jour) ---
-        
-        // Registre 29238
-        if ((_clpValue2 & MASK_CLP_HUILE) > 0) activeItems.Add(new CautionItem("HUILE", true)); 
-        if ((_clpValue2 & MASK_CLP_BP) > 0)    activeItems.Add(new CautionItem("B.P.", true)); 
-        if ((_clpValue2 & MASK_CLP_T7) > 0)    activeItems.Add(new CautionItem("T7", true)); 
-        if ((_clpValue2 & MASK_CLP_BATT) > 0)  activeItems.Add(new CautionItem("BATT", false)); 
-        if ((_clpValue2 & MASK_CLP_TRN) > 0)   activeItems.Add(new CautionItem("TR", false)); 
-        if ((_clpValue2 & MASK_CLP_ALT_1) > 0) activeItems.Add(new CautionItem("ALT.1", false));
-        if ((_clpValue2 & MASK_CLP_ALT_2) > 0) activeItems.Add(new CautionItem("ALT.2", false));
-        if ((_clpValue2 & MASK_CLP_CALC) > 0)  activeItems.Add(new CautionItem("CALC", false));
-        if ((_clpValue2 & MASK_CLP_SOURIS) > 0) activeItems.Add(new CautionItem("SOURIS", false));
-        if ((_clpValue2 & MASK_CLP_PELLES) > 0) activeItems.Add(new CautionItem("PELLE", false));
-        if ((_clpValue2 & MASK_CLP_BP_G) > 0)  activeItems.Add(new CautionItem("BP.G", false));
-        if ((_clpValue2 & MASK_CLP_HYD_1) > 0) activeItems.Add(new CautionItem("HYD.1", false));
-        if ((_clpValue2 & MASK_CLP_HYD_2) > 0) activeItems.Add(new CautionItem("HYD.2", false));
-
-        // Registre 29248
-        if ((_clpValue1 & MASK_CLP_DSV) > 0)    activeItems.Add(new CautionItem("DSV", true)); 
-        if ((_clpValue1 & MASK_CLP_HYD_S) > 0)  activeItems.Add(new CautionItem("HYD.S", true)); 
-        if ((_clpValue1 & MASK_CLP_P_CAB) > 0)  activeItems.Add(new CautionItem("P.CAB", true)); 
-        if ((_clpValue1 & MASK_CLP_REG_O2) > 0) activeItems.Add(new CautionItem("REG.O2", true)); 
-        if ((_clpValue1 & MASK_CLP_EP) > 0)     activeItems.Add(new CautionItem("EP", true)); 
-        if ((_clpValue1 & MASK_CLP_ANEMO) > 0)  activeItems.Add(new CautionItem("ANEMO", false));
-        if ((_clpValue1 & MASK_CLP_CC) > 0)     activeItems.Add(new CautionItem("CC", false));
-        if ((_clpValue1 & MASK_CLP_TEMP) > 0)   activeItems.Add(new CautionItem("TEMP", false));
-        if ((_clpValue1 & MASK_CLP_5MN_O2) > 0) activeItems.Add(new CautionItem("5mn.O2", false));
-        if ((_clpValue1 & MASK_CLP_TRANSF) > 0) activeItems.Add(new CautionItem("TRANSF", false)); 
-        if ((_clpValue1 & MASK_CLP_BINGO) > 0)  activeItems.Add(new CautionItem("BINGO", false));
-        if ((_clpValue1 & MASK_CLP_NIVEAU) > 0) activeItems.Add(new CautionItem("NIVEAU", false));
-        if ((_clpValue1 & MASK_CLP_BP_D) > 0)   activeItems.Add(new CautionItem("BP.D", false));
-
-        // Registre 29250
-        if ((_clpValue3 & MASK_CLP_PA) > 0)     activeItems.Add(new CautionItem("PA", true)); 
-        if ((_clpValue3 & MASK_CLP_GAIN) > 0)   activeItems.Add(new CautionItem("GAIN", true)); 
-        if ((_clpValue3 & MASK_CLP_DOM) > 0)    activeItems.Add(new CautionItem("DOM", true)); 
-        if ((_clpValue3 & MASK_CLP_CONDIT) > 0) activeItems.Add(new CautionItem("CONDIT", true));
-        if ((_clpValue3 & MASK_CLP_RPM) > 0)    activeItems.Add(new CautionItem("RPM", true));
-        if ((_clpValue3 & MASK_CLP_DECOL) > 0)  activeItems.Add(new CautionItem("DECOL", true));
-        if ((_clpValue3 & MASK_CLP_MAN) > 0)    activeItems.Add(new CautionItem("MAN", false));
-        if ((_clpValue3 & MASK_CLP_BECS) > 0)   activeItems.Add(new CautionItem("BECS", false));
-        if ((_clpValue3 & MASK_CLP_CONF) > 0)   activeItems.Add(new CautionItem("CONF", false));
-        if ((_clpValue3 & MASK_CLP_PARK) > 0)   activeItems.Add(new CautionItem("PARK", false));
-        if ((_clpValue3 & MASK_CLP_O2_HA) > 0)  activeItems.Add(new CautionItem("O2 HA", false));
-        if ((_clpValue3 & MASK_CLP_INCIDENCE) > 0) activeItems.Add(new CautionItem("ALPHA", false));
-
-        // --- Affichage Dynamique sur 3 Colonnes avec multi-couleurs ---
-        
-        const int COL_WIDTH_1 = 7; // Largeur colonne 1
-        const int COL_WIDTH_2 = 7; // Largeur colonne 2
-        const int COL_WIDTH_3 = 6; // Largeur colonne 3 (Total = 20)
-        
+        const int COL_WIDTH_1 = 7;
+        const int COL_WIDTH_2 = 7;
+        const int COL_WIDTH_3 = 6;
         int currentLine = 0;
-        
-        for (int i = 0; i < activeItems.Count; i += 3)
+
+        void WriteColumn(ref CompositorLine line, CautionItem? item, int colWidth)
         {
-            if (currentLine > 9) break; // Arrêt si on dépasse la zone MCDU
+            if (item.HasValue)
+            {
+                string text = item.Value.Text.Length > colWidth ? item.Value.Text.Substring(0, colWidth) : item.Value.Text;
+                line = item.Value.Severity switch
+                {
+                    CautionSeverity.Critical => line.Red(),
+                    CautionSeverity.Warning => line.Yellow(),
+                    _ => line.Green()
+                };
+                line.Write(text);
+                int padding = colWidth - text.Length;
+                if (padding > 0) line.Green().Write(new string(' ', padding));
+            }
+            else
+            {
+                line.Green().Write(new string(' ', colWidth));
+            }
+        }
 
+        for (int i = 0; i < items.Count; i += 3)
+        {
+            if (currentLine > 9) break;
             var lineObj = output.Line(currentLine);
-            lineObj.ClearRow(); // Effacer d'abord la ligne
+            lineObj.ClearRow();
 
-            // --- Colonne 1 (Index i) ---
-            if (i < activeItems.Count) 
-            {
-                var item = activeItems[i];
-                string text = item.Text;
-                if (text.Length > COL_WIDTH_1) text = text.Substring(0, COL_WIDTH_1);
+            CautionItem? c1 = i < items.Count ? items[i] : null;
+            CautionItem? c2 = (i + 1) < items.Count ? items[i + 1] : null;
+            CautionItem? c3 = (i + 2) < items.Count ? items[i + 2] : null;
 
-                lineObj = item.IsRed ? lineObj.Red() : lineObj.Yellow();
-                lineObj.Write(text);
-                
-                // Remplir l'espace restant de la colonne 1 en VERT (couleur par défaut)
-                int padding = COL_WIDTH_1 - text.Length;
-                if (padding > 0) {
-                    lineObj.Green().Write(new string(' ', padding));
-                }
-            }
-            else
-            {
-                // Si la colonne 1 est vide, remplir l'espace complet en VERT
-                lineObj.Green().Write(new string(' ', COL_WIDTH_1));
-            }
-
-            // --- Colonne 2 (Index i + 1) ---
-            if (i + 1 < activeItems.Count) 
-            {
-                var item = activeItems[i + 1];
-                string text = item.Text;
-                if (text.Length > COL_WIDTH_2) text = text.Substring(0, COL_WIDTH_2);
-
-                lineObj = item.IsRed ? lineObj.Red() : lineObj.Yellow();
-                lineObj.Write(text);
-
-                // Remplir l'espace restant de la colonne 2 en VERT
-                int padding = COL_WIDTH_2 - text.Length;
-                if (padding > 0) {
-                    lineObj.Green().Write(new string(' ', padding));
-                }
-            }
-            else
-            {
-                 // Si la colonne 2 est vide, remplir l'espace complet en VERT
-                lineObj.Green().Write(new string(' ', COL_WIDTH_2));
-            }
-            
-            // --- Colonne 3 (Index i + 2) ---
-            if (i + 2 < activeItems.Count) 
-            {
-                var item = activeItems[i + 2];
-                string text = item.Text;
-                if (text.Length > COL_WIDTH_3) text = text.Substring(0, COL_WIDTH_3);
-
-                lineObj = item.IsRed ? lineObj.Red() : lineObj.Yellow();
-                lineObj.Write(text);
-
-                // Remplir l'espace restant de la colonne 3 en VERT
-                int padding = COL_WIDTH_3 - text.Length;
-                if (padding > 0) {
-                    lineObj.Green().Write(new string(' ', padding));
-                }
-            }
-            else
-            {
-                // Si la colonne 3 est vide, remplir l'espace complet en VERT
-                lineObj.Green().Write(new string(' ', COL_WIDTH_3));
-            }
+            WriteColumn(ref lineObj, c1, COL_WIDTH_1);
+            WriteColumn(ref lineObj, c2, COL_WIDTH_2);
+            WriteColumn(ref lineObj, c3, COL_WIDTH_3);
 
             currentLine++;
         }
 
-        // Effacer les lignes restantes (de la ligne après le dernier affichage jusqu'à la ligne 10)
-        for (int j = currentLine; j <= 10; j++)
+        for (int j = currentLine; j <= 9; j++)
         {
             output.Line(j).ClearRow();
         }
-        
+
         mcdu.RefreshDisplay();
     }
 
     private void UpdateCombinedPCNDisplay(Compositor output)
     {
-        string combinedLine = string.Format("{0}{1,10}", _pcnDispL, _pcnDispR);
+    // Fixed-width formatting: left 9 chars, right 9 chars
+        string left = (_pcnDispL ?? string.Empty).PadRight(9).Substring(0,9);
+        string right = (_pcnDispR ?? string.Empty).PadRight(9).Substring(0,9);
+        string combinedLine = left + right; // 18 chars
         output.Line(12).Green().WriteLine(combinedLine);
     }
 
     private void UpdateCombinedPrepDestDisplay(Compositor output)
     {
-        string prepDisplay = string.Format("P:{0}", _pcnPrep); 
-        string destDisplay = string.Format("D:{0}", _pcnDest); 
-        string combinedLine = string.Format("{0}{1,5}", prepDisplay, destDisplay);
+    string prep = ("P:" + _pcnPrep).PadRight(7).Substring(0,7); // e.g. P:XX padded
+        string dest = ("D:" + _pcnDest).PadRight(7).Substring(0,7);
+        string combinedLine = prep + dest; // 14 chars
         output.Line(13).Green().WriteLine(combinedLine);
     }
 }
