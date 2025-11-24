@@ -169,7 +169,19 @@ internal class M2000C_Listener : AircraftListener
         }
         catch (Exception ex)
         {
-            App.Logger.Error(ex, "M2000C_Listener.DcsBiosDataReceived failed");
+            // Instrumentation: include raw data, address, current register snapshot
+            App.Logger.Error(ex,
+                "M2000C_Listener.DcsBiosDataReceived failed | addr=0x{Address:X4} data=0x{Data:X4} clp1=0x{Clp1:X4} clp2=0x{Clp2:X4} clp3=0x{Clp3:X4} leds=[Ind={Ind},Rdy={Rdy},Fail={Fail}]",
+                new {
+                    Address = e.Address,
+                    Data = e.Data,
+                    Clp1 = _clpValue1,
+                    Clp2 = _clpValue2,
+                    Clp3 = _clpValue3,
+                    Ind = mcdu.Leds?.Ind,
+                    Rdy = mcdu.Leds?.Rdy,
+                    Fail = mcdu.Leds?.Fail
+                });
         }
     }
 
@@ -203,7 +215,17 @@ internal class M2000C_Listener : AircraftListener
         }
         catch (Exception ex)
         {
-            App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
+            App.Logger.Error(ex,
+                "Failed to process DCS-BIOS string data | addr=0x{Address:X4} len={Len} value='{Val}' pcnL='{PCNL}' pcnR='{PCNR}' prep='{Prep}' dest='{Dest}'",
+                new {
+                    Address = e.Address,
+                    Len = e.StringData?.Length ?? -1,
+                    Val = e.StringData,
+                    PCNL = _pcnDispL,
+                    PCNR = _pcnDispR,
+                    Prep = _pcnPrep,
+                    Dest = _pcnDest
+                });
         }
     }
     
