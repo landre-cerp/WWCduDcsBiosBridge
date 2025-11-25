@@ -5,18 +5,24 @@ using McduDotNet;
 using System;
 using System.Collections.Generic; 
 using System.Diagnostics; 
+using System.Linq; 
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal class M2000C_Listener : AircraftListener
 {
     // --- Register addresses ---
-    // Note: DCS-BIOS does not currently expose named outputs for the M-2000C Caution Light Panel (CLP) and PCN light flags.
-    // We therefore reuse existing string display outputs (PCN_DISP_*) as placeholder DCSBIOSOutput objects and override their
-    // Address property with the raw register addresses documented here. This allows the generic listener infrastructure to
-    // subscribe without adding custom lower-level parsing code. Each CLP register (CLP_ADDR_1..3) and the PCN lights register
-    // (PCN_LIGHTS_ADDRESS) is a 16-bit bitfield whose individual bits are decoded via the masks defined below.
-    private const uint PCN_LIGHTS_ADDRESS = 29380; 
+    // Rationale: During early integration a bug was observed where using the official named DCS-BIOS outputs for the M‑2000C
+    // lights resulted in no LED updates on the physical MCDU (the callbacks fired, but the decoded light states stayed false).
+    // Root cause (still under investigation) appears to be a mismatch between exported module definitions and runtime memory
+    // layout for the PCN/CLP light registers. As a pragmatic workaround we bind to existing string display outputs
+    // (PCN_DISP_*) purely as container objects and forcibly override their Address with the raw register values.
+    // This bypasses the faulty name resolution while reusing the common listener infrastructure. Each CLP register
+    // (CLP_ADDR_1..3) and the PCN lights registers (PCN_LIGHTS_ADDRESS / PCN_LIGHTS_ADDRESS_2) is a 16-bit bitfield; individual
+    // bits are translated using the masks defined below. If the upstream DCS-BIOS definitions are fixed later, this indirection
+    // can be removed and replaced by direct named output resolution.
+    private const uint PCN_LIGHTS_ADDRESS = 29380;
+    private const uint PCN_LIGHTS_ADDRESS_2 = 29384;
     private const uint CLP_ADDR_1 = 29248; 
     private const uint CLP_ADDR_2 = 29238;
     private const uint CLP_ADDR_3 = 29250;
@@ -25,6 +31,9 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_ALN = 4096;
     private const uint MASK_PRET = 2048;
     private const uint MASK_NDEG = 16384;
+    private const uint MASK_MIP = 8192;
+    private const uint MASK_SEC = 32768;
+    private const uint MASK_UNI = 256;
 
     // --- CLP masks (Caution Light Panel) - Register 29248 (CLP_ADDR_1) ---
     private const uint MASK_CLP_BP_D = 1;
@@ -37,6 +46,8 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_CLP_TEMP = 512;
     private const uint MASK_CLP_REG_O2 = 1024;
     private const uint MASK_CLP_5MN_O2 = 2048;
+    // From DCS-BIOS JSON: CLP_O2_HA at address 29248 mask 4096 (shift 12)
+    private const uint MASK_CLP_O2_HA = 4096;
     private const uint MASK_CLP_ANEMO = 8192;
     private const uint MASK_CLP_CC = 16384;
     private const uint MASK_CLP_DSV = 32768;
@@ -68,14 +79,15 @@ internal class M2000C_Listener : AircraftListener
     private const uint MASK_CLP_RPM = 512;
     private const uint MASK_CLP_DECOL = 1024;
     private const uint MASK_CLP_PARK = 2048;
-    private const uint MASK_CLP_O2_HA = 4096;
+
 
     // --- DCS-BIOS controls (string outputs used as placeholders, addresses overridden) ---
     private DCSBIOSOutput? PCN_LIGHTS_REGISTER; 
     private DCSBIOSOutput? CLP_REGISTER_1; 
     private DCSBIOSOutput? CLP_REGISTER_2; 
     private DCSBIOSOutput? CLP_REGISTER_3; 
-    
+    private DCSBIOSOutput? PCN_LIGHTS_REGISTER_2;
+
     private DCSBIOSOutput? PCN_DISP_L;
     private DCSBIOSOutput? PCN_DISP_R;
     private DCSBIOSOutput? PCN_DISP_PREP;
@@ -132,6 +144,9 @@ internal class M2000C_Listener : AircraftListener
 
         CLP_REGISTER_3 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_DEST");
         if (CLP_REGISTER_3 != null) CLP_REGISTER_3.Address = CLP_ADDR_3;
+
+        PCN_LIGHTS_REGISTER_2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("PCN_DISP_DEST");
+        if (PCN_LIGHTS_REGISTER_2 != null) PCN_LIGHTS_REGISTER_2.Address = PCN_LIGHTS_ADDRESS_2;
     }
 
     public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
@@ -141,16 +156,25 @@ internal class M2000C_Listener : AircraftListener
             UpdateCounter(e.Address, e.Data);
             bool refreshLeds = false;
             bool refreshDisplay = false;
-            
+
             if (e.Address == PCN_LIGHTS_ADDRESS)
             {
                 ushort val = (ushort)e.Data;
-                mcdu.Leds.Ind = (val & MASK_ALN) > 0;
+                mcdu.Leds.Fm1 = (val & MASK_ALN) > 0;
                 mcdu.Leds.Rdy = (val & MASK_PRET) > 0;
-                mcdu.Leds.Fail = (val & MASK_NDEG) > 0;
+                mcdu.Leds.Fm = (val & MASK_NDEG) > 0;
+                mcdu.Leds.Ind = (val & MASK_MIP) > 0;
+                mcdu.Leds.Fm2 = (val & MASK_SEC) > 0;
                 refreshLeds = true;
             }
-            
+
+            if (e.Address == PCN_LIGHTS_ADDRESS_2)
+            {
+                ushort val = (ushort)e.Data;
+                mcdu.Leds.Fail = (val & MASK_UNI) > 0;
+                refreshLeds = true;
+            }
+
             if (e.Address == CLP_ADDR_1) {
                 ushort val = (ushort)e.Data;
                 if (_clpValue1 != val) { _clpValue1 = val; refreshDisplay = true; }
@@ -272,6 +296,7 @@ internal class M2000C_Listener : AircraftListener
         if ((value & MASK_CLP_P_CAB) != 0) items.Add(new("P.CAB", CautionSeverity.Critical));
         if ((value & MASK_CLP_REG_O2) != 0) items.Add(new("REG.O2", CautionSeverity.Critical));
         if ((value & MASK_CLP_EP) != 0) items.Add(new("EP", CautionSeverity.Critical));
+        if ((value & MASK_CLP_O2_HA) != 0) items.Add(new("O2 HA", CautionSeverity.Warning)); // Yellow per JSON description
         if ((value & MASK_CLP_ANEMO) != 0) items.Add(new("ANEMO", CautionSeverity.Advisory));
         if ((value & MASK_CLP_CC) != 0) items.Add(new("CC", CautionSeverity.Advisory));
         if ((value & MASK_CLP_TEMP) != 0) items.Add(new("TEMP", CautionSeverity.Advisory));
@@ -295,7 +320,6 @@ internal class M2000C_Listener : AircraftListener
         if ((value & MASK_CLP_BECS) != 0) items.Add(new("BECS", CautionSeverity.Advisory));
         if ((value & MASK_CLP_CONF) != 0) items.Add(new("CONF", CautionSeverity.Advisory));
         if ((value & MASK_CLP_PARK) != 0) items.Add(new("PARK", CautionSeverity.Advisory));
-        if ((value & MASK_CLP_O2_HA) != 0) items.Add(new("O2 HA", CautionSeverity.Advisory));
         if ((value & MASK_CLP_INCIDENCE) != 0) items.Add(new("ALPHA", CautionSeverity.Advisory));
     }
 
@@ -307,7 +331,7 @@ internal class M2000C_Listener : AircraftListener
         const int COL_WIDTH_3 = 6;
         int currentLine = 0;
 
-        void WriteColumn(ref CompositorLine line, CautionItem? item, int colWidth)
+        void WriteColumn(Compositor line, CautionItem? item, int colWidth)
         {
             if (item.HasValue)
             {
@@ -316,15 +340,15 @@ internal class M2000C_Listener : AircraftListener
                 {
                     CautionSeverity.Critical => line.Red(),
                     CautionSeverity.Warning => line.Yellow(),
-                    _ => line.Green()
+                    _ => line.Yellow() // Advisory uses yellow; no green on M-2000C CLP
                 };
                 line.Write(text);
                 int padding = colWidth - text.Length;
-                if (padding > 0) line.Green().Write(new string(' ', padding));
+                if (padding > 0) line.Yellow().Write(new string(' ', padding));
             }
             else
             {
-                line.Green().Write(new string(' ', colWidth));
+                line.Yellow().Write(new string(' ', colWidth));
             }
         }
 
@@ -338,9 +362,9 @@ internal class M2000C_Listener : AircraftListener
             CautionItem? c2 = (i + 1) < items.Count ? items[i + 1] : null;
             CautionItem? c3 = (i + 2) < items.Count ? items[i + 2] : null;
 
-            WriteColumn(ref lineObj, c1, COL_WIDTH_1);
-            WriteColumn(ref lineObj, c2, COL_WIDTH_2);
-            WriteColumn(ref lineObj, c3, COL_WIDTH_3);
+            WriteColumn(lineObj, c1, COL_WIDTH_1);
+            WriteColumn(lineObj, c2, COL_WIDTH_2);
+            WriteColumn(lineObj, c3, COL_WIDTH_3);
 
             currentLine++;
         }
@@ -355,10 +379,7 @@ internal class M2000C_Listener : AircraftListener
 
     private void UpdateCombinedPCNDisplay(Compositor output)
     {
-    // Fixed-width formatting: left 9 chars, right 9 chars
-        string left = (_pcnDispL ?? string.Empty).PadRight(9).Substring(0,9);
-        string right = (_pcnDispR ?? string.Empty).PadRight(9).Substring(0,9);
-        string combinedLine = left + right; // 18 chars
+    string combinedLine = string.Format("{0}{1,10}", _pcnDispL, _pcnDispR);
         output.Line(12).Green().WriteLine(combinedLine);
     }
 
