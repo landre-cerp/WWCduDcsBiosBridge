@@ -110,6 +110,12 @@ if no config.json is found, it will create a default one and show you a dialog b
 - Restart the application when switching aircraft
 - Each aircraft requires a separate application instance
 
+**Start bridge is greyed**
+- you probably launched the app before plugging your devices.
+- exit application
+- plug all the cdus you plan to use
+- launch the app again 
+
 ### Brightness Issues
 
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
