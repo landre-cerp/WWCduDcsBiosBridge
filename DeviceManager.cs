@@ -6,7 +6,7 @@ using System.IO;
 namespace WWCduDcsBiosBridge;
 
 /// <summary>
-/// Manages CDU device detection and connection
+/// Manages CDU and FCU device detection and connection
 /// </summary>
 public class DeviceManager
 {
@@ -18,42 +18,7 @@ public class DeviceManager
     public sealed record DeviceDetectionProgress(int Current, int Total, string Message);
 
     /// <summary>
-    /// Detects and connects to all available CDU devices synchronously
-    /// </summary>
-    /// <returns>List of connected devices</returns>
-    public static List<DeviceInfo> DetectAndConnectDevices()
-    {
-        var detectedDevices = new List<DeviceInfo>();
-        try
-        {
-            var deviceIdentifiers = CduFactory.FindLocalDevices().ToList();
-            for (int i = 0; i < deviceIdentifiers.Count; i++)
-            {
-                var deviceId = deviceIdentifiers[i];
-                try
-                {
-                    var cdu = CduFactory.ConnectLocal(deviceId);
-                    initCdu(cdu);
-                    var displayName = GetDeviceName(deviceId);
-                    var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
-                    detectedDevices.Add(deviceInfo);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, $"Failed to connect to device {i + 1}");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Failed to detect devices");
-            throw;
-        }
-        return detectedDevices;
-    }
-
-    /// <summary>
-    /// Asynchronously detects and connects to all available CDU devices with progress reporting
+    /// Asynchronously detects and connects to all available CDU and FCU devices with progress reporting
     /// </summary>
     public static async Task<List<DeviceInfo>> DetectAndConnectDevicesAsync(
         IProgress<DeviceDetectionProgress>? progress = null, 
@@ -63,33 +28,67 @@ public class DeviceManager
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // If FindLocalDevicesAsync exists, use it. Otherwise, wrap in Task.Run.
-            var deviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
-            progress?.Report(new DeviceDetectionProgress(0, deviceIdentifiers.Count, deviceIdentifiers.Count == 0 ? "No devices found" : $"Found {deviceIdentifiers.Count} device(s). Connecting..."));
 
-            for (int i = 0; i < deviceIdentifiers.Count; i++)
+            // Detect CDU devices
+            var cduDeviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+            
+            // Detect FCU devices
+            var fcuDeviceIdentifiers = await Task.Run(() => FcuFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+
+            var totalDevices = cduDeviceIdentifiers.Count + fcuDeviceIdentifiers.Count;
+            progress?.Report(new DeviceDetectionProgress(0, totalDevices, totalDevices == 0 ? "No devices found" : $"Found {totalDevices} device(s). Connecting..."));
+
+            int currentIndex = 0;
+
+            // Connect to CDU devices
+            for (int i = 0; i < cduDeviceIdentifiers.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var deviceId = deviceIdentifiers[i];
-                progress?.Report(new DeviceDetectionProgress(i, deviceIdentifiers.Count, $"Connecting device {i + 1}/{deviceIdentifiers.Count}..."));
+                var deviceId = cduDeviceIdentifiers[i];
+                progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connecting CDU device {i + 1}/{cduDeviceIdentifiers.Count}..."));
                 try
                 {
-                    // If ConnectLocalAsync exists, use it. Otherwise, wrap in Task.Run.
                     var cdu = await Task.Run(() => CduFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
-                    initCdu(cdu);
+                    InitCdu(cdu);
                     var displayName = GetDeviceName(deviceId);
                     var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
-                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Connected {displayName} ({i + 1}/{deviceIdentifiers.Count})"));
+                    currentIndex++;
+                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connected {displayName} ({currentIndex}/{totalDevices})"));
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, $"Failed to connect to device {i + 1}");
-                    progress?.Report(new DeviceDetectionProgress(i + 1, deviceIdentifiers.Count, $"Failed to connect device {i + 1}: {ex.Message}"));
+                    Logger.Error(ex, $"Failed to connect to CDU device {i + 1}");
+                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Failed to connect CDU device {i + 1}: {ex.Message}"));
+                    currentIndex++;
                 }
             }
 
-            progress?.Report(new DeviceDetectionProgress(deviceIdentifiers.Count, deviceIdentifiers.Count, $"Detection complete. {detectedDevices.Count} connected."));
+            // Connect to FCU devices
+            for (int i = 0; i < fcuDeviceIdentifiers.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var deviceId = fcuDeviceIdentifiers[i];
+                progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connecting FCU device {i + 1}/{fcuDeviceIdentifiers.Count}..."));
+                try
+                {
+                    var fcu = await Task.Run(() => FcuFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    // Note: FCU devices don't need font initialization like CDU devices
+                    var displayName = GetDeviceName(deviceId);
+                    var deviceInfo = new DeviceInfo(fcu, deviceId, displayName);
+                    detectedDevices.Add(deviceInfo);
+                    currentIndex++;
+                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connected {displayName} ({currentIndex}/{totalDevices})"));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Failed to connect to FCU device {i + 1}");
+                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Failed to connect FCU device {i + 1}: {ex.Message}"));
+                    currentIndex++;
+                }
+            }
+
+            progress?.Report(new DeviceDetectionProgress(totalDevices, totalDevices, $"Detection complete. {detectedDevices.Count} connected."));
         }
         catch (OperationCanceledException)
         {
@@ -103,7 +102,7 @@ public class DeviceManager
         return detectedDevices;
     }
 
-    private static void initCdu(ICdu mcdu)
+    private static void InitCdu(ICdu mcdu)
     {
         using var fileStream = new FileStream("resources/a10c-font-21x31.json", FileMode.Open, FileAccess.Read);
         using var reader = new StreamReader(fileStream);
