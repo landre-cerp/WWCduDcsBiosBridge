@@ -1,3 +1,6 @@
 [submodule "libs/DCSFPCommon"]
 	path = libs/DCSFPCommon
 	url = https://github.com/DCS-Skunkworks/DCSFPCommon
+[submodule "libs/cduhub"]
+	path = libs/cduhub
+	url = https://github.com/landre-cerp/cduhub

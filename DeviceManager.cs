@@ -117,43 +117,6 @@ public class DeviceManager
     public static string GetDeviceName(DeviceIdentifier deviceId) => deviceId.Description;
 
     /// <summary>
-    /// Tests a device display by showing a test pattern
-    /// </summary>
-    public static void TestDeviceDisplay(ICdu device)
-    {
-        try
-        {
-            device.Output.Clear().Green()
-                .Line(0).Centered($"TEST DEVICE {device.DeviceId}")
-                .Line(2).Yellow().Centered("Display Test")
-                .Line(4).White().WriteLine("Device is working!");
-            device.RefreshDisplay();
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, $"Failed to test device {device.DeviceId} display");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Clears a device display
-    /// </summary>
-    public static void ClearDeviceDisplay(ICdu device)
-    {
-        try
-        {
-            device.Output.Clear();
-            device.RefreshDisplay();
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Failed to clear device display");
-            throw;
-        }
-    }
-
-    /// <summary>
     /// Disposes a list of devices safely
     /// </summary>
     public static void DisposeDevices(IEnumerable<DeviceInfo> devices)
