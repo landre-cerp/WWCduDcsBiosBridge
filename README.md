@@ -23,13 +23,14 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 - DCS World
 - DCS-BIOS (v0.8.4 or later, nightly build required for CH-47F)
 - Winwing CDU hardware (MCDU / PFP3N / PFP7)
+- Winwing FCU and EFIS ( tested with Left Efis )
 - .NET 8.0 runtime
 
 ## Supported Aircraft
 
 | Aircraft | Support Level | Features |
 |----------|---------------|----------|
-| **A10C** | Full | Complete MCDU functionality, LED indicators, brightness control |
+| **A10C** | Full | Complete MCDU functionality, LED indicators, brightness control , FCU display (VS , Alt, Speed, HDG , Qnh on Efis ) |
 | **AH-64D** | Basic | UFD information, keyboard display |
 | **FA-18C** | Basic | UFC fields display |
 | **CH-47F** | Basic | Pilot or CoPilot CDU (requires DCS-BIOS nightly build) |
@@ -111,10 +112,11 @@ if no config.json is found, it will create a default one and show you a dialog b
 - Each aircraft requires a separate application instance
 
 **Start bridge is greyed**
+- you are using PFP4 not yet supported ? 
+
+otherwise, 
 - you probably launched the app before plugging your devices.
-- exit application
-- plug all the cdus you plan to use
-- launch the app again 
+- exit application, plug all the cdus you plan to use and launch the app again 
 
 ### Brightness Issues
 
