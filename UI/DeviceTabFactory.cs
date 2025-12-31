@@ -305,6 +305,7 @@ public class DeviceTabFactory
             fcuState.SpeedIsMach = false;
             fcuState.HeadingIsTrack = false;
             fcuState.VsIsFpa = false;
+            fcuState.AltitudeIsFlightLevel = false;
             frontpanel.UpdateDisplay(fcuState);
         } catch (Exception ex) {
             MessageBox.Show($"Failed to initialize FCU displays: {ex.Message}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -357,7 +358,7 @@ public class DeviceTabFactory
 
         // Update altitude range when ALT/FL mode changes
         altRadio.Checked += (s, e) => {
-            // Switch back to ALT mode with full range (0-99999)
+            // Switch back to ALT mode with full range (0-48000)
             var parentStack = altitudePanel.Parent as StackPanel;
             if (parentStack != null)
             {
@@ -365,7 +366,7 @@ public class DeviceTabFactory
                 parentStack.Children.RemoveAt(index);
                 
                 // Create new panel with full altitude range
-                var newAltitudePanel = CreateNumericInput("Altitude:", 0, 99999, 0, (value) =>
+                var newAltitudePanel = CreateNumericInput("Altitude:", 0, 48000, 0, (value) =>
                 {
                     try
                     {
@@ -384,15 +385,15 @@ public class DeviceTabFactory
         };
         
         flRadio.Checked += (s, e) => {
-            // Switch to FL mode with range 0-999 (user enters FL, hardware receives value * 100)
+            // Switch to FL mode with range 0-480 (user enters FL, hardware receives value * 100)
             var parentStack = altitudePanel.Parent as StackPanel;
             if (parentStack != null)
             {
                 var index = parentStack.Children.IndexOf(altitudePanel);
                 parentStack.Children.RemoveAt(index);
                 
-                // Create new panel with FL input (0-999, multiplier of 100)
-                var newAltitudePanel = CreateNumericInput("Flight Level:", 0, 999, 0, (value) =>
+                // Create new panel with FL input (0-480, multiplier of 100)
+                var newAltitudePanel = CreateNumericInput("Flight Level:", 0, 480, 0, (value) =>
                 {
                     try
                     {
@@ -459,14 +460,18 @@ public class DeviceTabFactory
                 frontpanel.UpdateDisplay(fcuState);
                 
                 // Reset all radio buttons and checkboxes
-                spdRadio.IsChecked = false;
+                spdRadio.IsChecked = true;
                 machRadio.IsChecked = false;
-                hdgRadio.IsChecked = false;
+
+                hdgRadio.IsChecked = true;
                 trkRadio.IsChecked = false;
-                vsRadio.IsChecked = false;
+
+                vsRadio.IsChecked = true;
                 fpaRadio.IsChecked = false;
-                altRadio.IsChecked = false;
+
+                altRadio.IsChecked = true;
                 flRadio.IsChecked = false;
+
                 latCb.IsChecked = false;
                 spdDotCb.IsChecked = false;
                 hdgDotCb.IsChecked = false;
