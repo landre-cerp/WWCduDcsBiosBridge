@@ -1,7 +1,7 @@
-using McduDotNet;
 using Newtonsoft.Json;
 using NLog;
 using System.IO;
+using wwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge;
 
@@ -33,7 +33,7 @@ public class DeviceManager
             var cduDeviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
             
             // Detect FCU devices
-            var fcuDeviceIdentifiers = await Task.Run(() => FcuFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+            var fcuDeviceIdentifiers = await Task.Run(() => FrontpanelFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
 
             var totalDevices = cduDeviceIdentifiers.Count + fcuDeviceIdentifiers.Count;
             progress?.Report(new DeviceDetectionProgress(0, totalDevices, totalDevices == 0 ? "No devices found" : $"Found {totalDevices} device(s). Connecting..."));
@@ -72,17 +72,44 @@ public class DeviceManager
                 progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connecting FCU device {i + 1}/{fcuDeviceIdentifiers.Count}..."));
                 try
                 {
-                    var fcu = await Task.Run(() => FcuFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
-                    // Note: FCU devices don't need font initialization like CDU devices
+                    Logger.Info($"About to connect FCU device: {deviceId.Description}");
+                    var fcu = await Task.Run(() => FrontpanelFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    
+                    if (fcu == null)
+                    {
+                        Logger.Error($"FrontpanelFactory.ConnectLocal returned null for device {deviceId.Description}");
+                        throw new InvalidOperationException($"Failed to connect to FCU device: ConnectLocal returned null");
+                    }
+                    
+                    Logger.Info($"FCU device connected: IsConnected={fcu.IsConnected}, Type={fcu.GetType().Name}");
+                    
+                    // Initialize FCU device to start HID communication (if not already initialized by factory)
+                    if (fcu is wwDevicesDotNet.WinWing.FcuAndEfis.FcuEfisDevice fcuDevice)
+                    {
+                        Logger.Info("FCU device is FcuEfisDevice, ensuring initialization...");
+                        // Factory already calls Initialise(), but we verify it worked
+                        if (!fcu.IsConnected)
+                        {
+                            Logger.Warn("Device not connected after factory initialization, trying to initialize again...");
+                            fcuDevice.Initialise();
+                        }
+                        Logger.Info($"After initialization check: IsConnected={fcu.IsConnected}");
+                    }
+                    else
+                    {
+                        Logger.Warn($"FCU device is not FcuEfisDevice, it's: {fcu?.GetType().FullName ?? "null"}");
+                    }
+                    
                     var displayName = GetDeviceName(deviceId);
                     var deviceInfo = new DeviceInfo(fcu, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
                     currentIndex++;
+                    Logger.Info($"Successfully added FCU device: {displayName}");
                     progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connected {displayName} ({currentIndex}/{totalDevices})"));
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, $"Failed to connect to FCU device {i + 1}");
+                    Logger.Error(ex, $"Failed to connect to FCU device {i + 1}: {ex.Message}");
                     progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Failed to connect FCU device {i + 1}: {ex.Message}"));
                     currentIndex++;
                 }
@@ -125,7 +152,7 @@ public class DeviceManager
         {
             try
             {
-                deviceInfo.Cdu?.Dispose();
+                deviceInfo.Dispose();
             }
             catch (Exception ex)
             {
@@ -134,3 +161,4 @@ public class DeviceManager
         }
     }
 }
+

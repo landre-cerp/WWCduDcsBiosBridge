@@ -1,4 +1,4 @@
-﻿using McduDotNet;
+﻿using wwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 

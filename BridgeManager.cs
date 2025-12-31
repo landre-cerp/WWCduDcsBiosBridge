@@ -33,17 +33,61 @@ public class BridgeManager : IDisposable
 
         try
         {
-            // Create device contexts
-            Contexts = devices.Select(deviceInfo => 
-                new DeviceContext(deviceInfo.Cdu, userOptions ?? new UserOptions(), config)).ToList();
+            // Create device contexts for all devices
+            Contexts = new List<DeviceContext>();
+            
+            foreach (var deviceInfo in devices)
+            {
+                DeviceContext ctx;
+                if (deviceInfo.Cdu != null)
+                {
+                    ctx = new DeviceContext(deviceInfo.Cdu, userOptions ?? new UserOptions(), config);
+                }
+                else if (deviceInfo.Frontpanel != null)
+                {
+                    ctx = new DeviceContext(deviceInfo.Frontpanel, userOptions ?? new UserOptions(), config);
+                }
+                else
+                {
+                    Logger.Warn("Skipping device with no CDU or Frontpanel interface");
+                    continue;
+                }
+                Contexts.Add(ctx);
+            }
 
-            // Show startup screens
-            foreach (var ctx in Contexts)
+            if (!Contexts.Any())
+            {
+                throw new InvalidOperationException("No valid devices found.");
+            }
+
+            var cduCount = Contexts.Count(c => c.IsCduDevice);
+            var frontpanelCount = Contexts.Count(c => c.IsFrontpanelDevice);
+            
+            Logger.Info($"Created contexts for {cduCount} CDU device(s) and {frontpanelCount} Frontpanel device(s)");
+
+            if (cduCount == 0)
+            {
+                Logger.Warn("No CDU devices found. Aircraft selection will not be available.");
+            }
+
+            // Show startup screens only on CDU devices
+            foreach (var ctx in Contexts.Where(c => c.IsCduDevice))
                 ctx.ShowStartupScreen();
 
-            // Wait for aircraft selection
-            while (Contexts.Any(c => !c.IsSelectedAircraft))
-                await Task.Delay(100);
+            // Wait for aircraft selection on at least one CDU device
+            var cduContexts = Contexts.Where(c => c.IsCduDevice).ToList();
+            if (cduContexts.Any())
+            {
+                while (cduContexts.Any(c => !c.IsSelectedAircraft))
+                    await Task.Delay(100);
+
+                // Once aircraft is selected on any CDU, propagate to all other contexts
+                var selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
+                foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft))
+                {
+                    ctx.SetAircraftSelection(selectedAircraft!);
+                }
+            }
 
             // Initialize DCS-BIOS
             InitializeDcsBios(config);
@@ -53,7 +97,7 @@ public class BridgeManager : IDisposable
                 ctx.StartBridge();
 
             IsStarted = true;
-            Logger.Info($"Bridge started successfully with {Contexts.Count} device(s)");
+            Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
         }
         catch (Exception ex)
         {
