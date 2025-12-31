@@ -115,7 +115,7 @@ if no config.json is found, it will create a default one and show you a dialog b
 - You are using PFP4 not yet supported?
 
 otherwise, 
-- you probably launched the app before plugging your devices.
+- You probably launched the app before plugging your devices.
 - exit application, plug all the cdus you plan to use and launch the app again 
 
 ### Brightness Issues
