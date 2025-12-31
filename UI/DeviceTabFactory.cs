@@ -208,6 +208,20 @@ public class DeviceTabFactory
         vsFpaPanel.Children.Add(fpaRadio);
         textStack.Children.Add(vsFpaPanel);
         
+        // ALT/FL radio buttons
+        var altFlPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 5) };
+        altFlPanel.Children.Add(new TextBlock { Text = "Altitude:", Width = 80, VerticalAlignment = VerticalAlignment.Center });
+        
+        var altRadio = new RadioButton { Content = "ALT", GroupName = "AltitudeMode", IsChecked = true, Margin = new Thickness(5, 0, 10, 0) };
+        var flRadio = new RadioButton { Content = "FL", GroupName = "AltitudeMode", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
+        
+        altRadio.Checked += (s, e) => { fcuState.AltitudeIsFlightLevel = false; try { frontpanel.UpdateDisplay(fcuState); } catch { } };
+        flRadio.Checked += (s, e) => { fcuState.AltitudeIsFlightLevel = true; try { frontpanel.UpdateDisplay(fcuState); } catch { } };
+        
+        altFlPanel.Children.Add(altRadio);
+        altFlPanel.Children.Add(flRadio);
+        textStack.Children.Add(altFlPanel);
+        
         // LAT checkbox (independent)
         var latPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 5, 0, 0) };
         latPanel.Children.Add(new TextBlock { Text = "Other:", Width = 80, VerticalAlignment = VerticalAlignment.Center });
@@ -341,6 +355,61 @@ public class DeviceTabFactory
         });
         displayStack.Children.Add(altitudePanel);
 
+        // Update altitude range when ALT/FL mode changes
+        altRadio.Checked += (s, e) => {
+            // Switch back to ALT mode with full range (0-99999)
+            var parentStack = altitudePanel.Parent as StackPanel;
+            if (parentStack != null)
+            {
+                var index = parentStack.Children.IndexOf(altitudePanel);
+                parentStack.Children.RemoveAt(index);
+                
+                // Create new panel with full altitude range
+                var newAltitudePanel = CreateNumericInput("Altitude:", 0, 99999, 0, (value) =>
+                {
+                    try
+                    {
+                        fcuState.Altitude = value;
+                        frontpanel.UpdateDisplay(fcuState);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to update display: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+                
+                parentStack.Children.Insert(index, newAltitudePanel);
+                altitudePanel = newAltitudePanel;
+            }
+        };
+        
+        flRadio.Checked += (s, e) => {
+            // Switch to FL mode with range 0-999 (user enters FL, hardware receives value * 100)
+            var parentStack = altitudePanel.Parent as StackPanel;
+            if (parentStack != null)
+            {
+                var index = parentStack.Children.IndexOf(altitudePanel);
+                parentStack.Children.RemoveAt(index);
+                
+                // Create new panel with FL input (0-999, multiplier of 100)
+                var newAltitudePanel = CreateNumericInput("Flight Level:", 0, 999, 0, (value) =>
+                {
+                    try
+                    {
+                        fcuState.Altitude = value * 100;
+                        frontpanel.UpdateDisplay(fcuState);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to update display: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+                
+                parentStack.Children.Insert(index, newAltitudePanel);
+                altitudePanel = newAltitudePanel;
+            }
+        };
+
         // Vertical Speed control
         var vsPanel = CreateNumericInput("V/S:", -9999, 9999, 0, (value) =>
         {
@@ -385,6 +454,7 @@ public class DeviceTabFactory
                 fcuState.LvlLeftBracket = false;
                 fcuState.LvlRightBracket = false;
                 fcuState.VsHorzIndicator = false;
+                fcuState.AltitudeIsFlightLevel = false;
                 
                 frontpanel.UpdateDisplay(fcuState);
                 
@@ -395,6 +465,8 @@ public class DeviceTabFactory
                 trkRadio.IsChecked = false;
                 vsRadio.IsChecked = false;
                 fpaRadio.IsChecked = false;
+                altRadio.IsChecked = false;
+                flRadio.IsChecked = false;
                 latCb.IsChecked = false;
                 spdDotCb.IsChecked = false;
                 hdgDotCb.IsChecked = false;
