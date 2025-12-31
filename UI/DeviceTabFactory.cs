@@ -1,5 +1,5 @@
-﻿using wwDevicesDotNet;
-using wwDevicesDotNet.WinWing.FcuAndEfis;
+﻿using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -258,48 +258,6 @@ public class DeviceTabFactory
         
         var middleStack = new StackPanel();
         
-        // HDG/TRK middle indicators (separate from top HDG/TRK)
-        var hdgTrkMiddlePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 5) };
-        hdgTrkMiddlePanel.Children.Add(new TextBlock { Text = "Heading mode:", Width = 100, VerticalAlignment = VerticalAlignment.Center });
-        
-        var hdgMiddleRadio = new RadioButton { Content = "HDG", GroupName = "MiddleHeading", IsChecked = true, Margin = new Thickness(5, 0, 10, 0) };
-        var trkMiddleRadio = new RadioButton { Content = "TRK", GroupName = "MiddleHeading", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        
-        hdgMiddleRadio.Checked += (s, e) => { 
-            fcuState.TrkMiddleIndicator = false;
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        trkMiddleRadio.Checked += (s, e) => { 
-            fcuState.TrkMiddleIndicator = true;
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        
-        hdgTrkMiddlePanel.Children.Add(hdgMiddleRadio);
-        hdgTrkMiddlePanel.Children.Add(trkMiddleRadio);
-        middleStack.Children.Add(hdgTrkMiddlePanel);
-        
-        // V/S/FPA middle indicators (separate from right V/S/FPA)
-        var vsFpaMiddlePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 10) };
-        vsFpaMiddlePanel.Children.Add(new TextBlock { Text = "Vertical mode:", Width = 100, VerticalAlignment = VerticalAlignment.Center });
-        
-        var vsMiddleRadio = new RadioButton { Content = "V/S", GroupName = "MiddleVertical", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        var fpaMiddleRadio = new RadioButton { Content = "FPA", GroupName = "MiddleVertical", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        
-        vsMiddleRadio.Checked += (s, e) => { 
-            fcuState.VsMiddleIndicator = true; 
-            fcuState.FpaMiddleIndicator = false; 
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        fpaMiddleRadio.Checked += (s, e) => { 
-            fcuState.VsMiddleIndicator = false;
-            fcuState.FpaMiddleIndicator = true; 
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        
-        vsFpaMiddlePanel.Children.Add(vsMiddleRadio);
-        vsFpaMiddlePanel.Children.Add(fpaMiddleRadio);
-        middleStack.Children.Add(vsFpaMiddlePanel);
-        
         // LVL/CH checkboxes (independent)
         var lvlPanel = new WrapPanel { Margin = new Thickness(0, 5, 0, 0) };
         lvlPanel.Children.Add(new TextBlock { Text = "LVL/CH (independent):", Width = 150, VerticalAlignment = VerticalAlignment.Center });
@@ -422,14 +380,7 @@ public class DeviceTabFactory
                 fcuState.SpeedManaged = false;
                 fcuState.HeadingManaged = false;
                 fcuState.AltitudeManaged = false;
-                fcuState.SpeedDot = false;
-                fcuState.HeadingDot = false;
-                fcuState.AltitudeDot = false;
-                fcuState.VsDot = false;
                 fcuState.LatIndicator = false;
-                fcuState.VsMiddleIndicator = false;
-                fcuState.TrkMiddleIndicator = false;
-                fcuState.FpaMiddleIndicator = false;
                 fcuState.LvlIndicator = false;
                 fcuState.LvlLeftBracket = false;
                 fcuState.LvlRightBracket = false;
@@ -448,10 +399,6 @@ public class DeviceTabFactory
                 spdDotCb.IsChecked = false;
                 hdgDotCb.IsChecked = false;
                 altDotCb.IsChecked = false;
-                hdgMiddleRadio.IsChecked = false;
-                trkMiddleRadio.IsChecked = false;
-                vsMiddleRadio.IsChecked = false;
-                fpaMiddleRadio.IsChecked = false;
                 lvlCb.IsChecked = false;
                 lvlLeftCb.IsChecked = false;
                 lvlRightCb.IsChecked = false;
@@ -845,16 +792,6 @@ public class DeviceTabFactory
             Application.Current.Dispatcher.Invoke(() =>
             {
                 eventLog.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] RELEASED: {e.ControlId}\n");
-                eventLog.ScrollToEnd();
-            });
-        };
-
-        frontpanel.RotaryChanged += (s, e) =>
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                var direction = e.Direction > 0 ? "CW" : "CCW";
-                eventLog.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ROTARY: {e.ControlId} {direction} ({Math.Abs(e.Direction)})\n");
                 eventLog.ScrollToEnd();
             });
         };

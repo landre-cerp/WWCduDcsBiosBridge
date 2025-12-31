@@ -1,4 +1,4 @@
-using wwDevicesDotNet;
+using WwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge;
 

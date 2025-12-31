@@ -1,6 +1,6 @@
 ﻿using ClassLibraryCommon;
 using DCS_BIOS.ControlLocator;
-using wwDevicesDotNet;
+using WwDevicesDotNet;
 using WWCduDcsBiosBridge.Aircrafts;
 using WWCduDcsBiosBridge.Config;
 
