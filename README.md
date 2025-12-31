@@ -116,7 +116,7 @@ if no config.json is found, it will create a default one and show you a dialog b
 
 otherwise, 
 - You probably launched the app before plugging your devices.
-- exit application, plug all the cdus you plan to use and launch the app again 
+- Exit application, plug all the cdus you plan to use and launch the app again 
 
 ### Brightness Issues
 
