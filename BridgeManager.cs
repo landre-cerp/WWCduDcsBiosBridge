@@ -92,9 +92,15 @@ public class BridgeManager : IDisposable
             // Initialize DCS-BIOS
             InitializeDcsBios(config);
 
-            // Start device bridges
+            // Get the first frontpanel device to pass to CDU contexts (only one should be used)
+            var frontpanel = Contexts
+                .Where(c => c.IsFrontpanelDevice && c.Frontpanel != null)
+                .Select(c => c.Frontpanel!)
+                .FirstOrDefault();
+
+            // Start device bridges - pass frontpanel to CDU contexts
             foreach (var ctx in Contexts)
-                ctx.StartBridge();
+                ctx.StartBridge(frontpanel);
 
             IsStarted = true;
             Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");

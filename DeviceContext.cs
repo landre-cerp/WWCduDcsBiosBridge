@@ -80,7 +80,7 @@ internal class DeviceContext : IDisposable
         SetAircraftSelection(e.Selection);
     }
 
-    public void StartBridge()
+    public void StartBridge(IFrontpanel? frontpanel = null)
     {
         if (!isSelectedAircraft) return;
 
@@ -93,7 +93,7 @@ internal class DeviceContext : IDisposable
         
         try
         {
-            listener = new AircraftListenerFactory().CreateListener(SelectedAircraft!, Mcdu!, options);
+            listener = new AircraftListenerFactory().CreateListener(SelectedAircraft!, Mcdu!, options, frontpanel);
             listener.Start();
         }
         catch (NotSupportedException ex)
