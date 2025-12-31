@@ -100,12 +100,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     {
         if (devices.Count == 0)
         {
-            ShowStatus("No CDU devices detected. Please ensure your device is connected.", true);
+            ShowStatus("No devices detected. Please ensure your device is connected.", true);
             return;
         }
         try
         {
-            ShowStatus($"Detected {devices.Count} CDU device(s)", false);
+            var cduCount = devices.Count(d => d.Cdu != null);
+            var frontpanelCount = devices.Count(d => d.Frontpanel != null);
+            
+            var statusParts = new List<string>();
+            if (cduCount > 0)
+                statusParts.Add($"{cduCount} CDU device{(cduCount != 1 ? "s" : "")}");
+            if (frontpanelCount > 0)
+                statusParts.Add($"{frontpanelCount} Frontpanel device{(frontpanelCount != 1 ? "s" : "")}");
+            
+            ShowStatus($"Detected {string.Join(" and ", statusParts)}", false);
+            
             foreach (var deviceInfo in devices)
             {
                 var deviceTab = UI.DeviceTabFactory.CreateDeviceTab(deviceInfo, IsBridgeRunning);

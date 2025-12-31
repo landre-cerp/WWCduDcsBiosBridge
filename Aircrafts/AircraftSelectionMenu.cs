@@ -1,7 +1,11 @@
-using McduDotNet;
+using wwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
+/// <summary>
+/// Displays aircraft selection menu on CDU devices.
+/// Note: This menu is designed for CDU devices only and cannot be used with Frontpanel devices.
+/// </summary>
 internal class AircraftSelectionMenu : IDisposable
 {
     private readonly ICdu mcdu;
