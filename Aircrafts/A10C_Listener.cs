@@ -297,7 +297,7 @@ internal class A10C_Listener : AircraftListener
                 speed = e.StringData.Trim() == "" ? 0 : int.Parse(e.StringData.Trim());
             }
 
-            if (refresh_fcu && _fcuEfisState!=null)
+            if (refresh_fcu && _fcuEfisState != null)
             {
                 _fcuEfisState.Speed = speed;
             }
