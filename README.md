@@ -112,7 +112,7 @@ if no config.json is found, it will create a default one and show you a dialog b
 - Each aircraft requires a separate application instance
 
 **Start bridge is greyed**
-- you are using PFP4 not yet supported ? 
+- You are using PFP4 not yet supported?
 
 otherwise, 
 - you probably launched the app before plugging your devices.
