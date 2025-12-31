@@ -1,5 +1,5 @@
-﻿using wwDevicesDotNet;
-using wwDevicesDotNet.WinWing.FcuAndEfis;
+﻿using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -208,6 +208,20 @@ public class DeviceTabFactory
         vsFpaPanel.Children.Add(fpaRadio);
         textStack.Children.Add(vsFpaPanel);
         
+        // ALT/FL radio buttons
+        var altFlPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 5) };
+        altFlPanel.Children.Add(new TextBlock { Text = "Altitude:", Width = 80, VerticalAlignment = VerticalAlignment.Center });
+        
+        var altRadio = new RadioButton { Content = "ALT", GroupName = "AltitudeMode", IsChecked = true, Margin = new Thickness(5, 0, 10, 0) };
+        var flRadio = new RadioButton { Content = "FL", GroupName = "AltitudeMode", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
+        
+        altRadio.Checked += (s, e) => { fcuState.AltitudeIsFlightLevel = false; try { frontpanel.UpdateDisplay(fcuState); } catch { } };
+        flRadio.Checked += (s, e) => { fcuState.AltitudeIsFlightLevel = true; try { frontpanel.UpdateDisplay(fcuState); } catch { } };
+        
+        altFlPanel.Children.Add(altRadio);
+        altFlPanel.Children.Add(flRadio);
+        textStack.Children.Add(altFlPanel);
+        
         // LAT checkbox (independent)
         var latPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 5, 0, 0) };
         latPanel.Children.Add(new TextBlock { Text = "Other:", Width = 80, VerticalAlignment = VerticalAlignment.Center });
@@ -258,48 +272,6 @@ public class DeviceTabFactory
         
         var middleStack = new StackPanel();
         
-        // HDG/TRK middle indicators (separate from top HDG/TRK)
-        var hdgTrkMiddlePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 5) };
-        hdgTrkMiddlePanel.Children.Add(new TextBlock { Text = "Heading mode:", Width = 100, VerticalAlignment = VerticalAlignment.Center });
-        
-        var hdgMiddleRadio = new RadioButton { Content = "HDG", GroupName = "MiddleHeading", IsChecked = true, Margin = new Thickness(5, 0, 10, 0) };
-        var trkMiddleRadio = new RadioButton { Content = "TRK", GroupName = "MiddleHeading", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        
-        hdgMiddleRadio.Checked += (s, e) => { 
-            fcuState.TrkMiddleIndicator = false;
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        trkMiddleRadio.Checked += (s, e) => { 
-            fcuState.TrkMiddleIndicator = true;
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        
-        hdgTrkMiddlePanel.Children.Add(hdgMiddleRadio);
-        hdgTrkMiddlePanel.Children.Add(trkMiddleRadio);
-        middleStack.Children.Add(hdgTrkMiddlePanel);
-        
-        // V/S/FPA middle indicators (separate from right V/S/FPA)
-        var vsFpaMiddlePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 10) };
-        vsFpaMiddlePanel.Children.Add(new TextBlock { Text = "Vertical mode:", Width = 100, VerticalAlignment = VerticalAlignment.Center });
-        
-        var vsMiddleRadio = new RadioButton { Content = "V/S", GroupName = "MiddleVertical", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        var fpaMiddleRadio = new RadioButton { Content = "FPA", GroupName = "MiddleVertical", IsChecked = false, Margin = new Thickness(5, 0, 10, 0) };
-        
-        vsMiddleRadio.Checked += (s, e) => { 
-            fcuState.VsMiddleIndicator = true; 
-            fcuState.FpaMiddleIndicator = false; 
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        fpaMiddleRadio.Checked += (s, e) => { 
-            fcuState.VsMiddleIndicator = false;
-            fcuState.FpaMiddleIndicator = true; 
-            try { frontpanel.UpdateDisplay(fcuState); } catch { } 
-        };
-        
-        vsFpaMiddlePanel.Children.Add(vsMiddleRadio);
-        vsFpaMiddlePanel.Children.Add(fpaMiddleRadio);
-        middleStack.Children.Add(vsFpaMiddlePanel);
-        
         // LVL/CH checkboxes (independent)
         var lvlPanel = new WrapPanel { Margin = new Thickness(0, 5, 0, 0) };
         lvlPanel.Children.Add(new TextBlock { Text = "LVL/CH (independent):", Width = 150, VerticalAlignment = VerticalAlignment.Center });
@@ -333,6 +305,7 @@ public class DeviceTabFactory
             fcuState.SpeedIsMach = false;
             fcuState.HeadingIsTrack = false;
             fcuState.VsIsFpa = false;
+            fcuState.AltitudeIsFlightLevel = false;
             frontpanel.UpdateDisplay(fcuState);
         } catch (Exception ex) {
             MessageBox.Show($"Failed to initialize FCU displays: {ex.Message}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -383,6 +356,61 @@ public class DeviceTabFactory
         });
         displayStack.Children.Add(altitudePanel);
 
+        // Update altitude range when ALT/FL mode changes
+        altRadio.Checked += (s, e) => {
+            // Switch back to ALT mode with full range (0-48000)
+            var parentStack = altitudePanel.Parent as StackPanel;
+            if (parentStack != null)
+            {
+                var index = parentStack.Children.IndexOf(altitudePanel);
+                parentStack.Children.RemoveAt(index);
+                
+                // Create new panel with full altitude range
+                var newAltitudePanel = CreateNumericInput("Altitude:", 0, 48000, 0, (value) =>
+                {
+                    try
+                    {
+                        fcuState.Altitude = value;
+                        frontpanel.UpdateDisplay(fcuState);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to update display: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+                
+                parentStack.Children.Insert(index, newAltitudePanel);
+                altitudePanel = newAltitudePanel;
+            }
+        };
+        
+        flRadio.Checked += (s, e) => {
+            // Switch to FL mode with range 0-480 (user enters FL, hardware receives value * 100)
+            var parentStack = altitudePanel.Parent as StackPanel;
+            if (parentStack != null)
+            {
+                var index = parentStack.Children.IndexOf(altitudePanel);
+                parentStack.Children.RemoveAt(index);
+                
+                // Create new panel with FL input (0-480, multiplier of 100)
+                var newAltitudePanel = CreateNumericInput("Flight Level:", 0, 480, 0, (value) =>
+                {
+                    try
+                    {
+                        fcuState.Altitude = value * 100;
+                        frontpanel.UpdateDisplay(fcuState);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to update display: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+                
+                parentStack.Children.Insert(index, newAltitudePanel);
+                altitudePanel = newAltitudePanel;
+            }
+        };
+
         // Vertical Speed control
         var vsPanel = CreateNumericInput("V/S:", -9999, 9999, 0, (value) =>
         {
@@ -422,36 +450,32 @@ public class DeviceTabFactory
                 fcuState.SpeedManaged = false;
                 fcuState.HeadingManaged = false;
                 fcuState.AltitudeManaged = false;
-                fcuState.SpeedDot = false;
-                fcuState.HeadingDot = false;
-                fcuState.AltitudeDot = false;
-                fcuState.VsDot = false;
                 fcuState.LatIndicator = false;
-                fcuState.VsMiddleIndicator = false;
-                fcuState.TrkMiddleIndicator = false;
-                fcuState.FpaMiddleIndicator = false;
                 fcuState.LvlIndicator = false;
                 fcuState.LvlLeftBracket = false;
                 fcuState.LvlRightBracket = false;
                 fcuState.VsHorzIndicator = false;
+                fcuState.AltitudeIsFlightLevel = false;
                 
                 frontpanel.UpdateDisplay(fcuState);
                 
                 // Reset all radio buttons and checkboxes
-                spdRadio.IsChecked = false;
+                spdRadio.IsChecked = true;
                 machRadio.IsChecked = false;
-                hdgRadio.IsChecked = false;
+
+                hdgRadio.IsChecked = true;
                 trkRadio.IsChecked = false;
-                vsRadio.IsChecked = false;
+
+                vsRadio.IsChecked = true;
                 fpaRadio.IsChecked = false;
+
+                altRadio.IsChecked = true;
+                flRadio.IsChecked = false;
+
                 latCb.IsChecked = false;
                 spdDotCb.IsChecked = false;
                 hdgDotCb.IsChecked = false;
                 altDotCb.IsChecked = false;
-                hdgMiddleRadio.IsChecked = false;
-                trkMiddleRadio.IsChecked = false;
-                vsMiddleRadio.IsChecked = false;
-                fpaMiddleRadio.IsChecked = false;
                 lvlCb.IsChecked = false;
                 lvlLeftCb.IsChecked = false;
                 lvlRightCb.IsChecked = false;
@@ -845,16 +869,6 @@ public class DeviceTabFactory
             Application.Current.Dispatcher.Invoke(() =>
             {
                 eventLog.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] RELEASED: {e.ControlId}\n");
-                eventLog.ScrollToEnd();
-            });
-        };
-
-        frontpanel.RotaryChanged += (s, e) =>
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                var direction = e.Direction > 0 ? "CW" : "CCW";
-                eventLog.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ROTARY: {e.ControlId} {direction} ({Math.Abs(e.Direction)})\n");
                 eventLog.ScrollToEnd();
             });
         };
