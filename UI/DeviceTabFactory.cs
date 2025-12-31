@@ -1094,36 +1094,4 @@ public class DeviceTabFactory
 
         return deviceInfoStack;
     }
-
-    private static Slider? FindSliderInPanel(StackPanel panel)
-    {
-        foreach (var child in panel.Children)
-        {
-            if (child is StackPanel sp)
-            {
-                foreach (var grandchild in sp.Children)
-                {
-                    if (grandchild is Slider slider)
-                        return slider;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static TextBox? FindTextBoxInPanel(StackPanel panel)
-    {
-        foreach (var child in panel.Children)
-        {
-            if (child is StackPanel sp)
-            {
-                foreach (var grandchild in sp.Children)
-                {
-                    if (grandchild is TextBox textBox)
-                        return textBox;
-                }
-            }
-        }
-        return null;
-    }
 }

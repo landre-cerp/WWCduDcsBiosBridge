@@ -49,7 +49,7 @@ public class DeviceManager
                 try
                 {
                     var cdu = await Task.Run(() => CduFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
-                    InitCdu(cdu);
+                    InitializeCdu(cdu);
                     var displayName = GetDeviceName(deviceId);
                     var deviceInfo = new DeviceInfo(cdu, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
@@ -97,7 +97,7 @@ public class DeviceManager
                     }
                     else
                     {
-                        Logger.Warn($"FCU device is not FcuEfisDevice, it's: {fcu?.GetType().FullName ?? "null"}");
+                        Logger.Warn($"FCU device is not FcuEfisDevice, it's: {fcu.GetType().FullName}");
                     }
                     
                     var displayName = GetDeviceName(deviceId);
@@ -129,7 +129,7 @@ public class DeviceManager
         return detectedDevices;
     }
 
-    private static void InitCdu(ICdu mcdu)
+    private static void InitializeCdu(ICdu mcdu)
     {
         using var fileStream = new FileStream("resources/a10c-font-21x31.json", FileMode.Open, FileAccess.Read);
         using var reader = new StreamReader(fileStream);
