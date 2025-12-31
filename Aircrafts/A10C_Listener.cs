@@ -363,7 +363,7 @@ internal class A10C_Listener : AircraftListener
     private int ConvertVviToVerticalSpeed(int rawValue)
     {
         
-        float percent = (float) (100.0 *rawValue / 65536);
+        float percent = (float)(100.0 * rawValue / 65536);
 
         int verticalSpeed = (int)(0.0209 * Math.Pow(percent, 3) - 3.1435 * Math.Pow(percent, 2) + 228.09 * percent - 6161.6);
         
