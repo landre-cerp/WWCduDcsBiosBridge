@@ -3,6 +3,7 @@ using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
 using Newtonsoft.Json;
 using System.IO;
 using Timer = System.Timers.Timer;
@@ -14,6 +15,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     private static double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
     protected ICdu mcdu;
+    protected IFrontpanel? frontpanel;
+    private FcuEfisDevice? _fcuEfisDevice;
+    protected FcuEfisState? _fcuEfisState;
+    protected FcuEfisLeds? _fcuEfisLeds;
 
     private bool _disposed;
 
@@ -32,9 +37,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
               {DEFAULT_PAGE, new Screen() }
         };
 
-    public AircraftListener(ICdu mcdu, int aircraftNumber , UserOptions options)
+    public AircraftListener(ICdu mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
     {
         this.mcdu = mcdu;
+        this.frontpanel = frontpanel;
         this.options = options;
         DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
         _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
@@ -44,7 +50,32 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         {
             mcdu.Screen.CopyFrom(pages[_currentPage]);
             mcdu.RefreshDisplay();
+            
+            // Update FCU/EFIS on the same timer if changes occurred
+            if (_fcuEfisDevice != null)
+            {
+                if (_fcuEfisState != null)
+                {
+                    _fcuEfisDevice.UpdateDisplay(_fcuEfisState);
+                }
+                
+                if (_fcuEfisLeds != null)
+                {
+                    _fcuEfisDevice.UpdateLeds(_fcuEfisLeds);
+                }
+            }
         };
+        
+        // Cache FCU/EFIS device if frontpanel is an FCU
+        _fcuEfisDevice = frontpanel as FcuEfisDevice;
+            
+        // Initialize reusable state objects if FCU/EFIS device is present
+        if (_fcuEfisDevice != null)
+        {
+            _fcuEfisState = new FcuEfisState();
+            _fcuEfisLeds = new FcuEfisLeds();
+            InitializeFcuBrightness(options.DisableLightingManagement);
+        }
     }
 
     public void Start()
@@ -67,6 +98,12 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.BacklightBrightnessPercent = 100;
         mcdu.LedBrightnessPercent = 100;
         mcdu.DisplayBrightnessPercent = 100;
+    }
+
+    private void InitializeFcuBrightness(bool disabledBrightness)
+    {
+        if (disabledBrightness || _fcuEfisDevice == null) return;
+        _fcuEfisDevice.SetBrightness(128, 255, 255);
     }
 
     public void Stop()
@@ -182,4 +219,5 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             }
         }
     }
+
 }

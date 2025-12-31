@@ -21,14 +21,35 @@ internal class A10C_Listener : AircraftListener
     private DCSBIOSOutput? _CMSP1;
     private DCSBIOSOutput? _CMSP2;
 
+    private DCSBIOSOutput? _HEADING;
+    private DCSBIOSOutput? _IAS;
+    private DCSBIOSOutput? _VS;
+    private DCSBIOSOutput? _ALT_PRESSURE0;
+    private DCSBIOSOutput? _ALT_PRESSURE1;
+    private DCSBIOSOutput? _ALT_PRESSURE2;
+    private DCSBIOSOutput? _ALT_PRESSURE3;
+
+    private DCSBIOSOutput? _ALTITUDE_10000ft;
+    private DCSBIOSOutput? _ALTITUDE_1000ft;
+    private DCSBIOSOutput? _ALTITUDE_100ft;
+
+    private bool refresh_fcu;
+    private int? speed;
+    private int? heading;
+    private int? altitude;
+    private int? verticalSpeed;
+    private int? baroPressure;
+    private int[] pressureDigits = new int[4];
+    private int[] altitudeDigits = new int[3];
+
     protected override string GetAircraftName() => SupportedAircrafts.A10C_Name;
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
 
     public A10C_Listener(
         ICdu mcdu, 
-        UserOptions options) : base(mcdu, SupportedAircrafts.A10C, options) {
+        UserOptions options,
+        IFrontpanel? frontpanel = null) : base(mcdu, SupportedAircrafts.A10C, options, frontpanel) {
     }
-
 
     ~A10C_Listener()
     {
@@ -54,6 +75,18 @@ internal class A10C_Listener : AircraftListener
         _CMSP1 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP1");
         _CMSP2 = DCSBIOSControlLocator.GetStringDCSBIOSOutput("CMSP2");
 
+        _ALTITUDE_10000ft = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_10000FT_CNT");
+        _ALTITUDE_1000ft = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_1000FT_CNT");
+        _ALTITUDE_100ft = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_100FT_CNT");
+
+        _HEADING = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("HDG_DEG_MAG");
+        _IAS = DCSBIOSControlLocator.GetStringDCSBIOSOutput("IAS_US");
+        _VS = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("VVI");
+
+        _ALT_PRESSURE0 = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_PRESSURE0");
+        _ALT_PRESSURE1 = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_PRESSURE1");
+        _ALT_PRESSURE2 = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_PRESSURE2");
+        _ALT_PRESSURE3 = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("ALT_PRESSURE3");
     }
 
     public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
@@ -61,6 +94,7 @@ internal class A10C_Listener : AircraftListener
         try
         {
             bool refresh = false;
+            bool refresh_fcu = false;
             UpdateCounter(e.Address, e.Data);
 
             if ( !options.DisableLightingManagement)
@@ -105,11 +139,79 @@ internal class A10C_Listener : AircraftListener
                 mcdu.Leds.Fail = _MASTER_CAUTION.GetUIntValue(e.Data) == 1;
                 refresh = true;
             }
+            if (e.Address == _HEADING!.Address)
+            {
+                refresh_fcu = true;
+                heading = (int) _HEADING!.GetUIntValue(e.Data);
+
+            }
+            
+            if (e.Address == _VS!.Address)
+            {
+                refresh_fcu = true;
+                // VVI is a needle gauge: 0-65535 maps to -6000 to +6000 ft/min
+                // Middle position (32768) = 0 ft/min
+                var rawValue = (int)_VS!.GetUIntValue(e.Data);
+                verticalSpeed = ConvertVviToVerticalSpeed(rawValue);
+            }
+
+            if (e.Address == _ALT_PRESSURE0!.Address)
+            {
+                pressureDigits[0] = ConvertDrumPositionToDigit(_ALT_PRESSURE0!.GetUIntValue(e.Data), _ALT_PRESSURE0!.MaxValue);
+                refresh_fcu = true;
+            }
+            if (e.Address == _ALT_PRESSURE1!.Address)
+            {
+
+                pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
+                refresh_fcu = true;
+            }
+            if (e.Address == _ALT_PRESSURE2!.Address)
+            {
+
+                pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
+                refresh_fcu = true;
+            }
+            if (e.Address == _ALT_PRESSURE3!.Address)
+            {
+                pressureDigits[3] = ConvertDrumPositionToDigit(_ALT_PRESSURE3!.GetUIntValue(e.Data), _ALT_PRESSURE3!.MaxValue);
+                refresh_fcu = true;
+            }
+
+            if (e.Address == _ALTITUDE_10000ft!.Address)
+            {
+                altitudeDigits[2] = ConvertDrumPositionToDigit(_ALTITUDE_10000ft!.GetUIntValue(e.Data), _ALTITUDE_10000ft!.MaxValue);
+                UpdateAltitude();
+                refresh_fcu = true;
+            }
+            if (e.Address == _ALTITUDE_1000ft!.Address)
+            {
+                altitudeDigits[1] = ConvertDrumPositionToDigit(_ALTITUDE_1000ft!.GetUIntValue(e.Data), _ALTITUDE_1000ft!.MaxValue);
+                UpdateAltitude();
+                refresh_fcu = true;
+            }
+            if (e.Address == _ALTITUDE_100ft!.Address)
+            {
+                // Use high-precision conversion for 100ft drum to capture 20ft increments
+                altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
+                UpdateAltitude();
+                refresh_fcu = true;
+            }
 
             if (refresh)
             {
                 if ( ! options.DisableLightingManagement) mcdu.RefreshBrightnesses();
                 mcdu.RefreshLeds();
+            }
+            if (refresh_fcu && _fcuEfisState != null)
+            {
+                // combine all pressure digits
+                UpdateBaroPressure();
+                _fcuEfisState.Altitude = altitude;
+                _fcuEfisState.Heading = heading;
+                _fcuEfisState.VerticalSpeed = verticalSpeed;
+                _fcuEfisState.LeftBaroPressure = baroPressure;
+
             }
         }
         catch (Exception ex)
@@ -188,10 +290,83 @@ internal class A10C_Listener : AircraftListener
             {
                 output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
+
+            if (e.Address == _IAS!.Address)
+            {
+                refresh_fcu = true;
+                speed = e.StringData.Trim() == "" ? 0 : int.Parse(e.StringData.Trim());
+            }
+
+            if (refresh_fcu && _fcuEfisState != null)
+            {
+                _fcuEfisState.Speed = speed;
+            }
+
         }
         catch (Exception ex)
         {
             App.Logger.Error(ex, "Failed to process DCS-BIOS string data");
         }
+    }
+    
+    private void UpdateBaroPressure()
+    {
+        // Combine the four digits into inHg format (e.g., 3000 for 30.00 inHg)
+        // The FCU expects values >= 2000 for inHg mode (representing 20.00-32.00)
+        baroPressure = pressureDigits[3] * 1000 + 
+                       pressureDigits[2] * 100 + 
+                       pressureDigits[1] * 10 + 
+                       pressureDigits[0];
+    }
+    
+    private void UpdateAltitude()
+    {
+        // Combine altitude components
+        // altitudeDigits[0] now contains the precise 100s value (0-999)
+        // altitudeDigits[1] and [2] contain single digits (0-9)
+        altitude = altitudeDigits[2] * 10000 + 
+                   altitudeDigits[1] * 1000 + 
+                   altitudeDigits[0];
+    }
+    
+    private int ConvertDrumPositionToDigit(uint position, int maxValue)
+    {
+        // A-10C altimeter uses rotating drum displays
+        // Each drum rotates through digits 0-9 as the value changes
+        // The position value (0-maxValue) represents the angular position of the drum
+        // We need to map this to which digit (0-9) is currently visible
+        
+        // Calculate percentage of full rotation (0.0 to 1.0)
+        double rotationPercentage = (double)position / maxValue;
+        
+        // Each digit occupies 10% of the rotation (0-9 = 10 digits)
+        // Use rounding to get the closest digit
+        int digit = (int)Math.Round(rotationPercentage * 10) % 10;
+        
+        return digit;
+    }
+    
+    private int ConvertDrumPositionToAltitude100ft(uint position, int maxValue)
+    {
+        // The 100ft drum provides continuous position data
+        // We can use the fractional position to get 20ft precision
+        // Position 0-maxValue maps to 0-1000 feet (full rotation shows 0,1,2...9 then back to 0)
+        double rotationPercentage = (double)position / maxValue;
+        
+        // Convert to altitude: 0.0 = 0ft, 1.0 = 1000ft
+        // But we only want the hundreds portion (0-900)
+        int altitude100 = (int)(rotationPercentage * 1000) % 1000;
+        
+        return altitude100;
+    }
+    
+    private int ConvertVviToVerticalSpeed(int rawValue)
+    {
+        
+        float percent = (float)(100.0 * rawValue / 65536);
+
+        int verticalSpeed = (int)(0.0209 * Math.Pow(percent, 3) - 3.1435 * Math.Pow(percent, 2) + 228.09 * percent - 6161.6);
+        
+        return Math.Clamp(verticalSpeed, -6000, 6000);
     }
 }

@@ -4,7 +4,7 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal interface IAircraftListenerFactory
 {
-    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu mcdu, UserOptions options);
+    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu mcdu, UserOptions options, IFrontpanel? frontpanel = null);
 }
 
 
@@ -13,11 +13,12 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
     public AircraftListener CreateListener(
         AircraftSelection aircraft, 
         ICdu mcdu, 
-        UserOptions options) =>
+        UserOptions options,
+        IFrontpanel? frontpanel = null) =>
 
         aircraft.AircraftId switch
         {
-            SupportedAircrafts.A10C => new A10C_Listener(mcdu, options),
+            SupportedAircrafts.A10C => new A10C_Listener(mcdu, options, frontpanel),
             SupportedAircrafts.AH64D => new AH64D_Listener(mcdu, options),
             SupportedAircrafts.FA18C => new FA18C_Listener(mcdu, options),
             SupportedAircrafts.CH47=> new CH47F_Listener(mcdu, options, aircraft.IsPilot),
