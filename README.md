@@ -114,7 +114,7 @@ if no config.json is found, it will create a default one and show you a dialog b
 **Start bridge is greyed**
 - You are using PFP4 not yet supported?
 
-otherwise, 
+Otherwise, 
 - You probably launched the app before plugging your devices.
 - Exit application, plug all the cdus you plan to use and launch the app again 
 
