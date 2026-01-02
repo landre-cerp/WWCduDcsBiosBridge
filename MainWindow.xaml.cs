@@ -347,6 +347,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         userOptions.LinkedScreenBrightness = CH47LinkedBrightnessCheckBox.IsChecked ?? false;
         userOptions.DisableLightingManagement = DisableLightingManagementCheckBox.IsChecked ?? false;
         userOptions.Ch47CduSwitchWithSeat = CH47SingleCduSwitch.IsChecked ?? false;
+        userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
     }
 
     private void UpdateOptionsUIFromSettings()
