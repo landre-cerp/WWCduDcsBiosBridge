@@ -32,19 +32,51 @@
 
         <!-- Header -->
         <TextBlock Grid.Row="0" 
-                   Text="Winwing CDU DCS-BIOS Bridge Configuration" 
+                   Text="Winwing Devices DCS-BIOS Bridge" 
                    FontSize="16" 
                    FontWeight="Bold" 
                    Margin="0,0,0,15"
                    HorizontalAlignment="Center"/>
 
         <!-- Tab Control -->
-        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15" IsEnabled="{Binding CanEdit}">
-            <TabItem Header="Configuration" x:Name="ConfigurationTab">
+        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15">
+            <TabItem Header="Configuration" x:Name="ConfigurationTab" IsEnabled="{Binding CanEdit}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10">
-                        <!-- A10C Options Group -->
-                        <GroupBox Header="A10C Options" Padding="10" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- First Row: Global Options and Application Options -->
+                        <GroupBox Header="Global Options" Padding="10" Margin="0,0,5,10" Grid.Row="0" Grid.Column="0">
+                            <StackPanel>
+                                <CheckBox x:Name="DisableLightingManagementCheckBox" 
+                                  Content="Disable Lighting Management"
+                                  ToolTip="Disable lighting management (for SimApp Pro users)"
+                                  Margin="0,5"
+                                  Checked="OptionCheckBox_Changed"
+                                  Unchecked="OptionCheckBox_Changed"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Application Options" Padding="10" Margin="5,0,0,10" Grid.Row="0" Grid.Column="1">
+                            <StackPanel>
+                                <CheckBox x:Name="AutoStartCheckBox" 
+                                      Content="Auto-start bridge"
+                                      ToolTip="Automatically start the bridge when conditions are met"
+                                      Margin="0,5"
+                                      Checked="OptionCheckBox_Changed"
+                                      Unchecked="OptionCheckBox_Changed"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Second Row: A10C Options and CH-47F Options -->
+                        <GroupBox Header="A10C Options" Padding="10" Margin="0,0,5,0" Grid.Row="1" Grid.Column="0">
                             <StackPanel>
                                 <CheckBox x:Name="DisplayBottomAlignedCheckBox" 
                                           Content="Display Bottom Aligned"
@@ -61,9 +93,8 @@
                                           Unchecked="OptionCheckBox_Changed"/>
                             </StackPanel>
                         </GroupBox>
-                        
-                        <!-- CH-47F Options Group -->
-                        <GroupBox Header="CH-47F Options" Padding="10" Margin="0,0,0,10">
+
+                        <GroupBox Header="CH-47F Options" Padding="10" Margin="5,0,0,0" Grid.Row="1" Grid.Column="1">
                             <StackPanel>
                                 <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
                                       Content="Linked Background Brightness"
@@ -80,16 +111,7 @@
                                       Unchecked="OptionCheckBox_Changed"/>
                             </StackPanel>
                         </GroupBox>
-                        
-                        <GroupBox Header="Global Options" Padding="10" Margin="0,0,0,10">
-                            <CheckBox x:Name="DisableLightingManagementCheckBox" 
-                                  Content="Disable Lighting Management"
-                                  ToolTip="Disable lighting management (for SimApp Pro users)"
-                                  Margin="0,5"
-                                  Checked="OptionCheckBox_Changed"
-                                  Unchecked="OptionCheckBox_Changed"/>
-                        </GroupBox>
-                    </StackPanel>
+                    </Grid>
                 </ScrollViewer>
             </TabItem>
         </TabControl>

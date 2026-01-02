@@ -17,7 +17,9 @@ public static class UserOptionsStorage
             DisplayBottomAligned = false,
             DisplayCMS = false,
             LinkedScreenBrightness = false,
-            DisableLightingManagement = false
+            DisableLightingManagement = false,
+            Ch47CduSwitchWithSeat = false,
+            AutoStart = false
         };
     }
 
