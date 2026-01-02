@@ -50,6 +50,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
+    private bool _isLoadingSettings = false;
+
     public MainWindow()
     {
         SetupLogging();
@@ -84,6 +86,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             devices.AddRange(detected);
             BuildDeviceTabs();
             UpdateStartButtonState();
+            
+            if (CanStartBridge() && userOptions.AutoStart)
+            {
+                Logger.Info("Auto-starting bridge...");
+                await StartBridge();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -94,6 +102,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             Logger.Error(ex, "Async device detection failed");
             ShowStatus($"Device detection failed: {ex.Message}", true);
         }
+    }
+
+    private bool CanStartBridge()
+    {
+        return IsConfigValid() && devices.Count > 0 && !IsBridgeRunning;
     }
 
     private void BuildDeviceTabs()
@@ -303,7 +316,23 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void OptionCheckBox_Changed(object sender, RoutedEventArgs e)
     {
+        if (_isLoadingSettings)
+        {
+            return;
+        }
+        
         UpdateUserOptionsFromUI();
+        SaveUserSettings();
+    }
+
+    private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings)
+        {
+            return;
+        }
+        
+        userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
         SaveUserSettings();
     }
 
@@ -323,15 +352,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         userOptions.LinkedScreenBrightness = CH47LinkedBrightnessCheckBox.IsChecked ?? false;
         userOptions.DisableLightingManagement = DisableLightingManagementCheckBox.IsChecked ?? false;
         userOptions.Ch47CduSwitchWithSeat = CH47SingleCduSwitch.IsChecked ?? false;
+        userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
     }
 
     private void UpdateOptionsUIFromSettings()
     {
+        _isLoadingSettings = true;
+        
         DisplayBottomAlignedCheckBox.IsChecked = userOptions.DisplayBottomAligned;
         DisplayCMSCheckBox.IsChecked = userOptions.DisplayCMS;
         CH47LinkedBrightnessCheckBox.IsChecked = userOptions.LinkedScreenBrightness;
         DisableLightingManagementCheckBox.IsChecked = userOptions.DisableLightingManagement;
         CH47SingleCduSwitch.IsChecked = userOptions.Ch47CduSwitchWithSeat;
+        AutoStartCheckBox.IsChecked = userOptions.AutoStart;
+        _isLoadingSettings = false;
     }
 
     private async void ExitButton_Click(object sender, RoutedEventArgs e)
