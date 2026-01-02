@@ -70,8 +70,8 @@
                                       Content="Auto-start bridge"
                                       ToolTip="Automatically start the bridge when conditions are met"
                                       Margin="0,5"
-                                      Checked="AutoStartCheckBox_Changed"
-                                      Unchecked="AutoStartCheckBox_Changed"/>
+                                      Checked="OptionCheckBox_Changed"
+                                      Unchecked="OptionCheckBox_Changed"/>
                             </StackPanel>
                         </GroupBox>
 
