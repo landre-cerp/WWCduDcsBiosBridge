@@ -327,13 +327,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        if (_isLoadingSettings)
-        {
-            return;
-        }
-        
-        userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
-        SaveUserSettings();
+        // Delegate to the common checkbox handler to keep behavior consistent
+        OptionCheckBox_Changed(sender, e);
     }
 
     private void UpdateStartButtonState()
