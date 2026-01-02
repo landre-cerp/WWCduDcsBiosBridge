@@ -1,3 +1,4 @@
+using System.Reflection;
 using WwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
@@ -37,8 +38,10 @@ internal class AircraftSelectionMenu : IDisposable
 
     private void DisplayMenu()
     {
+        var version = AppVersionProvider.GetAppVersion();
+
         mcdu.Output.Clear().Green()
-            .Line(0).Centered("DCSbios/WWCDU Bridge")
+            .Line(0).Centered("DCSbios/WW Bridge")
             .NewLine().Large().Yellow().Centered("by Cerppo")
             .White()
             .LeftLabel(2, SupportedAircrafts.A10C_Name)
@@ -48,7 +51,7 @@ internal class AircraftSelectionMenu : IDisposable
             .LeftLabel(4, SupportedAircrafts.F15E_Name)
             .RightLabel(4, $"{SupportedAircrafts.CH47_Name} (CPLT)")
             .LeftLabel(5, SupportedAircrafts.M2000C_Name)
-            .BottomLine().WriteLine("Close app to exit");
+            .BottomLine().WriteLine($"v{version}");
         mcdu.RefreshDisplay();
     }
 
