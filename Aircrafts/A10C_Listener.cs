@@ -310,7 +310,8 @@ internal class A10C_Listener : AircraftListener
 
             if (e.Address == _IAS!.Address)
             {
-                speed = e.StringData.Trim() == "" ? 0 : int.Parse(e.StringData.Trim());
+                var trimmedSpeed = e.StringData.Trim();
+                speed = trimmedSpeed == "" ? 0 : int.Parse(trimmedSpeed);
                 
                 // Update speed on both FCU/EFIS and PAP3 devices
                 if (_fcuEfisState != null)
