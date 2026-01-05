@@ -4,6 +4,7 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
 using WwDevicesDotNet.WinWing.FcuAndEfis;
+using WwDevicesDotNet.WinWing.Pap3;
 using Newtonsoft.Json;
 using System.IO;
 using Timer = System.Timers.Timer;
@@ -17,8 +18,11 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     protected ICdu mcdu;
     protected IFrontpanel? frontpanel;
     private FcuEfisDevice? _fcuEfisDevice;
+    private Pap3Device? _pap3Device;
     protected FcuEfisState? _fcuEfisState;
     protected FcuEfisLeds? _fcuEfisLeds;
+    protected Pap3State? _pap3State;
+    protected Pap3Leds? _pap3Leds;
 
     private bool _disposed;
 
@@ -64,10 +68,27 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                     _fcuEfisDevice.UpdateLeds(_fcuEfisLeds);
                 }
             }
+            
+            // Update PAP3 on the same timer if changes occurred
+            if (_pap3Device != null)
+            {
+                if (_pap3State != null)
+                {
+                    _pap3Device.UpdateDisplay(_pap3State);
+                }
+                
+                if (_pap3Leds != null)
+                {
+                    _pap3Device.UpdateLeds(_pap3Leds);
+                }
+            }
         };
         
         // Cache FCU/EFIS device if frontpanel is an FCU
         _fcuEfisDevice = frontpanel as FcuEfisDevice;
+        
+        // Cache PAP3 device if frontpanel is a PAP3
+        _pap3Device = frontpanel as Pap3Device;
             
         // Initialize reusable state objects if FCU/EFIS device is present
         if (_fcuEfisDevice != null)
@@ -75,6 +96,21 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             _fcuEfisState = new FcuEfisState();
             _fcuEfisLeds = new FcuEfisLeds();
             InitializeFcuBrightness(options.DisableLightingManagement);
+            App.Logger.Info("FCU/EFIS device detected and initialized");
+        }
+        
+        // Initialize reusable state objects if PAP3 device is present
+        if (_pap3Device != null)
+        {
+            _pap3State = new Pap3State();
+            _pap3Leds = new Pap3Leds();
+            InitializePap3Brightness(options.DisableLightingManagement);
+            App.Logger.Info("PAP3 device detected and initialized");
+        }
+        
+        if (frontpanel == null)
+        {
+            App.Logger.Info("No frontpanel device connected");
         }
     }
 
@@ -104,6 +140,12 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
         if (disabledBrightness || _fcuEfisDevice == null) return;
         _fcuEfisDevice.SetBrightness(128, 255, 255);
+    }
+
+    private void InitializePap3Brightness(bool disabledBrightness)
+    {
+        if (disabledBrightness || _pap3Device == null) return;
+        _pap3Device.SetBrightness(128, 255, 255);
     }
 
     public void Stop()

@@ -203,16 +203,33 @@ internal class A10C_Listener : AircraftListener
                 if ( ! options.DisableLightingManagement) mcdu.RefreshBrightnesses();
                 mcdu.RefreshLeds();
             }
-            if (refresh_fcu && _fcuEfisState != null)
+            
+            // Update frontpanel states if any FCU data changed
+            if (refresh_fcu)
             {
-                // combine all pressure digits
-                UpdateBaroPressure();
-                _fcuEfisState.Altitude = altitude;
-                _fcuEfisState.Heading = heading;
-                _fcuEfisState.VerticalSpeed = verticalSpeed;
-                _fcuEfisState.LeftBaroPressure = baroPressure;
-
+                // Update FCU/EFIS state (if FCU device is connected)
+                if (_fcuEfisState != null)
+                {
+                    UpdateBaroPressure();
+                    _fcuEfisState.Altitude = altitude;
+                    _fcuEfisState.Heading = heading;
+                    _fcuEfisState.VerticalSpeed = verticalSpeed;
+                    _fcuEfisState.LeftBaroPressure = baroPressure;
+                    App.Logger.Debug($"FCU State Updated: Alt={altitude}, Hdg={heading}, VS={verticalSpeed}, Baro={baroPressure}");
+                }
+                
+                // Update PAP3 state (if PAP3 device is connected)
+                // Note: PAP3 does not support barometric pressure display
+                if (_pap3State != null)
+                {
+                    _pap3State.Altitude = altitude;
+                    _pap3State.Heading = heading;
+                    _pap3State.VerticalSpeed = verticalSpeed;
+                    _pap3State.Speed = speed;
+                    App.Logger.Debug($"PAP3 State Updated: Alt={altitude}, Hdg={heading}, VS={verticalSpeed}, Spd={speed}");
+                }
             }
+
         }
         catch (Exception ex)
         {
@@ -293,13 +310,20 @@ internal class A10C_Listener : AircraftListener
 
             if (e.Address == _IAS!.Address)
             {
-                refresh_fcu = true;
                 speed = e.StringData.Trim() == "" ? 0 : int.Parse(e.StringData.Trim());
-            }
-
-            if (refresh_fcu && _fcuEfisState != null)
-            {
-                _fcuEfisState.Speed = speed;
+                
+                // Update speed on both FCU/EFIS and PAP3 devices
+                if (_fcuEfisState != null)
+                {
+                    _fcuEfisState.Speed = speed;
+                    App.Logger.Debug($"FCU Speed Updated: {speed}");
+                }
+                
+                if (_pap3State != null)
+                {
+                    _pap3State.Speed = speed;
+                    App.Logger.Debug($"PAP3 Speed Updated: {speed}");
+                }
             }
 
         }
