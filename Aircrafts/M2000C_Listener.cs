@@ -190,12 +190,10 @@ internal class M2000C_Listener : AircraftListener
                     ushort val = (ushort)e.Data;
                     if (_clpValue3 != val) { _clpValue3 = val; refreshDisplay = true; }
                 }
-            
-                if (mcdu != null)
-                {
-                    if (refreshLeds) mcdu.RefreshLeds();
-                    if (refreshDisplay) UpdateCautionPanel();
-                }
+
+                if (refreshLeds) mcdu.RefreshLeds();
+                if (refreshDisplay) UpdateCautionPanel();
+
             }
         }
         catch (Exception ex)
