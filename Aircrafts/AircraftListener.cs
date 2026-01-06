@@ -17,12 +17,8 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     private readonly Timer _DisplayCDUTimer;
     protected ICdu mcdu;
     protected IFrontpanel? frontpanel;
-    private FcuEfisDevice? _fcuEfisDevice;
-    private Pap3Device? _pap3Device;
-    protected FcuEfisState? _fcuEfisState;
-    protected FcuEfisLeds? _fcuEfisLeds;
-    protected Pap3State? _pap3State;
-    protected Pap3Leds? _pap3Leds;
+    protected IFrontpanelState? frontpanelState;
+    protected IFrontpanelLeds? frontpanelLeds;
 
     private bool _disposed;
 
@@ -55,60 +51,39 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             mcdu.Screen.CopyFrom(pages[_currentPage]);
             mcdu.RefreshDisplay();
             
-            // Update FCU/EFIS on the same timer if changes occurred
-            if (_fcuEfisDevice != null)
+            // Update frontpanel display if connected
+            if (frontpanel != null && frontpanelState != null)
             {
-                if (_fcuEfisState != null)
-                {
-                    _fcuEfisDevice.UpdateDisplay(_fcuEfisState);
-                }
-                
-                if (_fcuEfisLeds != null)
-                {
-                    _fcuEfisDevice.UpdateLeds(_fcuEfisLeds);
-                }
+                frontpanel.UpdateDisplay(frontpanelState);
             }
             
-            // Update PAP3 on the same timer if changes occurred
-            if (_pap3Device != null)
+            // Update frontpanel LEDs if connected
+            if (frontpanel != null && frontpanelLeds != null)
             {
-                if (_pap3State != null)
-                {
-                    _pap3Device.UpdateDisplay(_pap3State);
-                }
-                
-                if (_pap3Leds != null)
-                {
-                    _pap3Device.UpdateLeds(_pap3Leds);
-                }
+                frontpanel.UpdateLeds(frontpanelLeds);
             }
         };
         
-        // Cache FCU/EFIS device if frontpanel is an FCU
-        _fcuEfisDevice = frontpanel as FcuEfisDevice;
-        
-        // Cache PAP3 device if frontpanel is a PAP3
-        _pap3Device = frontpanel as Pap3Device;
-            
-        // Initialize reusable state objects if FCU/EFIS device is present
-        if (_fcuEfisDevice != null)
+        // Initialize appropriate state objects based on frontpanel type
+        if (frontpanel is FcuEfisDevice)
         {
-            _fcuEfisState = new FcuEfisState();
-            _fcuEfisLeds = new FcuEfisLeds();
-            InitializeFcuBrightness(options.DisableLightingManagement);
+            frontpanelState = new FcuEfisState();
+            frontpanelLeds = new FcuEfisLeds();
+            InitializeFrontpanelBrightness(128, 255, 255);
             App.Logger.Info("FCU/EFIS device detected and initialized");
         }
-        
-        // Initialize reusable state objects if PAP3 device is present
-        if (_pap3Device != null)
+        else if (frontpanel is Pap3Device)
         {
-            _pap3State = new Pap3State();
-            _pap3Leds = new Pap3Leds();
-            InitializePap3Brightness(options.DisableLightingManagement);
+            frontpanelState = new Pap3State();
+            frontpanelLeds = new Pap3Leds();
+            InitializeFrontpanelBrightness(128, 255, 255);
             App.Logger.Info("PAP3 device detected and initialized");
         }
-        
-        if (frontpanel == null)
+        else if (frontpanel != null)
+        {
+            App.Logger.Warn($"Unknown frontpanel type: {frontpanel.GetType().Name}");
+        }
+        else
         {
             App.Logger.Info("No frontpanel device connected");
         }
@@ -136,16 +111,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         mcdu.DisplayBrightnessPercent = 100;
     }
 
-    private void InitializeFcuBrightness(bool disabledBrightness)
+    private void InitializeFrontpanelBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
-        if (disabledBrightness || _fcuEfisDevice == null) return;
-        _fcuEfisDevice.SetBrightness(128, 255, 255);
-    }
-
-    private void InitializePap3Brightness(bool disabledBrightness)
-    {
-        if (disabledBrightness || _pap3Device == null) return;
-        _pap3Device.SetBrightness(128, 255, 255);
+        if (options.DisableLightingManagement || frontpanel == null) return;
+        frontpanel.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
     }
 
     public void Stop()

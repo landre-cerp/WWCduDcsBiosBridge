@@ -1,7 +1,9 @@
-Ôªøusing DCS_BIOS.ControlLocator;
+using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
+using WwDevicesDotNet.WinWing.Pap3;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -33,7 +35,6 @@ internal class A10C_Listener : AircraftListener
     private DCSBIOSOutput? _ALTITUDE_1000ft;
     private DCSBIOSOutput? _ALTITUDE_100ft;
 
-    private bool refresh_fcu;
     private int? speed;
     private int? heading;
     private int? altitude;
@@ -94,7 +95,7 @@ internal class A10C_Listener : AircraftListener
         try
         {
             bool refresh = false;
-            bool refresh_fcu = false;
+            bool refresh_frontpanel = false;
             UpdateCounter(e.Address, e.Data);
 
             if ( !options.DisableLightingManagement)
@@ -141,62 +142,81 @@ internal class A10C_Listener : AircraftListener
             }
             if (e.Address == _HEADING!.Address)
             {
-                refresh_fcu = true;
+                refresh_frontpanel = true;
                 heading = (int) _HEADING!.GetUIntValue(e.Data);
 
             }
-            
-            if (e.Address == _VS!.Address)
+
+            if (frontpanelState != null)
             {
-                refresh_fcu = true;
-                // VVI is a needle gauge: 0-65535 maps to -6000 to +6000 ft/min
-                // Middle position (32768) = 0 ft/min
-                var rawValue = (int)_VS!.GetUIntValue(e.Data);
-                verticalSpeed = ConvertVviToVerticalSpeed(rawValue);
+                if (e.Address == _VS!.Address)
+                {
+                    refresh_frontpanel = true;
+                    // VVI is a needle gauge: 0-65535 maps to -6000 to +6000 ft/min
+                    // Middle position (32768) = 0 ft/min
+                    var rawValue = (int)_VS!.GetUIntValue(e.Data);
+                    verticalSpeed = ConvertVviToVerticalSpeed(rawValue);
+                }
+
+                if (e.Address == _ALT_PRESSURE0!.Address)
+                {
+                    pressureDigits[0] = ConvertDrumPositionToDigit(_ALT_PRESSURE0!.GetUIntValue(e.Data), _ALT_PRESSURE0!.MaxValue);
+                    refresh_frontpanel = true;
+                }
+                if (e.Address == _ALT_PRESSURE1!.Address)
+                {
+
+                    pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
+                    refresh_frontpanel = true;
+                }
+                if (e.Address == _ALT_PRESSURE2!.Address)
+                {
+
+                    pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
+                    refresh_frontpanel = true;
+                }
+                if (e.Address == _ALT_PRESSURE3!.Address)
+                {
+                    pressureDigits[3] = ConvertDrumPositionToDigit(_ALT_PRESSURE3!.GetUIntValue(e.Data), _ALT_PRESSURE3!.MaxValue);
+                    refresh_frontpanel = true;
+                }
+
+                if (e.Address == _ALTITUDE_10000ft!.Address)
+                {
+                    altitudeDigits[2] = ConvertDrumPositionToDigit(_ALTITUDE_10000ft!.GetUIntValue(e.Data), _ALTITUDE_10000ft!.MaxValue);
+                    UpdateAltitude();
+                    refresh_frontpanel = true;
+                }
+                if (e.Address == _ALTITUDE_1000ft!.Address)
+                {
+                    altitudeDigits[1] = ConvertDrumPositionToDigit(_ALTITUDE_1000ft!.GetUIntValue(e.Data), _ALTITUDE_1000ft!.MaxValue);
+                    UpdateAltitude();
+                    refresh_frontpanel = true;
+                }
+                if (e.Address == _ALTITUDE_100ft!.Address)
+                {
+                    // Use high-precision conversion for 100ft drum to capture 20ft increments
+                    altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
+                    UpdateAltitude();
+                    refresh_frontpanel = true;
+                }
+                
+                if (refresh_frontpanel)
+                {
+                    frontpanelState.Speed = speed;
+                    frontpanelState.Heading = heading;
+                    frontpanelState.Altitude = altitude;
+                    frontpanelState.VerticalSpeed = verticalSpeed;
+
+                    // Update FCU-specific barometric pressure (only if FCU/EFIS device)
+                    if (frontpanelState is FcuEfisState fcuState)
+                    {
+                        UpdateBaroPressure();
+                        fcuState.LeftBaroPressure = baroPressure;
+                    }
+                }
             }
 
-            if (e.Address == _ALT_PRESSURE0!.Address)
-            {
-                pressureDigits[0] = ConvertDrumPositionToDigit(_ALT_PRESSURE0!.GetUIntValue(e.Data), _ALT_PRESSURE0!.MaxValue);
-                refresh_fcu = true;
-            }
-            if (e.Address == _ALT_PRESSURE1!.Address)
-            {
-
-                pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
-                refresh_fcu = true;
-            }
-            if (e.Address == _ALT_PRESSURE2!.Address)
-            {
-
-                pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
-                refresh_fcu = true;
-            }
-            if (e.Address == _ALT_PRESSURE3!.Address)
-            {
-                pressureDigits[3] = ConvertDrumPositionToDigit(_ALT_PRESSURE3!.GetUIntValue(e.Data), _ALT_PRESSURE3!.MaxValue);
-                refresh_fcu = true;
-            }
-
-            if (e.Address == _ALTITUDE_10000ft!.Address)
-            {
-                altitudeDigits[2] = ConvertDrumPositionToDigit(_ALTITUDE_10000ft!.GetUIntValue(e.Data), _ALTITUDE_10000ft!.MaxValue);
-                UpdateAltitude();
-                refresh_fcu = true;
-            }
-            if (e.Address == _ALTITUDE_1000ft!.Address)
-            {
-                altitudeDigits[1] = ConvertDrumPositionToDigit(_ALTITUDE_1000ft!.GetUIntValue(e.Data), _ALTITUDE_1000ft!.MaxValue);
-                UpdateAltitude();
-                refresh_fcu = true;
-            }
-            if (e.Address == _ALTITUDE_100ft!.Address)
-            {
-                // Use high-precision conversion for 100ft drum to capture 20ft increments
-                altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
-                UpdateAltitude();
-                refresh_fcu = true;
-            }
 
             if (refresh)
             {
@@ -204,31 +224,6 @@ internal class A10C_Listener : AircraftListener
                 mcdu.RefreshLeds();
             }
             
-            // Update frontpanel states if any FCU data changed
-            if (refresh_fcu)
-            {
-                // Update FCU/EFIS state (if FCU device is connected)
-                if (_fcuEfisState != null)
-                {
-                    UpdateBaroPressure();
-                    _fcuEfisState.Altitude = altitude;
-                    _fcuEfisState.Heading = heading;
-                    _fcuEfisState.VerticalSpeed = verticalSpeed;
-                    _fcuEfisState.LeftBaroPressure = baroPressure;
-                    App.Logger.Debug($"FCU State Updated: Alt={altitude}, Hdg={heading}, VS={verticalSpeed}, Baro={baroPressure}");
-                }
-                
-                // Update PAP3 state (if PAP3 device is connected)
-                // Note: PAP3 does not support barometric pressure display
-                if (_pap3State != null)
-                {
-                    _pap3State.Altitude = altitude;
-                    _pap3State.Heading = heading;
-                    _pap3State.VerticalSpeed = verticalSpeed;
-                    _pap3State.Speed = speed;
-                    App.Logger.Debug($"PAP3 State Updated: Alt={altitude}, Hdg={heading}, VS={verticalSpeed}, Spd={speed}");
-                }
-            }
 
         }
         catch (Exception ex)
@@ -246,12 +241,12 @@ internal class A10C_Listener : AircraftListener
         {
 
             string data = e.StringData
-                .Replace("¬ª", "‚Üí")
-                .Replace("¬´", "‚Üê")
-                .Replace("¬°", "‚òê")
-                .Replace("¬Æ", "Œî")
-                .Replace("¬©", "^")
-                .Replace("¬±", "_")
+                .Replace("ª", "?")
+                .Replace("´", "?")
+                .Replace("°", "?")
+                .Replace("Æ", "?")
+                .Replace("©", "^")
+                .Replace("±", "_")
                 .Replace("?", "%");
 
             output.Green();
@@ -312,17 +307,11 @@ internal class A10C_Listener : AircraftListener
             {
                 speed = e.StringData.Trim() == "" ? 0 : int.Parse(e.StringData.Trim());
                 
-                // Update speed on both FCU/EFIS and PAP3 devices
-                if (_fcuEfisState != null)
+                // Update speed via interface (works for all frontpanel types)
+                if (frontpanelState != null)
                 {
-                    _fcuEfisState.Speed = speed;
-                    App.Logger.Debug($"FCU Speed Updated: {speed}");
-                }
-                
-                if (_pap3State != null)
-                {
-                    _pap3State.Speed = speed;
-                    App.Logger.Debug($"PAP3 Speed Updated: {speed}");
+                    frontpanelState.Speed = speed;
+                    App.Logger.Debug($"Frontpanel Speed Updated: {speed}");
                 }
             }
 
