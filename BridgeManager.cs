@@ -1,6 +1,7 @@
 using DCS_BIOS;
 using NLog;
 using WWCduDcsBiosBridge.Config;
+using WWCduDcsBiosBridge.Aircrafts;
 
 namespace WWCduDcsBiosBridge;
 
@@ -16,6 +17,15 @@ public class BridgeManager : IDisposable
     
     private DCSBIOS? dcsBios;
     private bool _disposed = false;
+    private TaskCompletionSource<AircraftSelection>? _globalAircraftSelectionTcs;
+
+    /// <summary>
+    /// Sets the global aircraft selection (used when no CDU is present)
+    /// </summary>
+    public void SetGlobalAircraftSelection(AircraftSelection selection)
+    {
+        _globalAircraftSelectionTcs?.TrySetResult(selection);
+    }
 
     /// <summary>
     /// Starts the bridge with the specified devices and configuration
@@ -65,28 +75,38 @@ public class BridgeManager : IDisposable
             
             Logger.Info($"Created contexts for {cduCount} CDU device(s) and {frontpanelCount} Frontpanel device(s)");
 
-            if (cduCount == 0)
-            {
-                Logger.Warn("No CDU devices found. Aircraft selection will not be available.");
-            }
-
             // Show startup screens only on CDU devices
             foreach (var ctx in Contexts.Where(c => c.IsCduDevice))
                 ctx.ShowStartupScreen();
 
-            // Wait for aircraft selection on at least one CDU device
+            // Wait for aircraft selection - GLOBAL across all devices
+            AircraftSelection? selectedAircraft = null;
             var cduContexts = Contexts.Where(c => c.IsCduDevice).ToList();
+
             if (cduContexts.Any())
             {
-                while (cduContexts.Any(c => !c.IsSelectedAircraft))
+                // If there are CDU devices, wait for selection on ANY CDU (first one wins)
+                Logger.Info("Waiting for aircraft selection on any CDU device...");
+                while (!cduContexts.Any(c => c.IsSelectedAircraft))
                     await Task.Delay(100);
+                
+                // First CDU to select wins - use that selection globally
+                selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
+                Logger.Info($"Aircraft selected on CDU: {selectedAircraft!.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+            }
+            else
+            {
+                // No CDU devices - wait for global UI selection
+                Logger.Info("No CDU devices found. Waiting for global aircraft selection from UI...");
+                _globalAircraftSelectionTcs = new TaskCompletionSource<AircraftSelection>();
+                selectedAircraft = await _globalAircraftSelectionTcs.Task;
+                Logger.Info($"Global aircraft selection received from UI: {selectedAircraft.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+            }
 
-                // Once aircraft is selected on any CDU, propagate to all other contexts
-                var selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
-                foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft))
-                {
-                    ctx.SetAircraftSelection(selectedAircraft!);
-                }
+            // Propagate global aircraft selection to ALL contexts (CDU and Frontpanel)
+            foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft))
+            {
+                ctx.SetAircraftSelection(selectedAircraft!);
             }
 
             // Initialize DCS-BIOS

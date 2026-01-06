@@ -2,9 +2,11 @@ using NLog;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Controls;
 using WWCduDcsBiosBridge.Config;
 using System.Diagnostics;
 using WWCduDcsBiosBridge.Services;
+using WWCduDcsBiosBridge.Aircrafts;
 
 namespace WWCduDcsBiosBridge;
 
@@ -65,6 +67,46 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         _ = DetectDevicesAsync();
         UpdateState();
         Loaded += MainWindow_Loaded;
+    }
+
+    private void OnGlobalAircraftSelected(AircraftSelection selection)
+    {
+        // Forward the selection to the bridge manager
+        bridgeManager?.SetGlobalAircraftSelection(selection);
+        Logger.Info($"Global aircraft selected: {selection.AircraftId}, IsPilot: {selection.IsPilot}");
+    }
+
+    private void AircraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag)
+            return;
+
+        var selection = tag switch
+        {
+            "A10C" => new AircraftSelection(Aircrafts.SupportedAircrafts.A10C, true),
+            "AH64D" => new AircraftSelection(Aircrafts.SupportedAircrafts.AH64D, true),
+            "FA18C" => new AircraftSelection(Aircrafts.SupportedAircrafts.FA18C, true),
+            "CH47_PLT" => new AircraftSelection(Aircrafts.SupportedAircrafts.CH47, true),
+            "CH47_CPLT" => new AircraftSelection(Aircrafts.SupportedAircrafts.CH47, false),
+            "F15E" => new AircraftSelection(Aircrafts.SupportedAircrafts.F15E, true),
+            "M2000C" => new AircraftSelection(Aircrafts.SupportedAircrafts.M2000C, true),
+            _ => null
+        };
+
+        if (selection != null)
+        {
+            // Update UI
+            AircraftSelectionStatus.Text = $"Selected: {button.Content}";
+            AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.Green;
+
+            // Disable all aircraft buttons
+            foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
+            {
+                btn.IsEnabled = false;
+            }
+
+            OnGlobalAircraftSelected(selection);
+        }
     }
 
     private bool IsConfigValid() => !string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation);
@@ -128,6 +170,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
                 statusParts.Add($"{frontpanelCount} Frontpanel device{(frontpanelCount != 1 ? "s" : "")}");
             
             ShowStatus($"Detected {string.Join(" and ", statusParts)}", false);
+            
+            // Show global aircraft selection UI only if NO CDU devices
+            if (cduCount == 0)
+            {
+                GlobalAircraftSelectionGroup.Visibility = Visibility.Visible;
+                ShowStatus("No CDU detected. Please select aircraft from the panel above.", false);
+            }
+            else
+            {
+                GlobalAircraftSelectionGroup.Visibility = Visibility.Collapsed;
+            }
             
             foreach (var deviceInfo in devices)
             {

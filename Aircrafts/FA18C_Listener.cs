@@ -41,7 +41,7 @@ internal class FA18C_Listener : AircraftListener
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
     protected override string GetAircraftName() => SupportedAircrafts.FA18C_Name;
 
-    public FA18C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options)
+    public FA18C_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options)
     {
     }
 
@@ -69,20 +69,13 @@ internal class FA18C_Listener : AircraftListener
         {
             UpdateCounter(e.Address, e.Data);
 
-            if (MASTER_CAUTION_LT != null && e.Address.Equals(MASTER_CAUTION_LT.Address))
+            if (mcdu != null && MASTER_CAUTION_LT != null && e.Address.Equals(MASTER_CAUTION_LT.Address))
             {
                 uint newMasterCaution = MASTER_CAUTION_LT.GetUIntValue(e.Data);
                 if (_masterCaution != newMasterCaution)
                 {
                     _masterCaution = newMasterCaution;
-                    if (_masterCaution == 0)
-                    {
-                        mcdu.Leds.Fail = false;
-                    }
-                    else
-                    {
-                        mcdu.Leds.Fail = true;
-                    }
+                    mcdu.Leds.Fail = _masterCaution != 0;
                     mcdu.RefreshLeds();
                 }
             }

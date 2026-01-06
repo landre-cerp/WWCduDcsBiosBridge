@@ -39,7 +39,7 @@ internal class AH64D_Listener : AircraftListener
     protected override string GetAircraftName() => SupportedAircrafts.AH64D_Name;
     
 
-    public AH64D_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.AH64D , options) {
+    public AH64D_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.AH64D , options) {
     }
 
     ~AH64D_Listener()
@@ -83,7 +83,7 @@ internal class AH64D_Listener : AircraftListener
 
     private void HandleEufdBrightness(DCSBIOSDataEventArgs e)
     {
-        if (options.DisableLightingManagement) return;
+        if (options.DisableLightingManagement || mcdu == null) return;
 
         int newValue = 0;
 
@@ -100,6 +100,8 @@ internal class AH64D_Listener : AircraftListener
 
     private void HandleMasterWarning(DCSBIOSDataEventArgs e)
     {
+        if (mcdu == null) return;
+        
         var newValue = 0;
         
         if (ShouldHandleDCSBiosData(e, _PLT_MASTER_CAUTION_L!, out newValue))
@@ -113,7 +115,6 @@ internal class AH64D_Listener : AircraftListener
             mcdu.Leds.Ind = (newValue == 1);
             mcdu.RefreshLeds();
         }
-
     }
 
     public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)

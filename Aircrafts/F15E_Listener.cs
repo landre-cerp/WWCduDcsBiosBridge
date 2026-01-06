@@ -18,7 +18,7 @@ internal class F15E_Listener : AircraftListener
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
     protected override string GetAircraftName() => SupportedAircrafts.F15E_Name;
 
-    public F15E_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.F15E, options)
+    public F15E_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.F15E, options)
     {
     }
 

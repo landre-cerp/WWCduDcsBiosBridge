@@ -1,4 +1,4 @@
-﻿﻿using DCS_BIOS.ControlLocator;
+﻿using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
@@ -121,7 +121,7 @@ internal class M2000C_Listener : AircraftListener
     protected override string GetFontFile() => "resources/ah64d-font-21x31.json";
     protected override string GetAircraftName() => SupportedAircrafts.M2000C_Name;
 
-    public M2000C_Listener(ICdu mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.M2000C, options)
+    public M2000C_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.M2000C, options)
     {
     }
 
@@ -157,7 +157,7 @@ internal class M2000C_Listener : AircraftListener
             bool refreshLeds = false;
             bool refreshDisplay = false;
 
-            if (e.Address == PCN_LIGHTS_ADDRESS)
+            if (e.Address == PCN_LIGHTS_ADDRESS && mcdu != null)
             {
                 ushort val = (ushort)e.Data;
                 mcdu.Leds.Fm1 = (val & MASK_ALN) > 0;
@@ -168,7 +168,7 @@ internal class M2000C_Listener : AircraftListener
                 refreshLeds = true;
             }
 
-            if (e.Address == PCN_LIGHTS_ADDRESS_2)
+            if (e.Address == PCN_LIGHTS_ADDRESS_2 && mcdu != null)
             {
                 ushort val = (ushort)e.Data;
                 mcdu.Leds.Fail = (val & MASK_UNI) > 0;
@@ -188,8 +188,11 @@ internal class M2000C_Listener : AircraftListener
                 if (_clpValue3 != val) { _clpValue3 = val; refreshDisplay = true; }
             }
             
-            if (refreshLeds) mcdu.RefreshLeds();
-            if (refreshDisplay) UpdateCautionPanel();
+            if (mcdu != null)
+            {
+                if (refreshLeds) mcdu.RefreshLeds();
+                if (refreshDisplay) UpdateCautionPanel();
+            }
         }
         catch (Exception ex)
         {
@@ -202,15 +205,17 @@ internal class M2000C_Listener : AircraftListener
                     Clp1 = _clpValue1,
                     Clp2 = _clpValue2,
                     Clp3 = _clpValue3,
-                    Ind = mcdu.Leds?.Ind,
-                    Rdy = mcdu.Leds?.Rdy,
-                    Fail = mcdu.Leds?.Fail
+                    Ind = mcdu?.Leds?.Ind,
+                    Rdy = mcdu?.Leds?.Rdy,
+                    Fail = mcdu?.Leds?.Fail
                 });
         }
     }
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
+        if (mcdu == null) return;
+        
         var output = GetCompositor(DEFAULT_PAGE);
         try
         {
@@ -255,6 +260,8 @@ internal class M2000C_Listener : AircraftListener
     
     private void UpdateCautionPanel()
     {
+        if (mcdu == null) return;
+        
         _cautionBuffer.Clear();
         DecodeRegister29238(_clpValue2, _cautionBuffer);
         DecodeRegister29248(_clpValue1, _cautionBuffer);
@@ -325,6 +332,8 @@ internal class M2000C_Listener : AircraftListener
 
     private void RenderCautions(List<CautionItem> items)
     {
+        if (mcdu == null) return;
+        
         var output = GetCompositor(DEFAULT_PAGE);
         const int COL_WIDTH_1 = 7;
         const int COL_WIDTH_2 = 7;
@@ -379,13 +388,13 @@ internal class M2000C_Listener : AircraftListener
 
     private void UpdateCombinedPCNDisplay(Compositor output)
     {
-    string combinedLine = string.Format("{0}{1,10}", _pcnDispL, _pcnDispR);
+        string combinedLine = string.Format("{0}{1,10}", _pcnDispL, _pcnDispR);
         output.Line(12).Green().WriteLine(combinedLine);
     }
 
     private void UpdateCombinedPrepDestDisplay(Compositor output)
     {
-    string prep = ("P:" + _pcnPrep).PadRight(7).Substring(0,7); // e.g. P:XX padded
+        string prep = ("P:" + _pcnPrep).PadRight(7).Substring(0,7); // e.g. P:XX padded
         string dest = ("D:" + _pcnDest).PadRight(7).Substring(0,7);
         string combinedLine = prep + dest; // 14 chars
         output.Line(13).Green().WriteLine(combinedLine);

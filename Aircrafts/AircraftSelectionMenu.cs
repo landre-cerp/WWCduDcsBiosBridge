@@ -82,9 +82,9 @@ internal class AircraftSelectionMenu : IDisposable
     public void Dispose() => Hide();
 }
 
-internal sealed record AircraftSelection(int AircraftId, bool IsPilot);
+public sealed record AircraftSelection(int AircraftId, bool IsPilot);
 
-internal class AircraftSelectedEventArgs : EventArgs
+public class AircraftSelectedEventArgs : EventArgs
 {
     public AircraftSelection Selection { get; }
 

@@ -15,7 +15,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 {
     private static double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
-    protected ICdu mcdu;
+    protected ICdu? mcdu;
     protected IFrontpanel? frontpanel;
     protected IFrontpanelState? frontpanelState;
     protected IFrontpanelLeds? frontpanelLeds;
@@ -37,7 +37,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
               {DEFAULT_PAGE, new Screen() }
         };
 
-    public AircraftListener(ICdu mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
+    public AircraftListener(ICdu? mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
     {
         this.mcdu = mcdu;
         this.frontpanel = frontpanel;
@@ -48,8 +48,12 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         _DisplayCDUTimer = new(_TICK_DISPLAY);
         _DisplayCDUTimer.Elapsed += (_, _) =>
         {
-            mcdu.Screen.CopyFrom(pages[_currentPage]);
-            mcdu.RefreshDisplay();
+            // Update CDU display if connected
+            if (mcdu != null)
+            {
+                mcdu.Screen.CopyFrom(pages[_currentPage]);
+                mcdu.RefreshDisplay();
+            }
             
             // Update frontpanel display if connected
             if (frontpanel != null && frontpanelState != null)
@@ -92,9 +96,14 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     public void Start()
     {
         InitializeDcsBiosControls();
-        InitMcduFont();
-        InitMcduBrightness(options.DisableLightingManagement);
-        ShowStartupMessage();
+        
+        // Only initialize CDU components if CDU is connected
+        if (mcdu != null)
+        {
+            InitMcduFont();
+            InitMcduBrightness(options.DisableLightingManagement);
+            ShowStartupMessage();
+        }
 
         BIOSEventHandler.AttachStringListener(this);
         BIOSEventHandler.AttachDataListener(this);
@@ -105,7 +114,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     private void InitMcduBrightness(bool disabledBrightness)
     {
-        if (disabledBrightness) return;
+        if (disabledBrightness || mcdu == null) return;
         mcdu.BacklightBrightnessPercent = 100;
         mcdu.LedBrightnessPercent = 100;
         mcdu.DisplayBrightnessPercent = 100;
@@ -125,14 +134,18 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.DetachDataListener(this);
         BIOSEventHandler.DetachStringListener(this);
         
-        mcdu.Output.Clear();
-        mcdu.Cleanup();
-        mcdu.RefreshDisplay();
-        
+        if (mcdu != null)
+        {
+            mcdu.Output.Clear();
+            mcdu.Cleanup();
+            mcdu.RefreshDisplay();
+        }
     }
 
     private void InitMcduFont()
     {
+        if (mcdu == null) return;
+        
         var fontFile = GetFontFile();
         var json = File.ReadAllText(fontFile);
         var font = JsonConvert.DeserializeObject<McduFontFile>(json);
@@ -153,6 +166,8 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     private void ShowStartupMessage()
     {
+        if (mcdu == null) return;
+        
         mcdu.Output.Clear().Green();
         mcdu.RefreshDisplay();
     }

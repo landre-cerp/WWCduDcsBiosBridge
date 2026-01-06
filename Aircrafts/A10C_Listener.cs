@@ -47,7 +47,7 @@ internal class A10C_Listener : AircraftListener
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
 
     public A10C_Listener(
-        ICdu mcdu, 
+        ICdu? mcdu, 
         UserOptions options,
         IFrontpanel? frontpanel = null) : base(mcdu, SupportedAircrafts.A10C, options, frontpanel) {
     }
@@ -98,7 +98,7 @@ internal class A10C_Listener : AircraftListener
             bool refresh_frontpanel = false;
             UpdateCounter(e.Address, e.Data);
 
-            if ( !options.DisableLightingManagement)
+            if (mcdu != null && !options.DisableLightingManagement)
             {
                 if (e.Address == _CONSOLE_BRT!.Address)
                 {
@@ -117,34 +117,36 @@ internal class A10C_Listener : AircraftListener
                     // Always refresh Brightness. 
                     refresh = true;
                 }
-
             }
 
-            if (e.Address == _CANOPY_LED!.Address)
+            if (mcdu != null)
             {
-                mcdu.Leds.Fm2 = _CANOPY_LED!.GetUIntValue(e.Data) == 1;
-                refresh = true;
+                if (e.Address == _CANOPY_LED!.Address)
+                {
+                    mcdu.Leds.Fm2 = _CANOPY_LED!.GetUIntValue(e.Data) == 1;
+                    refresh = true;
+                }
+                if (e.Address == _NOSE_SW_GREENLIGHT!.Address)
+                {
+                    mcdu.Leds.Ind = _NOSE_SW_GREENLIGHT!.GetUIntValue(e.Data) == 1;
+                    refresh = true;
+                }
+                if (e.Address == _GUN_READY!.Address)
+                {
+                    mcdu.Leds.Fm1 = _GUN_READY.GetUIntValue(e.Data) == 1;
+                    refresh = true;
+                }
+                if (e.Address == _MASTER_CAUTION!.Address)
+                {
+                    mcdu.Leds.Fail = _MASTER_CAUTION.GetUIntValue(e.Data) == 1;
+                    refresh = true;
+                }
             }
-            if (e.Address == _NOSE_SW_GREENLIGHT!.Address)
-            {
-                mcdu.Leds.Ind = _NOSE_SW_GREENLIGHT!.GetUIntValue(e.Data) == 1;
-                refresh = true;
-            }
-            if (e.Address == _GUN_READY!.Address)
-            {
-                mcdu.Leds.Fm1 = _GUN_READY.GetUIntValue(e.Data) == 1;
-                refresh = true;
-            }
-            if (e.Address == _MASTER_CAUTION!.Address)
-            {
-                mcdu.Leds.Fail = _MASTER_CAUTION.GetUIntValue(e.Data) == 1;
-                refresh = true;
-            }
+            
             if (e.Address == _HEADING!.Address)
             {
                 refresh_frontpanel = true;
                 heading = (int) _HEADING!.GetUIntValue(e.Data);
-
             }
 
             if (frontpanelState != null)
@@ -152,8 +154,6 @@ internal class A10C_Listener : AircraftListener
                 if (e.Address == _VS!.Address)
                 {
                     refresh_frontpanel = true;
-                    // VVI is a needle gauge: 0-65535 maps to -6000 to +6000 ft/min
-                    // Middle position (32768) = 0 ft/min
                     var rawValue = (int)_VS!.GetUIntValue(e.Data);
                     verticalSpeed = ConvertVviToVerticalSpeed(rawValue);
                 }
@@ -165,13 +165,11 @@ internal class A10C_Listener : AircraftListener
                 }
                 if (e.Address == _ALT_PRESSURE1!.Address)
                 {
-
                     pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
                     refresh_frontpanel = true;
                 }
                 if (e.Address == _ALT_PRESSURE2!.Address)
                 {
-
                     pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
                     refresh_frontpanel = true;
                 }
@@ -195,7 +193,6 @@ internal class A10C_Listener : AircraftListener
                 }
                 if (e.Address == _ALTITUDE_100ft!.Address)
                 {
-                    // Use high-precision conversion for 100ft drum to capture 20ft increments
                     altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
                     UpdateAltitude();
                     refresh_frontpanel = true;
@@ -208,7 +205,6 @@ internal class A10C_Listener : AircraftListener
                     frontpanelState.Altitude = altitude;
                     frontpanelState.VerticalSpeed = verticalSpeed;
 
-                    // Update FCU-specific barometric pressure (only if FCU/EFIS device)
                     if (frontpanelState is FcuEfisState fcuState)
                     {
                         UpdateBaroPressure();
@@ -217,14 +213,11 @@ internal class A10C_Listener : AircraftListener
                 }
             }
 
-
-            if (refresh)
+            if (refresh && mcdu != null)
             {
-                if ( ! options.DisableLightingManagement) mcdu.RefreshBrightnesses();
+                if (!options.DisableLightingManagement) mcdu.RefreshBrightnesses();
                 mcdu.RefreshLeds();
             }
-            
-
         }
         catch (Exception ex)
         {
@@ -305,8 +298,10 @@ internal class A10C_Listener : AircraftListener
 
             if (e.Address == _IAS!.Address)
             {
+                // there's a bug? in DCS-BIOS A-10C module where IAS is 2 knots below the actual value
                 var trimmedSpeed = e.StringData.Trim();
-                speed = trimmedSpeed == "" ? 0 : int.Parse(trimmedSpeed);
+                speed = trimmedSpeed == "" ? 0 : int.Parse(trimmedSpeed)+2;
+
                 
                 // Update speed via interface (works for all frontpanel types)
                 if (frontpanelState != null)
