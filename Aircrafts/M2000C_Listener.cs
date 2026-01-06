@@ -154,44 +154,48 @@ internal class M2000C_Listener : AircraftListener
         try
         {
             UpdateCounter(e.Address, e.Data);
-            bool refreshLeds = false;
-            bool refreshDisplay = false;
 
-            if (e.Address == PCN_LIGHTS_ADDRESS && mcdu != null)
-            {
-                ushort val = (ushort)e.Data;
-                mcdu.Leds.Fm1 = (val & MASK_ALN) > 0;
-                mcdu.Leds.Rdy = (val & MASK_PRET) > 0;
-                mcdu.Leds.Fm = (val & MASK_NDEG) > 0;
-                mcdu.Leds.Ind = (val & MASK_MIP) > 0;
-                mcdu.Leds.Fm2 = (val & MASK_SEC) > 0;
-                refreshLeds = true;
-            }
-
-            if (e.Address == PCN_LIGHTS_ADDRESS_2 && mcdu != null)
-            {
-                ushort val = (ushort)e.Data;
-                mcdu.Leds.Fail = (val & MASK_UNI) > 0;
-                refreshLeds = true;
-            }
-
-            if (e.Address == CLP_ADDR_1) {
-                ushort val = (ushort)e.Data;
-                if (_clpValue1 != val) { _clpValue1 = val; refreshDisplay = true; }
-            }
-            if (e.Address == CLP_ADDR_2) {
-                ushort val = (ushort)e.Data;
-                if (_clpValue2 != val) { _clpValue2 = val; refreshDisplay = true; }
-            }
-            if (e.Address == CLP_ADDR_3) {
-                ushort val = (ushort)e.Data;
-                if (_clpValue3 != val) { _clpValue3 = val; refreshDisplay = true; }
-            }
-            
             if (mcdu != null)
-            {
-                if (refreshLeds) mcdu.RefreshLeds();
-                if (refreshDisplay) UpdateCautionPanel();
+            { 
+                bool refreshLeds = false;
+                bool refreshDisplay = false;
+
+                if (e.Address == PCN_LIGHTS_ADDRESS)
+                {
+                    ushort val = (ushort)e.Data;
+                    mcdu.Leds.Fm1 = (val & MASK_ALN) > 0;
+                    mcdu.Leds.Rdy = (val & MASK_PRET) > 0;
+                    mcdu.Leds.Fm = (val & MASK_NDEG) > 0;
+                    mcdu.Leds.Ind = (val & MASK_MIP) > 0;
+                    mcdu.Leds.Fm2 = (val & MASK_SEC) > 0;
+                    refreshLeds = true;
+                }
+
+                if (e.Address == PCN_LIGHTS_ADDRESS_2)
+                {
+                    ushort val = (ushort)e.Data;
+                    mcdu.Leds.Fail = (val & MASK_UNI) > 0;
+                    refreshLeds = true;
+                }
+
+                if (e.Address == CLP_ADDR_1) {
+                    ushort val = (ushort)e.Data;
+                    if (_clpValue1 != val) { _clpValue1 = val; refreshDisplay = true; }
+                }
+                if (e.Address == CLP_ADDR_2) {
+                    ushort val = (ushort)e.Data;
+                    if (_clpValue2 != val) { _clpValue2 = val; refreshDisplay = true; }
+                }
+                if (e.Address == CLP_ADDR_3) {
+                    ushort val = (ushort)e.Data;
+                    if (_clpValue3 != val) { _clpValue3 = val; refreshDisplay = true; }
+                }
+            
+                if (mcdu != null)
+                {
+                    if (refreshLeds) mcdu.RefreshLeds();
+                    if (refreshDisplay) UpdateCautionPanel();
+                }
             }
         }
         catch (Exception ex)
@@ -214,47 +218,48 @@ internal class M2000C_Listener : AircraftListener
 
     public override void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e)
     {
-        if (mcdu == null) return;
-        
-        var output = GetCompositor(DEFAULT_PAGE);
-        try
+        if (mcdu != null)
         {
-            if (PCN_DISP_L != null && e.Address == PCN_DISP_L.Address)
+            var output = GetCompositor(DEFAULT_PAGE);
+            try
             {
-                _pcnDispL = e.StringData; 
-                UpdateCombinedPCNDisplay(output);
-            }
-            else if (PCN_DISP_R != null && e.Address == PCN_DISP_R.Address)
-            {
-                _pcnDispR = e.StringData; 
-                UpdateCombinedPCNDisplay(output);
-            }
-            else if (PCN_DISP_PREP != null && e.Address == PCN_DISP_PREP.Address)
-            {
-                _pcnPrep = e.StringData;
-                UpdateCombinedPrepDestDisplay(output);
-            }
-            else if (PCN_DISP_DEST != null && e.Address == PCN_DISP_DEST.Address)
-            {
-                _pcnDest = e.StringData;
-                UpdateCombinedPrepDestDisplay(output);
-            }
+                if (PCN_DISP_L != null && e.Address == PCN_DISP_L.Address)
+                {
+                    _pcnDispL = e.StringData; 
+                    UpdateCombinedPCNDisplay(output);
+                }
+                else if (PCN_DISP_R != null && e.Address == PCN_DISP_R.Address)
+                {
+                    _pcnDispR = e.StringData; 
+                    UpdateCombinedPCNDisplay(output);
+                }
+                else if (PCN_DISP_PREP != null && e.Address == PCN_DISP_PREP.Address)
+                {
+                    _pcnPrep = e.StringData;
+                    UpdateCombinedPrepDestDisplay(output);
+                }
+                else if (PCN_DISP_DEST != null && e.Address == PCN_DISP_DEST.Address)
+                {
+                    _pcnDest = e.StringData;
+                    UpdateCombinedPrepDestDisplay(output);
+                }
             
-            mcdu.RefreshDisplay();
-        }
-        catch (Exception ex)
-        {
-            App.Logger.Error(ex,
-                "Failed to process DCS-BIOS string data | addr=0x{Address:X4} len={Len} value='{Val}' pcnL='{PCNL}' pcnR='{PCNR}' prep='{Prep}' dest='{Dest}'",
-                new {
-                    Address = e.Address,
-                    Len = e.StringData?.Length ?? -1,
-                    Val = e.StringData,
-                    PCNL = _pcnDispL,
-                    PCNR = _pcnDispR,
-                    Prep = _pcnPrep,
-                    Dest = _pcnDest
-                });
+                mcdu.RefreshDisplay();
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error(ex,
+                    "Failed to process DCS-BIOS string data | addr=0x{Address:X4} len={Len} value='{Val}' pcnL='{PCNL}' pcnR='{PCNR}' prep='{Prep}' dest='{Dest}'",
+                    new {
+                        Address = e.Address,
+                        Len = e.StringData?.Length ?? -1,
+                        Val = e.StringData,
+                        PCNL = _pcnDispL,
+                        PCNR = _pcnDispR,
+                        Prep = _pcnPrep,
+                        Dest = _pcnDest
+                    });
+            }
         }
     }
     
