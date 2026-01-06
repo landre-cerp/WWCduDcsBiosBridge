@@ -2,12 +2,12 @@
 using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
-using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.FcuAndEfis;
-using WwDevicesDotNet.WinWing.Pap3;
 using Newtonsoft.Json;
 using System.IO;
 using Timer = System.Timers.Timer;
+using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
+using WwDevicesDotNet.WinWing.Pap3;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -48,27 +48,23 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         _DisplayCDUTimer = new(_TICK_DISPLAY);
         _DisplayCDUTimer.Elapsed += (_, _) =>
         {
-            // Update CDU display if connected
-            if (mcdu != null)
+            if (this.mcdu != null)
             {
-                mcdu.Screen.CopyFrom(pages[_currentPage]);
-                mcdu.RefreshDisplay();
+                this.mcdu.Screen.CopyFrom(pages[_currentPage]);
+                this.mcdu.RefreshDisplay();
             }
-            
-            // Update frontpanel display if connected
+
             if (frontpanel != null && frontpanelState != null)
             {
                 frontpanel.UpdateDisplay(frontpanelState);
             }
-            
-            // Update frontpanel LEDs if connected
+
             if (frontpanel != null && frontpanelLeds != null)
             {
                 frontpanel.UpdateLeds(frontpanelLeds);
             }
         };
-        
-        // Initialize appropriate state objects based on frontpanel type
+
         if (frontpanel is FcuEfisDevice)
         {
             frontpanelState = new FcuEfisState();
@@ -97,12 +93,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     {
         InitializeDcsBiosControls();
         
-        // Only initialize CDU components if CDU is connected
+
         if (mcdu != null)
         {
-            InitMcduFont();
             InitMcduBrightness(options.DisableLightingManagement);
-            ShowStartupMessage();
         }
 
         BIOSEventHandler.AttachStringListener(this);
@@ -110,6 +104,11 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.AttachConnectionListener(this);
 
         _DisplayCDUTimer.Start();
+
+        if (mcdu != null)
+        {
+            ShowStartupMessage();
+        }
     }
 
     private void InitMcduBrightness(bool disabledBrightness)
@@ -133,7 +132,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.DetachConnectionListener(this);
         BIOSEventHandler.DetachDataListener(this);
         BIOSEventHandler.DetachStringListener(this);
-        
+
         if (mcdu != null)
         {
             mcdu.Output.Clear();
@@ -142,34 +141,18 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         }
     }
 
-    private void InitMcduFont()
-    {
-        if (mcdu == null) return;
-        
-        var fontFile = GetFontFile();
-        var json = File.ReadAllText(fontFile);
-        var font = JsonConvert.DeserializeObject<McduFontFile>(json);
-        mcdu.UseFont(font, true);
-    }
-
     protected abstract string GetFontFile();
     protected abstract string GetAircraftName();
-
-    protected Screen AddNewPage(string pageName)
-    {
-        if (!pages.ContainsKey(pageName))
-        {
-            pages[pageName] = new Screen();
-        }
-        return pages[pageName];
-    }
 
     private void ShowStartupMessage()
     {
         if (mcdu == null) return;
-        
-        mcdu.Output.Clear().Green();
-        mcdu.RefreshDisplay();
+
+        var output = GetCompositor(DEFAULT_PAGE);
+        output.Clear()
+            .Green()
+            .Line(6).Centered("INITIALIZING...")
+            .Line(7).Centered(GetAircraftName());
     }
 
     protected abstract void InitializeDcsBiosControls();
@@ -187,14 +170,17 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         return new Compositor(pages[pageName]);
     }
 
-    /// <summary>
-    /// Called when DCS-BIOS data is received
-    /// Note that the same address may concern multiple controls
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
+    protected Screen AddNewPage(string pageName)
+    {
+        if (!pages.ContainsKey(pageName))
+        {
+            pages[pageName] = new Screen();
+        }
 
+        return pages[pageName];
+    }
+
+    public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
     public abstract void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e);
 
     public void Dispose()
@@ -210,7 +196,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         if (disposing)
         {
             Stop();
-            _DisplayCDUTimer.Dispose(); // Dispose the timer
+            _DisplayCDUTimer.Dispose();
         }
 
         _disposed = true;
@@ -230,20 +216,16 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                     return;
                 }
 
-                // Max is 255
                 if (newCount == 0 && _Count == 255 || newCount - _Count == 1)
                 {
-                    // All is well
                     _Count = newCount;
                 }
                 else if (newCount - _Count != 1)
                 {
-                    // Not good
                     _Count = newCount;
                     Console.WriteLine($"UpdateCounter: Address {address} has unexpected value {data}. Expected {_Count + 1}.");
                 }
             }
         }
     }
-
 }

@@ -234,10 +234,10 @@ internal class A10C_Listener : AircraftListener
         {
 
             string data = e.StringData
-                .Replace("»", "?")
-                .Replace("«", "?")
-                .Replace("¡", "?")
-                .Replace("®", "?")
+                .Replace("»", ">")
+                .Replace("«", "<")
+                .Replace("¡", "}")
+                .Replace("®", "{")
                 .Replace("©", "^")
                 .Replace("±", "_")
                 .Replace("?", "%");
