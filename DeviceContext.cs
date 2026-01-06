@@ -10,7 +10,7 @@ namespace WWCduDcsBiosBridge;
 /// <summary>
 /// Represents the context for a device (CDU or Frontpanel) within the bridge.
 /// CDU devices show an aircraft selection menu, while Frontpanel devices automatically
-/// participate once an aircraft is selected on any CDU.
+/// participate once an aircraft is selected globally.
 /// </summary>
 internal class DeviceContext : IDisposable
 {
@@ -50,8 +50,7 @@ internal class DeviceContext : IDisposable
         this.options = options;
         this.config = config;
         // Frontpanel devices don't show aircraft selection menu
-        // They automatically participate in the bridge once an aircraft is selected on any CDU
-        isSelectedAircraft = true;
+        // They wait for global aircraft selection to be propagated
     }
 
     public void ShowStartupScreen()
@@ -68,11 +67,8 @@ internal class DeviceContext : IDisposable
     /// </summary>
     public void SetAircraftSelection(AircraftSelection selection)
     {
-        if (!isSelectedAircraft)
-        {
-            isSelectedAircraft = true;
-            SelectedAircraft = selection;
-        }
+        isSelectedAircraft = true;
+        SelectedAircraft = selection;
     }
 
     private void OnAircraftSelected(object? sender, AircraftSelectedEventArgs e)
@@ -82,10 +78,7 @@ internal class DeviceContext : IDisposable
 
     public void StartBridge(IFrontpanel? frontpanel = null)
     {
-        if (!isSelectedAircraft) return;
-
-        // Only CDU devices need aircraft listeners
-        if (!IsCduDevice) return;
+        if (!isSelectedAircraft || SelectedAircraft == null) return;
 
         DCSAircraft.Init();
         DCSAircraft.FillModulesListFromDcsBios(config!.DcsBiosJsonLocation, true);
@@ -93,13 +86,26 @@ internal class DeviceContext : IDisposable
         
         try
         {
-            listener = new AircraftListenerFactory().CreateListener(SelectedAircraft!, Mcdu!, options, frontpanel);
-            listener.Start();
+            if (IsCduDevice)
+            {
+                // CDU device: create listener with CDU display
+                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu!, options, frontpanel);
+                listener.Start();
+            }
+            else if (IsFrontpanelDevice)
+            {
+                // Frontpanel-only device: create listener without CDU (pass null for mcdu, pass this frontpanel)
+                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null, options, Frontpanel);
+                listener.Start();
+            }
         }
         catch (NotSupportedException ex)
         {
-            Mcdu!.Output.Newline().Red().WriteLine(ex.Message);
-            Mcdu.RefreshDisplay();
+            if (Mcdu != null)
+            {
+                Mcdu.Output.Newline().Red().WriteLine(ex.Message);
+                Mcdu.RefreshDisplay();
+            }
         }
     }
 

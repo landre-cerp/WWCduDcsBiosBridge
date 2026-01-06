@@ -51,7 +51,7 @@ internal class CH47F_Listener : AircraftListener
         ["w"] = Colour.White
     };
 
-    public CH47F_Listener(ICdu mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
+    public CH47F_Listener(ICdu? mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
     {
         seatPosition = pilot ? PILOT_SEAT : COPILOT_SEAT;
 
@@ -148,6 +148,8 @@ internal class CH47F_Listener : AircraftListener
 
     public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)
     {
+        if (mcdu == null) return;
+        
         var refresh = false;
         if (e.Address == _MSTR_CAUTION!.Address)
         {
@@ -158,23 +160,19 @@ internal class CH47F_Listener : AircraftListener
         if (options.Ch47CduSwitchWithSeat && e.Address == _SEAT_POSITION?.Address)
         {
             seatPosition = (int)_SEAT_POSITION.GetUIntValue(e.Data);
-            
         }
 
         if (!options.DisableLightingManagement)
         {
-
             if (e.Address == _CDU_BACKLIGHT!.Address)
             {
                 int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
-
                 bright = bright * 100 / 65536;
                 mcdu.BacklightBrightnessPercent = bright;
                 if (options.LinkedScreenBrightness)
                 {
                     mcdu.DisplayBrightnessPercent = bright;
                 }
-
                 mcdu.LedBrightnessPercent = bright;
                 refresh = true;
             }
@@ -182,7 +180,7 @@ internal class CH47F_Listener : AircraftListener
 
         if (refresh)
         {
-            if ( ! options.DisableLightingManagement ) mcdu.RefreshBrightnesses();
+            if (!options.DisableLightingManagement) mcdu.RefreshBrightnesses();
             mcdu.RefreshLeds();
         }
     }

@@ -2,11 +2,12 @@
 using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
-using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.FcuAndEfis;
 using Newtonsoft.Json;
 using System.IO;
 using Timer = System.Timers.Timer;
+using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.FcuAndEfis;
+using WwDevicesDotNet.WinWing.Pap3;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -14,11 +15,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 {
     private static double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
-    protected ICdu mcdu;
+    protected ICdu? mcdu;
     protected IFrontpanel? frontpanel;
-    private FcuEfisDevice? _fcuEfisDevice;
-    protected FcuEfisState? _fcuEfisState;
-    protected FcuEfisLeds? _fcuEfisLeds;
+    protected IFrontpanelState? frontpanelState;
+    protected IFrontpanelLeds? frontpanelLeds;
 
     private bool _disposed;
 
@@ -37,7 +37,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
               {DEFAULT_PAGE, new Screen() }
         };
 
-    public AircraftListener(ICdu mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
+    public AircraftListener(ICdu? mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
     {
         this.mcdu = mcdu;
         this.frontpanel = frontpanel;
@@ -48,62 +48,81 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         _DisplayCDUTimer = new(_TICK_DISPLAY);
         _DisplayCDUTimer.Elapsed += (_, _) =>
         {
-            mcdu.Screen.CopyFrom(pages[_currentPage]);
-            mcdu.RefreshDisplay();
-            
-            // Update FCU/EFIS on the same timer if changes occurred
-            if (_fcuEfisDevice != null)
+            if (this.mcdu != null)
             {
-                if (_fcuEfisState != null)
-                {
-                    _fcuEfisDevice.UpdateDisplay(_fcuEfisState);
-                }
-                
-                if (_fcuEfisLeds != null)
-                {
-                    _fcuEfisDevice.UpdateLeds(_fcuEfisLeds);
-                }
+                this.mcdu.Screen.CopyFrom(pages[_currentPage]);
+                this.mcdu.RefreshDisplay();
+            }
+
+            if (frontpanel != null && frontpanelState != null)
+            {
+                frontpanel.UpdateDisplay(frontpanelState);
+            }
+
+            if (frontpanel != null && frontpanelLeds != null)
+            {
+                frontpanel.UpdateLeds(frontpanelLeds);
             }
         };
-        
-        // Cache FCU/EFIS device if frontpanel is an FCU
-        _fcuEfisDevice = frontpanel as FcuEfisDevice;
-            
-        // Initialize reusable state objects if FCU/EFIS device is present
-        if (_fcuEfisDevice != null)
+
+        if (frontpanel is FcuEfisDevice)
         {
-            _fcuEfisState = new FcuEfisState();
-            _fcuEfisLeds = new FcuEfisLeds();
-            InitializeFcuBrightness(options.DisableLightingManagement);
+            frontpanelState = new FcuEfisState();
+            frontpanelLeds = new FcuEfisLeds();
+            InitializeFrontpanelBrightness(128, 255, 255);
+            App.Logger.Info("FCU/EFIS device detected and initialized");
+        }
+        else if (frontpanel is Pap3Device)
+        {
+            frontpanelState = new Pap3State();
+            frontpanelLeds = new Pap3Leds();
+            InitializeFrontpanelBrightness(128, 255, 255);
+            App.Logger.Info("PAP3 device detected and initialized");
+        }
+        else if (frontpanel != null)
+        {
+            App.Logger.Warn($"Unknown frontpanel type: {frontpanel.GetType().Name}");
+        }
+        else
+        {
+            App.Logger.Info("No frontpanel device connected");
         }
     }
 
     public void Start()
     {
         InitializeDcsBiosControls();
-        InitMcduFont();
-        InitMcduBrightness(options.DisableLightingManagement);
-        ShowStartupMessage();
+        
+
+        if (mcdu != null)
+        {
+            InitMcduBrightness(options.DisableLightingManagement);
+        }
 
         BIOSEventHandler.AttachStringListener(this);
         BIOSEventHandler.AttachDataListener(this);
         BIOSEventHandler.AttachConnectionListener(this);
 
         _DisplayCDUTimer.Start();
+
+        if (mcdu != null)
+        {
+            ShowStartupMessage();
+        }
     }
 
     private void InitMcduBrightness(bool disabledBrightness)
     {
-        if (disabledBrightness) return;
+        if (disabledBrightness || mcdu == null) return;
         mcdu.BacklightBrightnessPercent = 100;
         mcdu.LedBrightnessPercent = 100;
         mcdu.DisplayBrightnessPercent = 100;
     }
 
-    private void InitializeFcuBrightness(bool disabledBrightness)
+    private void InitializeFrontpanelBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
-        if (disabledBrightness || _fcuEfisDevice == null) return;
-        _fcuEfisDevice.SetBrightness(128, 255, 255);
+        if (options.DisableLightingManagement || frontpanel == null) return;
+        frontpanel.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
     }
 
     public void Stop()
@@ -113,37 +132,27 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         BIOSEventHandler.DetachConnectionListener(this);
         BIOSEventHandler.DetachDataListener(this);
         BIOSEventHandler.DetachStringListener(this);
-        
-        mcdu.Output.Clear();
-        mcdu.Cleanup();
-        mcdu.RefreshDisplay();
-        
-    }
 
-    private void InitMcduFont()
-    {
-        var fontFile = GetFontFile();
-        var json = File.ReadAllText(fontFile);
-        var font = JsonConvert.DeserializeObject<McduFontFile>(json);
-        mcdu.UseFont(font, true);
+        if (mcdu != null)
+        {
+            mcdu.Output.Clear();
+            mcdu.Cleanup();
+            mcdu.RefreshDisplay();
+        }
     }
 
     protected abstract string GetFontFile();
     protected abstract string GetAircraftName();
 
-    protected Screen AddNewPage(string pageName)
-    {
-        if (!pages.ContainsKey(pageName))
-        {
-            pages[pageName] = new Screen();
-        }
-        return pages[pageName];
-    }
-
     private void ShowStartupMessage()
     {
-        mcdu.Output.Clear().Green();
-        mcdu.RefreshDisplay();
+        if (mcdu == null) return;
+
+        var output = GetCompositor(DEFAULT_PAGE);
+        output.Clear()
+            .Green()
+            .Line(6).Centered("INITIALIZING...")
+            .Line(7).Centered(GetAircraftName());
     }
 
     protected abstract void InitializeDcsBiosControls();
@@ -161,14 +170,17 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         return new Compositor(pages[pageName]);
     }
 
-    /// <summary>
-    /// Called when DCS-BIOS data is received
-    /// Note that the same address may concern multiple controls
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
+    protected Screen AddNewPage(string pageName)
+    {
+        if (!pages.ContainsKey(pageName))
+        {
+            pages[pageName] = new Screen();
+        }
 
+        return pages[pageName];
+    }
+
+    public abstract void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e);
     public abstract void DCSBIOSStringReceived(object sender, DCSBIOSStringDataEventArgs e);
 
     public void Dispose()
@@ -184,7 +196,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         if (disposing)
         {
             Stop();
-            _DisplayCDUTimer.Dispose(); // Dispose the timer
+            _DisplayCDUTimer.Dispose();
         }
 
         _disposed = true;
@@ -204,20 +216,16 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                     return;
                 }
 
-                // Max is 255
                 if (newCount == 0 && _Count == 255 || newCount - _Count == 1)
                 {
-                    // All is well
                     _Count = newCount;
                 }
                 else if (newCount - _Count != 1)
                 {
-                    // Not good
                     _Count = newCount;
                     Console.WriteLine($"UpdateCounter: Address {address} has unexpected value {data}. Expected {_Count + 1}.");
                 }
             }
         }
     }
-
 }

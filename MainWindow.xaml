@@ -2,8 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MCDU DCS-BIOS Bridge Configuration" 
-        Height="500" 
+        Height="650" 
+        MinHeight="600"
         Width="640"
+        MinWidth="600"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
@@ -24,6 +26,7 @@
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -38,11 +41,60 @@
                    Margin="0,0,0,15"
                    HorizontalAlignment="Center"/>
 
+        <!-- Global Aircraft Selection (only visible when no CDU connected) -->
+        <GroupBox x:Name="GlobalAircraftSelectionGroup"
+                  Grid.Row="1"
+                  Header="Aircraft Selection"
+                  Padding="8"
+                  Margin="0,0,0,15"
+                  Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Text="No CDU connected. Select an aircraft to start the bridge:"
+                          TextWrapping="Wrap"
+                          Margin="0,0,0,8"
+                          Foreground="Gray"/>
+                
+                <TextBlock x:Name="AircraftSelectionStatus"
+                          Text="No aircraft selected"
+                          FontWeight="Bold"
+                          Foreground="Orange"
+                          Margin="0,0,0,8"/>
+
+                <Grid x:Name="GlobalAircraftButtonGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="BtnA10C" Content="A-10C" Grid.Row="0" Grid.Column="0" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="A10C"/>
+                    <Button x:Name="BtnAH64D" Content="AH-64D" Grid.Row="0" Grid.Column="1" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="AH64D"/>
+                    <Button x:Name="BtnFA18C" Content="F/A-18C" Grid.Row="0" Grid.Column="2" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="FA18C"/>
+                    <Button x:Name="BtnF15E" Content="F-15E" Grid.Row="0" Grid.Column="3" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="F15E"/>
+                    <Button x:Name="BtnCH47Pilot" Content="CH-47F (PLT)" Grid.Row="1" Grid.Column="0" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="CH47_PLT"/>
+                    <Button x:Name="BtnCH47Copilot" Content="CH-47F (CPLT)" Grid.Row="1" Grid.Column="1" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="CH47_CPLT"/>
+                    <Button x:Name="BtnM2000C" Content="M-2000C" Grid.Row="1" Grid.Column="2" 
+                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="M2000C"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
         <!-- Tab Control -->
-        <TabControl x:Name="MainTabControl" Grid.Row="1" Margin="0,0,0,15">
-            <TabItem Header="Configuration" x:Name="ConfigurationTab" IsEnabled="{Binding CanEdit}">
+        <TabControl x:Name="MainTabControl" Grid.Row="2" Margin="0,0,0,15">
+            <TabItem Header="Configuration" x:Name="ConfigurationTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="10">
+                    <Grid Margin="10" IsEnabled="{Binding CanEdit}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -117,7 +169,7 @@
         </TabControl>
 
         <!-- Update Notification Banner -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Background="#FFFDF5D7"
                 BorderBrush="#FFE6C200"
                 BorderThickness="1"
@@ -144,7 +196,7 @@
 
         <!-- Status Indicator -->
         <TextBlock x:Name="StatusTextBlock"
-                   Grid.Row="3"
+                   Grid.Row="4"
                    Text="{Binding StatusMessage}" 
                    Style="{StaticResource StatusTextStyle}"
                    FontSize="13"
@@ -156,7 +208,7 @@
                    VerticalAlignment="Center"/>
 
         <!-- Control Buttons Row -->
-        <Grid Grid.Row="4" Margin="0,20,0,0">
+        <Grid Grid.Row="5" Margin="0,20,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

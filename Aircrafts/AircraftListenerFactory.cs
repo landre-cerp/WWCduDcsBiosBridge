@@ -4,7 +4,7 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal interface IAircraftListenerFactory
 {
-    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu mcdu, UserOptions options, IFrontpanel? frontpanel = null);
+    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu? mcdu, UserOptions options, IFrontpanel? frontpanel = null);
 }
 
 
@@ -12,7 +12,7 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
 {
     public AircraftListener CreateListener(
         AircraftSelection aircraft, 
-        ICdu mcdu, 
+        ICdu? mcdu, 
         UserOptions options,
         IFrontpanel? frontpanel = null) =>
 

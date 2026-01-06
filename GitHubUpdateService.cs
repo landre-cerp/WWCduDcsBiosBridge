@@ -29,7 +29,7 @@ public sealed class GitHubUpdateService
     public async Task<UpdateCheckResult?> CheckForUpdatesAsync(string currentVersion, UpdateChannel channel = UpdateChannel.Stable, CancellationToken ct = default)
     {
         var latest = await GetLatestReleaseAsync(channel, ct);
-        if (latest?.TagName is null) return null;
+        if (latest is null || string.IsNullOrEmpty(latest.TagName)) return null;
 
         var hasUpdate = CompareSemVer(latest.TagName, currentVersion) > 0;
         return new UpdateCheckResult(hasUpdate, latest.TagName, latest.HtmlUrl);
@@ -164,8 +164,8 @@ public sealed class GitHubUpdateService
 
     private sealed class GitHubRelease
     {
-        [JsonPropertyName("tag_name")] public string? TagName { get; set; }
-        [JsonPropertyName("html_url")] public string? HtmlUrl { get; set; }
+        [JsonPropertyName("tag_name")] public string TagName { get; set; } = string.Empty;
+        [JsonPropertyName("html_url")] public string HtmlUrl { get; set; } = string.Empty;
         [JsonPropertyName("published_at")] public DateTimeOffset? PublishedAt { get; set; }
         [JsonPropertyName("draft")] public bool Draft { get; set; }
         [JsonPropertyName("prerelease")] public bool Prerelease { get; set; }
