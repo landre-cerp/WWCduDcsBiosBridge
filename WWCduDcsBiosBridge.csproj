@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Aircrafts\A10C_Listener_new.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include=".github\ISSUE_TEMPLATE\bug_report.md" />
     <None Include=".github\ISSUE_TEMPLATE\config.yaml" />
     <None Include=".github\ISSUE_TEMPLATE\enhancement.md" />
