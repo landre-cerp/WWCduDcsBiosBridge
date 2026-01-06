@@ -95,7 +95,7 @@ internal class DeviceContext : IDisposable
             else if (IsFrontpanelDevice)
             {
                 // Frontpanel-only device: create listener without CDU (pass null for mcdu, pass this frontpanel)
-                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null!, options, Frontpanel);
+                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null, options, Frontpanel);
                 listener.Start();
             }
         }
