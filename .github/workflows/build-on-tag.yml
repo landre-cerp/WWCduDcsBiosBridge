@@ -94,21 +94,21 @@ jobs:
           Copy-Item "docs/" -Destination "./publish/docs/" -Recurse -ErrorAction SilentlyContinue
 
           # Create a zip file with the published application and all copied files
-          Compress-Archive -Path ./publish/* -DestinationPath wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
+          Compress-Archive -Path ./publish/* -DestinationPath ww-dcsbios-bridge-${{ github.ref_name }}.zip
         shell: powershell
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wwcd-dcsbios-bridge-${{ github.ref_name }}
+          name: ww-dcsbios-bridge-${{ github.ref_name }}
           path: ./publish/
           retention-days: 90
 
       - name: Upload release zip
         uses: actions/upload-artifact@v4
         with:
-          name: wwcd-dcsbios-bridge-${{ github.ref_name }}-zip
-          path: wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
+          name: ww-dcsbios-bridge-${{ github.ref_name }}-zip
+          path: ww-dcsbios-bridge-${{ github.ref_name }}.zip
           retention-days: 90
 
   create-release:
@@ -126,12 +126,12 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: wwcd-dcsbios-bridge-${{ github.ref_name }}-zip
+          name: ww-dcsbios-bridge-${{ github.ref_name }}-zip
           path: .
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: wwcd-dcsbios-bridge-${{ github.ref_name }}.zip
+          files: ww-dcsbios-bridge-${{ github.ref_name }}.zip
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
