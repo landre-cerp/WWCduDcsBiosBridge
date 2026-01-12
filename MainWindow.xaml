@@ -124,6 +124,12 @@
                                       Margin="0,5"
                                       Checked="OptionCheckBox_Changed"
                                       Unchecked="OptionCheckBox_Changed"/>
+                                <CheckBox x:Name="MinimizeOnStartCheckBox" 
+                                      Content="Minimize window on start"
+                                      ToolTip="Minimize the application window when the bridge starts"
+                                      Margin="0,5"
+                                      Checked="OptionCheckBox_Changed"
+                                      Unchecked="OptionCheckBox_Changed"/>
                             </StackPanel>
                         </GroupBox>
 

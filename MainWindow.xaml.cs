@@ -341,6 +341,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBridgeRunning));
             OnPropertyChanged(nameof(CanEdit));
             Logger.Info("Bridge started successfully from WPF interface");
+            
+            // Minimize window if the option is enabled
+            if (userOptions.MinimizeOnStart)
+            {
+                WindowState = WindowState.Minimized;
+                Logger.Info("Window minimized on bridge start as per user settings");
+            }
         }
         catch (Exception ex)
         {
@@ -401,6 +408,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         userOptions.DisableLightingManagement = DisableLightingManagementCheckBox.IsChecked ?? false;
         userOptions.Ch47CduSwitchWithSeat = CH47SingleCduSwitch.IsChecked ?? false;
         userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
+        userOptions.MinimizeOnStart = MinimizeOnStartCheckBox.IsChecked ?? false;
     }
 
     private void UpdateOptionsUIFromSettings()
@@ -413,6 +421,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         DisableLightingManagementCheckBox.IsChecked = userOptions.DisableLightingManagement;
         CH47SingleCduSwitch.IsChecked = userOptions.Ch47CduSwitchWithSeat;
         AutoStartCheckBox.IsChecked = userOptions.AutoStart;
+        MinimizeOnStartCheckBox.IsChecked = userOptions.MinimizeOnStart;
         _isLoadingSettings = false;
     }
 

@@ -6,4 +6,5 @@
     public bool DisableLightingManagement { get; set; }
     public bool Ch47CduSwitchWithSeat { get; set; }
     public bool AutoStart { get; set; }
+    public bool MinimizeOnStart { get; set; }
 }
