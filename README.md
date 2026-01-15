@@ -124,7 +124,7 @@ Otherwise,
 
 - **Mismatched brightness:** Use the aircraft's brightness controls first, then adjust MCDU
 - **A10C:** MCDU brightness is linked to the console rotary control (right pedestal)
-- **CH-47F:** Check the [specific documentation](docs/CH-47.md)
+- **CH-47F:** Check the [specific documentation](docs/CH-47F.md) 
 - In case of flickering with SimAppPro running, check the
 
 <img width="50%" alt="image" src="https://github.com/user-attachments/assets/1cc6f86f-8fc8-457e-a9fb-11191fcd966d" />
