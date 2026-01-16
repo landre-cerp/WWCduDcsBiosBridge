@@ -107,3 +107,25 @@ A: Follow the coding standards of the project, test your changes, and ensure you
 ---
 
 Thank you for considering contributing to our project! Your help is greatly appreciated. If you have any questions, feel free to ask in the discussions or issues section.
+
+**Frontpanel Integration:**
+- Check if `frontpanelHub.HasFrontpanels` before handling frontpanel-specific updates
+- Use `frontpanelState` to update frontpanel display values (speed, heading, altitude, vertical speed)
+- Set `refresh_frontpanel` flag when frontpanel data changes
+- For FCU/EFIS devices, cast to `FcuEfisState` for additional properties like barometric pressure
+- For PAP3 devices, cast to `Pap3State` for device-specific features
+- For PDC-3N devices, only brightness control is available (no display or LED features)
+- The frontpanel display updates automatically via the timer in `AircraftListener` base class
+- **Brightness:** When setting brightness via `FrontpanelHub.SetBrightness()`, convert DCS-BIOS values to the 0-255 byte range:
+  ```csharp
+  var rawBrightness = _CONSOLE_BRT!.GetUIntValue(e.Data);
+  var brightness = (byte)(rawBrightness * 255 / _CONSOLE_BRT.MaxValue);
+  frontpanelHub.SetBrightness(brightness, brightness, brightness);
+  ```
+  **Do not** convert to percentage (0-100) first, as this limits maximum brightness to only 39% of actual capability.
+- See `A10C_Listener.cs` for a complete frontpanel integration example with altitude drum conversion
+
+**Supported Frontpanel Devices:**
+- **FCU/EFIS**: Full display, LED control, brightness control
+- **PAP3**: Full display, LED control, brightness control  
+- **PDC-3N**: Brightness control only (no display or LEDs)

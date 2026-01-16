@@ -2,6 +2,7 @@ using System;
 using WwDevicesDotNet;
 using WwDevicesDotNet.WinWing.FcuAndEfis;
 using WwDevicesDotNet.WinWing.Pap3;
+using WwDevicesDotNet.WinWing.Pdc3nm;
 
 namespace WWCduDcsBiosBridge.Frontpanels;
 
@@ -25,6 +26,7 @@ public static class FrontpanelAdapterFactory
         {
             FcuEfisDevice fcuDevice => new FcuEfisAdapter(fcuDevice, displayName),
             Pap3Device pap3Device => new Pap3Adapter(pap3Device, displayName),
+            Pdc3Device pdc3Device => new Pdc3Adapter(pdc3Device, displayName),
             _ => null
         };
     }

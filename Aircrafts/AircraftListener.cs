@@ -87,6 +87,13 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                 InitializeFrontpanelBrightness(128, 255, 255);
                 App.Logger.Info("PAP3 device detected and initialized");
             }
+            else if (firstAdapter is Pdc3Adapter)
+            {
+                // PDC-3N has no display or LEDs, only brightness control
+                // Initialize with default brightness
+                InitializeFrontpanelBrightness(128, 255, 255);
+                App.Logger.Info("PDC-3N device detected and initialized (brightness control only)");
+            }
             else if (firstAdapter != null)
             {
                 App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter.GetType().Name}");
