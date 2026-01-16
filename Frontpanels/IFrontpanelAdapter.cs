@@ -34,7 +34,7 @@ public interface IFrontpanelAdapter
     void SetBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight);
 
     /// <summary>
-    /// Gets a value indicating whether the device is connected.
+    /// Gets a value indicating whether the device is currently connected.
     /// </summary>
     bool IsConnected { get; }
 }

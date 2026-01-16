@@ -68,6 +68,8 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
         // Initialize frontpanel state and LEDs based on first adapter
         // All frontpanels will receive the same updates
+        // Note: Currently, all frontpanels must be the same type. If mixed types are needed,
+        // this would require per-adapter state management which would be a future enhancement.
         if (frontpanelHub.HasFrontpanels)
         {
             var firstAdapter = frontpanelHub.Adapters.FirstOrDefault();
