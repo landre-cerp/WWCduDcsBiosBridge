@@ -23,9 +23,11 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 - DCS World
 - DCS-BIOS (v0.8.4 or later, nightly build required for CH-47F)
 - .NET 8.0 runtime
+
 At least one of these devices.
-- Winwing CDU hardware (MCDU / PFP3N / PFP7)
+- Winwing CDU hardware (MCDU / PFP3N / PFP7 / PFP4)
 - Winwing FCU and EFIS ( tested with Left Efis )
+- Winwing PAP3 (or pap3Mag )
 
 
 ## Supported Aircraft
