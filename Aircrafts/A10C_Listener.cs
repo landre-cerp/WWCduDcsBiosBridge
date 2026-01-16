@@ -125,7 +125,6 @@ internal class A10C_Listener : AircraftListener
                     var brightness = (byte)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
                     frontpanel.SetBrightness(brightness, brightness, brightness);
                     refresh_frontpanel = true;
-
                 }
             }
 
@@ -244,12 +243,12 @@ internal class A10C_Listener : AircraftListener
         {
 
             string data = e.StringData
-                .Replace("»", ">")
-                .Replace("«", "<")
-                .Replace("¡", "}")
-                .Replace("®", "{")
-                .Replace("©", "^")
-                .Replace("±", "_")
+                .Replace("Â»", ">")
+                .Replace("Â«", "<")
+                .Replace("Â¡", "}")
+                .Replace("Â®", "{")
+                .Replace("Â©", "^")
+                .Replace("Â±", "_")
                 .Replace("?", "%");
 
             output.Green();
