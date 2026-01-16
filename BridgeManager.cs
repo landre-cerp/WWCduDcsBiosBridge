@@ -189,7 +189,8 @@ public class BridgeManager : IDisposable
 
         foreach (var ctx in contexts.Where(c => c.IsFrontpanelDevice && c.Frontpanel != null))
         {
-            var adapter = FrontpanelAdapterFactory.CreateAdapter(ctx.Frontpanel!, ctx.Frontpanel!.DeviceId.ToString());
+            var frontpanel = ctx.Frontpanel!;
+            var adapter = FrontpanelAdapterFactory.CreateAdapter(frontpanel, frontpanel.DeviceId.ToString());
             if (adapter != null)
             {
                 adapters.Add(adapter);
@@ -197,7 +198,7 @@ public class BridgeManager : IDisposable
             }
             else
             {
-                Logger.Warn($"Unknown frontpanel type, skipping: {ctx.Frontpanel!.GetType().Name}");
+                Logger.Warn($"Unknown frontpanel type, skipping: {frontpanel.GetType().Name}");
             }
         }
 

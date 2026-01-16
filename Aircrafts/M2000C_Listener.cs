@@ -3,8 +3,8 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
 using System;
-using System.Collections.Generic; 
-using System.Diagnostics; 
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using WWCduDcsBiosBridge.Frontpanels;
 

@@ -70,7 +70,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         // All frontpanels will receive the same updates
         if (frontpanelHub.HasFrontpanels)
         {
-            var firstAdapter = frontpanelHub.Adapters.First();
+            var firstAdapter = frontpanelHub.Adapters.FirstOrDefault();
             if (firstAdapter is FcuEfisAdapter)
             {
                 frontpanelState = new FcuEfisState();
@@ -85,7 +85,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                 InitializeFrontpanelBrightness(128, 255, 255);
                 App.Logger.Info("PAP3 device detected and initialized");
             }
-            else
+            else if (firstAdapter != null)
             {
                 App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter.GetType().Name}");
             }

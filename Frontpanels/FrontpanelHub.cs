@@ -33,7 +33,7 @@ public class FrontpanelHub
     /// <summary>
     /// Updates the display on all connected frontpanels.
     /// </summary>
-    public void UpdateDisplay(IFrontpanelState state)
+    public void UpdateDisplay(IFrontpanelState? state)
     {
         if (state == null) return;
 
@@ -53,7 +53,7 @@ public class FrontpanelHub
     /// <summary>
     /// Updates the LEDs on all connected frontpanels.
     /// </summary>
-    public void UpdateLeds(IFrontpanelLeds leds)
+    public void UpdateLeds(IFrontpanelLeds? leds)
     {
         if (leds == null) return;
 
