@@ -316,12 +316,9 @@ internal class A10C_Listener : AircraftListener
                 var trimmedSpeed = e.StringData.Trim();
                 speed = trimmedSpeed == "" ? 0 : int.Parse(trimmedSpeed)+2;
 
-                
-                // Update speed via interface (works for all frontpanel types)
                 if (frontpanelState != null)
                 {
                     frontpanelState.Speed = speed;
-                    App.Logger.Debug($"Frontpanel Speed Updated: {speed}");
                 }
             }
 
