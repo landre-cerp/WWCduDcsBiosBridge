@@ -4,6 +4,7 @@ using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
 using WwDevicesDotNet.WinWing.FcuAndEfis;
 using WwDevicesDotNet.WinWing.Pap3;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -49,7 +50,7 @@ internal class A10C_Listener : AircraftListener
     public A10C_Listener(
         ICdu? mcdu, 
         UserOptions options,
-        IFrontpanel? frontpanel = null) : base(mcdu, SupportedAircrafts.A10C, options, frontpanel) {
+        FrontpanelHub frontpanelHub) : base(mcdu, SupportedAircrafts.A10C, options, frontpanelHub) {
     }
 
     ~A10C_Listener()
@@ -118,12 +119,12 @@ internal class A10C_Listener : AircraftListener
                     refresh = true;
                 }
             }
-            if (frontpanel != null && !options.DisableLightingManagement)
+            if (frontpanelHub.HasFrontpanels && !options.DisableLightingManagement)
             {
                 if (e.Address == _CONSOLE_BRT!.Address)
                 {
                     var brightness = (byte)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
-                    frontpanel.SetBrightness(brightness, brightness, brightness);
+                    frontpanelHub.SetBrightness(brightness, brightness, brightness);
                     refresh_frontpanel = true;
                 }
             }

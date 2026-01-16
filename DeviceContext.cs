@@ -3,6 +3,7 @@ using DCS_BIOS.ControlLocator;
 using WwDevicesDotNet;
 using WWCduDcsBiosBridge.Aircrafts;
 using WWCduDcsBiosBridge.Config;
+using WWCduDcsBiosBridge.Frontpanels;
 
 
 namespace WWCduDcsBiosBridge;
@@ -76,7 +77,7 @@ internal class DeviceContext : IDisposable
         SetAircraftSelection(e.Selection);
     }
 
-    public void StartBridge(IFrontpanel? frontpanel = null)
+    public void StartBridge(FrontpanelHub frontpanelHub)
     {
         if (!isSelectedAircraft || SelectedAircraft == null) return;
 
@@ -88,14 +89,14 @@ internal class DeviceContext : IDisposable
         {
             if (IsCduDevice)
             {
-                // CDU device: create listener with CDU display
-                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu!, options, frontpanel);
+                // CDU device: create listener with CDU display and frontpanel hub
+                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu!, options, frontpanelHub);
                 listener.Start();
             }
             else if (IsFrontpanelDevice)
             {
-                // Frontpanel-only device: create listener without CDU (pass null for mcdu, pass this frontpanel)
-                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null, options, Frontpanel);
+                // Frontpanel-only device: create listener without CDU (pass null for mcdu, pass hub)
+                listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null, options, frontpanelHub);
                 listener.Start();
             }
         }

@@ -1,0 +1,37 @@
+using WwDevicesDotNet;
+using WwDevicesDotNet.WinWing.Pap3;
+
+namespace WWCduDcsBiosBridge.Frontpanels;
+
+/// <summary>
+/// Adapter for PAP3 devices that implements the capability-based pattern.
+/// </summary>
+public class Pap3Adapter : IFrontpanelAdapter
+{
+    private readonly Pap3Device _device;
+
+    public IFrontpanel Device => _device;
+    public string DisplayName { get; }
+    public bool IsConnected => _device.IsConnected;
+
+    public Pap3Adapter(Pap3Device device, string displayName)
+    {
+        _device = device ?? throw new ArgumentNullException(nameof(device));
+        DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
+    }
+
+    public void UpdateDisplay(IFrontpanelState state)
+    {
+        _device.UpdateDisplay(state);
+    }
+
+    public void UpdateLeds(IFrontpanelLeds leds)
+    {
+        _device.UpdateLeds(leds);
+    }
+
+    public void SetBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
+    {
+        _device.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
+    }
+}

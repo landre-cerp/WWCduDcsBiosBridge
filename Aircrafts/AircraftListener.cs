@@ -8,6 +8,7 @@ using Timer = System.Timers.Timer;
 using WwDevicesDotNet;
 using WwDevicesDotNet.WinWing.FcuAndEfis;
 using WwDevicesDotNet.WinWing.Pap3;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -16,7 +17,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     private static double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
     protected ICdu? mcdu;
-    protected IFrontpanel? frontpanel;
+    protected FrontpanelHub frontpanelHub;
     protected IFrontpanelState? frontpanelState;
     protected IFrontpanelLeds? frontpanelLeds;
 
@@ -37,10 +38,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
               {DEFAULT_PAGE, new Screen() }
         };
 
-    public AircraftListener(ICdu? mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
+    public AircraftListener(ICdu? mcdu, int aircraftNumber, UserOptions options, FrontpanelHub frontpanelHub)
     {
         this.mcdu = mcdu;
-        this.frontpanel = frontpanel;
+        this.frontpanelHub = frontpanelHub ?? throw new ArgumentNullException(nameof(frontpanelHub));
         this.options = options;
         DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
         _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
@@ -54,38 +55,44 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                 this.mcdu.RefreshDisplay();
             }
 
-            if (frontpanel != null && frontpanelState != null)
+            if (frontpanelHub.HasFrontpanels && frontpanelState != null)
             {
-                frontpanel.UpdateDisplay(frontpanelState);
+                frontpanelHub.UpdateDisplay(frontpanelState);
             }
 
-            if (frontpanel != null && frontpanelLeds != null)
+            if (frontpanelHub.HasFrontpanels && frontpanelLeds != null)
             {
-                frontpanel.UpdateLeds(frontpanelLeds);
+                frontpanelHub.UpdateLeds(frontpanelLeds);
             }
         };
 
-        if (frontpanel is FcuEfisDevice)
+        // Initialize frontpanel state and LEDs based on first adapter
+        // All frontpanels will receive the same updates
+        if (frontpanelHub.HasFrontpanels)
         {
-            frontpanelState = new FcuEfisState();
-            frontpanelLeds = new FcuEfisLeds();
-            InitializeFrontpanelBrightness(128, 255, 255);
-            App.Logger.Info("FCU/EFIS device detected and initialized");
-        }
-        else if (frontpanel is Pap3Device)
-        {
-            frontpanelState = new Pap3State();
-            frontpanelLeds = new Pap3Leds();
-            InitializeFrontpanelBrightness(128, 255, 255);
-            App.Logger.Info("PAP3 device detected and initialized");
-        }
-        else if (frontpanel != null)
-        {
-            App.Logger.Warn($"Unknown frontpanel type: {frontpanel.GetType().Name}");
+            var firstAdapter = frontpanelHub.Adapters.First();
+            if (firstAdapter is FcuEfisAdapter)
+            {
+                frontpanelState = new FcuEfisState();
+                frontpanelLeds = new FcuEfisLeds();
+                InitializeFrontpanelBrightness(128, 255, 255);
+                App.Logger.Info("FCU/EFIS device detected and initialized");
+            }
+            else if (firstAdapter is Pap3Adapter)
+            {
+                frontpanelState = new Pap3State();
+                frontpanelLeds = new Pap3Leds();
+                InitializeFrontpanelBrightness(128, 255, 255);
+                App.Logger.Info("PAP3 device detected and initialized");
+            }
+            else
+            {
+                App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter.GetType().Name}");
+            }
         }
         else
         {
-            App.Logger.Info("No frontpanel device connected");
+            App.Logger.Info("No frontpanel devices connected");
         }
     }
 
@@ -121,8 +128,8 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
     private void InitializeFrontpanelBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
-        if (options.DisableLightingManagement || frontpanel == null) return;
-        frontpanel.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
+        if (options.DisableLightingManagement || !frontpanelHub.HasFrontpanels) return;
+        frontpanelHub.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
     }
 
     public void Stop()

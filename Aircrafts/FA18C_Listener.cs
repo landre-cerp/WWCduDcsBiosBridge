@@ -3,6 +3,7 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
 using System;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -41,7 +42,7 @@ internal class FA18C_Listener : AircraftListener
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
     protected override string GetAircraftName() => SupportedAircrafts.FA18C_Name;
 
-    public FA18C_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options)
+    public FA18C_Listener(ICdu? mcdu, UserOptions options) : base(mcdu, SupportedAircrafts.FA18C, options, FrontpanelHub.CreateEmpty())
     {
     }
 

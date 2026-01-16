@@ -1,10 +1,11 @@
 ﻿using WwDevicesDotNet;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal interface IAircraftListenerFactory
 {
-    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu? mcdu, UserOptions options, IFrontpanel? frontpanel = null);
+    public AircraftListener CreateListener(AircraftSelection aircraft, ICdu? mcdu, UserOptions options, FrontpanelHub frontpanelHub);
 }
 
 
@@ -14,11 +15,11 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
         AircraftSelection aircraft, 
         ICdu? mcdu, 
         UserOptions options,
-        IFrontpanel? frontpanel = null) =>
+        FrontpanelHub frontpanelHub) =>
 
         aircraft.AircraftId switch
         {
-            SupportedAircrafts.A10C => new A10C_Listener(mcdu, options, frontpanel),
+            SupportedAircrafts.A10C => new A10C_Listener(mcdu, options, frontpanelHub),
             SupportedAircrafts.AH64D => new AH64D_Listener(mcdu, options),
             SupportedAircrafts.FA18C => new FA18C_Listener(mcdu, options),
             SupportedAircrafts.CH47=> new CH47F_Listener(mcdu, options, aircraft.IsPilot),
