@@ -118,6 +118,16 @@ internal class A10C_Listener : AircraftListener
                     refresh = true;
                 }
             }
+            if (frontpanel != null && !options.DisableLightingManagement)
+            {
+                if (e.Address == _CONSOLE_BRT!.Address)
+                {
+                    var brightness = (byte)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
+                    frontpanel.SetBrightness(brightness, brightness, brightness);
+                    refresh_frontpanel = true;
+
+                }
+            }
 
             if (mcdu != null)
             {
