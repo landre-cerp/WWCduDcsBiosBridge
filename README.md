@@ -27,7 +27,7 @@ This console application bridges DCS World with the Winwing MCDU hardware, enabl
 At least one of these devices.
 - Winwing CDU hardware (MCDU / PFP3N / PFP7 / PFP4)
 - Winwing FCU and EFIS ( tested with Left Efis )
-- Winwing PAP3 (or pap3Mag )
+- Winwing PAP3 (or PAP3Mag )
 
 
 ## Supported Aircraft
