@@ -66,37 +66,68 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             }
         };
 
-        // Initialize frontpanel state and LEDs based on first adapter
-        // All frontpanels will receive the same updates
-        // Note: Currently, all frontpanels must be the same type. If mixed types are needed,
-        // this would require per-adapter state management which would be a future enhancement.
+        // Initialize frontpanel state and LEDs based on connected adapters
+        // PAP3 and PDC-3N are designed to work together (Boeing 737 style)
+        // FCU and EFIS work together (Airbus style, but as single device with extension)
+        // All frontpanels receive the same brightness updates
         if (frontpanelHub.HasFrontpanels)
         {
-            var firstAdapter = frontpanelHub.Adapters.FirstOrDefault();
-            if (firstAdapter is FcuEfisAdapter)
+            var adapters = frontpanelHub.Adapters.ToList();
+            
+            // Check for FCU/EFIS (single device or device with extension)
+            var hasFcuEfis = adapters.Any(a => a is FcuEfisAdapter);
+            
+            // Check for PAP3 (primary autopilot panel)
+            var hasPap3 = adapters.Any(a => a is Pap3Adapter);
+            
+            // Check for PDC-3N (panel display controller, used with PAP3)
+            var hasPdc3 = adapters.Any(a => a is Pdc3Adapter);
+            
+            if (hasFcuEfis)
             {
                 frontpanelState = new FcuEfisState();
                 frontpanelLeds = new FcuEfisLeds();
                 InitializeFrontpanelBrightness(128, 255, 255);
                 App.Logger.Info("FCU/EFIS device detected and initialized");
             }
-            else if (firstAdapter is Pap3Adapter)
+            else if (hasPap3)
             {
                 frontpanelState = new Pap3State();
                 frontpanelLeds = new Pap3Leds();
-                InitializeFrontpanelBrightness(128, 255, 255);
-                App.Logger.Info("PAP3 device detected and initialized");
+                
+                // Initialize PAP3 state with default values so displays show something
+                // Empty/null values cause displays to turn off
+                if (frontpanelState is Pap3State pap3State)
+                {
+                    pap3State.Speed = 0;
+                    pap3State.Heading = 0;
+                    pap3State.Altitude = 0;
+                    pap3State.VerticalSpeed = 0;
+                }
+                
+                // PAP3 has separate brightness for: panel backlight, LCD displays, LED markers
+                // Set LCD displays (middle parameter) to full brightness for visibility
+                InitializeFrontpanelBrightness(255, 255, 255);
+                
+                if (hasPdc3)
+                {
+                    App.Logger.Info("PAP3 + PDC-3N devices detected and initialized (Boeing 737 configuration)");
+                }
+                else
+                {
+                    App.Logger.Info("PAP3 device detected and initialized");
+                }
             }
-            else if (firstAdapter is Pdc3Adapter)
+            else if (hasPdc3)
             {
-                // PDC-3N has no display or LEDs, only brightness control
-                // Initialize with default brightness
-                InitializeFrontpanelBrightness(128, 255, 255);
+                // PDC-3N alone: only brightness control, no display or LEDs
+                InitializeFrontpanelBrightness(255, 255, 255);
                 App.Logger.Info("PDC-3N device detected and initialized (brightness control only)");
             }
-            else if (firstAdapter != null)
+            else
             {
-                App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter.GetType().Name}");
+                var firstAdapter = adapters.FirstOrDefault();
+                App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter?.GetType().Name}");
             }
         }
         else
@@ -138,7 +169,17 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     private void InitializeFrontpanelBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
         if (options.DisableLightingManagement || !frontpanelHub.HasFrontpanels) return;
+        
+        App.Logger.Info($"Setting frontpanel brightness: Panel={panelBacklight}, LCD={lcdBacklight}, LED={ledBacklight}");
         frontpanelHub.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
+        
+        // For PAP3, send an initial display update to "wake up" the displays
+        // Some devices require at least one display update before brightness takes effect
+        if (frontpanelState != null)
+        {
+            App.Logger.Info("Sending initial frontpanel display update");
+            frontpanelHub.UpdateDisplay(frontpanelState);
+        }
     }
 
     public void Stop()

@@ -123,9 +123,15 @@ Thank you for considering contributing to our project! Your help is greatly appr
   frontpanelHub.SetBrightness(brightness, brightness, brightness);
   ```
   **Do not** convert to percentage (0-100) first, as this limits maximum brightness to only 39% of actual capability.
+  When multiple frontpanel devices are connected, `SetBrightness()` broadcasts to all of them (e.g., both PAP3 and PDC-3N receive the same brightness values).
 - See `A10C_Listener.cs` for a complete frontpanel integration example with altitude drum conversion
 
 **Supported Frontpanel Devices:**
-- **FCU/EFIS**: Full display, LED control, brightness control
-- **PAP3**: Full display, LED control, brightness control  
-- **PDC-3N**: Brightness control only (no display or LEDs)
+- **FCU/EFIS**: Full display, LED control, brightness control (Airbus style autopilot/flight director)
+- **PAP3**: Full display, LED control, brightness control (Boeing 737 Primary Autopilot Panel)
+  - **Important**: PAP3 has **three separate brightness controls**:
+    1. Panel backlight (physical panel illumination)
+    2. LCD display brightness (7-segment displays) - **must be set to 255 for visibility**
+    3. LED marker lights
+  - When calling `SetBrightness(panel, lcd, led)`, ensure the middle parameter (LCD) is set high enough (recommended: 255)
+- **PDC-3N**: Brightness control only (Boeing 737 Panel Display Controller, designed to work with PAP3)
