@@ -12,6 +12,7 @@ namespace WWCduDcsBiosBridge.Frontpanels;
 public class FrontpanelHub
 {
     private readonly List<IFrontpanelAdapter> _adapters;
+    private readonly IFrontpanelCapabilities _capabilities;
 
     /// <summary>
     /// Gets the collection of frontpanel adapters.
@@ -32,11 +33,12 @@ public class FrontpanelHub
     /// Gets the combined capabilities of all connected frontpanels.
     /// Returns a capability as true if at least one adapter supports it.
     /// </summary>
-    public IFrontpanelCapabilities Capabilities => new AggregatedCapabilities(_adapters);
+    public IFrontpanelCapabilities Capabilities => _capabilities;
 
     public FrontpanelHub(IEnumerable<IFrontpanelAdapter> adapters)
     {
         _adapters = new List<IFrontpanelAdapter>(adapters ?? throw new ArgumentNullException(nameof(adapters)));
+        _capabilities = new AggregatedCapabilities(_adapters);
     }
 
     /// <summary>
