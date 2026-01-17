@@ -2,6 +2,7 @@ using DCS_BIOS;
 using NLog;
 using WWCduDcsBiosBridge.Config;
 using WWCduDcsBiosBridge.Aircrafts;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge;
 
@@ -112,15 +113,13 @@ public class BridgeManager : IDisposable
             // Initialize DCS-BIOS
             InitializeDcsBios(config);
 
-            // Get the first frontpanel device to pass to CDU contexts (only one should be used)
-            var frontpanel = Contexts
-                .Where(c => c.IsFrontpanelDevice && c.Frontpanel != null)
-                .Select(c => c.Frontpanel!)
-                .FirstOrDefault();
+            // Build the frontpanel hub from all frontpanel devices
+            var frontpanelHub = BuildFrontpanelHub(Contexts);
+            Logger.Info($"Frontpanel hub created with {frontpanelHub.Count} device(s)");
 
-            // Start device bridges - pass frontpanel to CDU contexts
+            // Start device bridges - pass hub to all contexts
             foreach (var ctx in Contexts)
-                ctx.StartBridge(frontpanel);
+                ctx.StartBridge(frontpanelHub);
 
             IsStarted = true;
             Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
@@ -182,6 +181,28 @@ public class BridgeManager : IDisposable
             Logger.Error(exception);
             throw exception;
         }
+    }
+
+    private FrontpanelHub BuildFrontpanelHub(List<DeviceContext> contexts)
+    {
+        var adapters = new List<IFrontpanelAdapter>();
+
+        foreach (var ctx in contexts.Where(c => c.IsFrontpanelDevice && c.Frontpanel != null))
+        {
+            var frontpanel = ctx.Frontpanel!;
+            var adapter = FrontpanelAdapterFactory.CreateAdapter(frontpanel, frontpanel.DeviceId.ToString());
+            if (adapter != null)
+            {
+                adapters.Add(adapter);
+                Logger.Info($"Added frontpanel adapter: {adapter.DisplayName}");
+            }
+            else
+            {
+                Logger.Warn($"Unknown frontpanel type, skipping: {frontpanel.GetType().Name}");
+            }
+        }
+
+        return new FrontpanelHub(adapters);
     }
 
     private void DisposeContexts()

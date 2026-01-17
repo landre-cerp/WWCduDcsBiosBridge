@@ -5,6 +5,7 @@ using WwDevicesDotNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
@@ -51,7 +52,7 @@ internal class CH47F_Listener : AircraftListener
         ["w"] = Colour.White
     };
 
-    public CH47F_Listener(ICdu? mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options)
+    public CH47F_Listener(ICdu? mcdu, UserOptions options,  bool pilot=true) : base(mcdu, SupportedAircrafts.CH47, options, FrontpanelHub.CreateEmpty())
     {
         seatPosition = pilot ? PILOT_SEAT : COPILOT_SEAT;
 
