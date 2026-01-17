@@ -15,7 +15,7 @@ public class Pdc3Adapter : IFrontpanelAdapter
 
     public IFrontpanel Device => _device;
     public string DisplayName { get; }
-    public bool IsConnected => _device?.IsConnected == true;
+    public bool IsConnected => _device.IsConnected;
 
     public IFrontpanelCapabilities Capabilities => _device.Capabilities;
 
