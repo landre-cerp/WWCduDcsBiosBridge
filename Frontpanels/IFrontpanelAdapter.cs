@@ -13,6 +13,8 @@ public interface IFrontpanelAdapter
     /// </summary>
     IFrontpanel Device { get; }
 
+    IFrontpanelCapabilities Capabilities { get; }
+
     /// <summary>
     /// Gets the device display name.
     /// </summary>

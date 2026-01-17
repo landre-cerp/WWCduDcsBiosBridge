@@ -15,6 +15,8 @@ public class FcuEfisAdapter : IFrontpanelAdapter
     public string DisplayName { get; }
     public bool IsConnected => _device.IsConnected;
 
+    public IFrontpanelCapabilities Capabilities => _device.Capabilities;
+
     public FcuEfisAdapter(FcuEfisDevice device, string displayName)
     {
         _device = device ?? throw new ArgumentNullException(nameof(device));

@@ -15,6 +15,8 @@ public class Pap3Adapter : IFrontpanelAdapter
     public string DisplayName { get; }
     public bool IsConnected => _device.IsConnected;
 
+    public IFrontpanelCapabilities Capabilities => _device.Capabilities;
+
     public Pap3Adapter(Pap3Device device, string displayName)
     {
         _device = device ?? throw new ArgumentNullException(nameof(device));
