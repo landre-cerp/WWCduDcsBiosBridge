@@ -127,7 +127,14 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
             else
             {
                 var firstAdapter = adapters.FirstOrDefault();
-                App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter?.GetType().Name}");
+                if (firstAdapter == null)
+                {
+                    App.Logger.Warn("FrontpanelHub reports frontpanels, but no adapters were found.");
+                }
+                else
+                {
+                    App.Logger.Warn($"Unknown frontpanel adapter type: {firstAdapter.GetType().Name}");
+                }
             }
         }
         else
