@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCS-BIOS", "libs\DCSFPCommo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryCommon", "libs\DCSFPCommon\src\ClassLibraryCommon\ClassLibraryCommon.csproj", "{1DD0130F-9BCB-D461-4978-4DFBFCFA56EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WW-Devices-Dotnet", "..\WWDevicesDotnet\WW-Devices-Dotnet.csproj", "{7B736A76-99AA-6635-1CFD-90FCB46002D6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WW-Devices-Dotnet", "libs\WwDevicesDotnet\WW-Devices-Dotnet.csproj", "{7B736A76-99AA-6635-1CFD-90FCB46002D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
