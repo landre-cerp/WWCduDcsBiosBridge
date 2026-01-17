@@ -122,7 +122,7 @@ Thank you for considering contributing to our project! Your help is greatly appr
   var brightness = (byte)(rawBrightness * 255 / _CONSOLE_BRT.MaxValue);
   frontpanelHub.SetBrightness(brightness, brightness, brightness);
   ```
-  **Do not** convert to percentage (0-100) first, as this limits maximum brightness to only 39% of actual capability.
+  **Do not** convert to percentage (0-100) first, as this limits maximum brightness to only ~39% of actual capability.
   When multiple frontpanel devices are connected, `SetBrightness()` broadcasts to all of them (e.g., both PAP3 and PDC-3N receive the same brightness values).
 - See `A10C_Listener.cs` for a complete frontpanel integration example with altitude drum conversion
 
