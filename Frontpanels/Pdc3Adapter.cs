@@ -41,14 +41,14 @@ public class Pdc3Adapter : IFrontpanelAdapter
 
     /// <summary>
     /// Sets the panel backlight brightness.
-    /// PDC-3N only supports panel backlight control.
+    /// PDC-3N only supports panel backlight control; lcdBacklight and ledBacklight are ignored.
     /// </summary>
     public void SetBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
         if (!IsConnected)
             return;
 
-        // PDC-3N only has panel backlight control, use ledBacklight parameter for backward compatibility
-        _device.SetBrightness(panelBacklight, 0, ledBacklight);
+        // PDC-3N only has panel backlight control; expose lcd/led parameters for interface compatibility
+        _device.SetBrightness(panelBacklight, 0, 0);
     }
 }
