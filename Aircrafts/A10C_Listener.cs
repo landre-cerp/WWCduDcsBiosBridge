@@ -120,7 +120,6 @@ internal class A10C_Listener : AircraftListener
                 }
             }
             
-            // Update frontpanel brightness (convert DCS-BIOS value to 0-255 range for frontpanels)
             if (frontpanelHub.HasFrontpanels && !options.DisableLightingManagement)
             {
                 if (e.Address == _CONSOLE_BRT!.Address)
