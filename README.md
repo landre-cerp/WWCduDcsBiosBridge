@@ -148,7 +148,7 @@ Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), 
 
 This project is written in C# and targets .NET 8.0. It uses:
 - **DCS-BIOS** for DCS communication
-- **mcdu-dotnet** for MCDU hardware interface
+- **ww-devices-dotnet** for Winwing hardware interface
 - **NLog** for logging
 - **System.CommandLine** for command-line parsing
 
