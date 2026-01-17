@@ -149,6 +149,42 @@
       ]
     },
     {
+      "Character": "¶",
+      "BitArray": [
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        ".....................",
+        "....................."
+      ]
+    },
+    {
       "Character": "(",
       "BitArray": [
         ".....................",
@@ -2308,7 +2344,44 @@
         ".....................",
         "....................."
       ]
+    },
+    {
+      "Character": "⬡",
+      "BitArray": [
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        ".....................",
+        "....................."
+      ]
     }
+
   ],
   "SmallGlyphs": [
     {
@@ -4546,11 +4619,11 @@
     {
       "Character": "Δ",
       "BitArray": [
-        ".....................", 
-        ".....................", 
-        ".....................", 
-        ".....................", 
-        ".....................", 
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
         ".....................",
         ".....................",
         ".....................",
@@ -4578,6 +4651,43 @@
         ".....................",
         "....................."
       ]
+    },
+    {
+      "Character": "⬡",
+      "BitArray": [
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        ".....................",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXX..",
+        ".....................",
+        "....................."
+      ]
     }
+
   ]
 }

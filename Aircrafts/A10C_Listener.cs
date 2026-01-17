@@ -257,13 +257,14 @@ internal class A10C_Listener : AircraftListener
         {
 
             string data = e.StringData
-                .Replace("»", ">")
-                .Replace("«", "<")
-                .Replace("¡", "}")
-                .Replace("®", "{")
+                .Replace("»", "→")
+                .Replace("«", "←")
+                .Replace("¡", "☐")
+                .Replace("®", "Δ")
                 .Replace("©", "^")
                 .Replace("±", "_")
-                .Replace("?", "%");
+                .Replace("?", "%")
+                .Replace("¶", "⬡");
 
             output.Green();
 
