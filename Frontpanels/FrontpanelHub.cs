@@ -12,6 +12,7 @@ namespace WWCduDcsBiosBridge.Frontpanels;
 public class FrontpanelHub
 {
     private readonly List<IFrontpanelAdapter> _adapters;
+    private readonly IFrontpanelCapabilities _capabilities;
 
     /// <summary>
     /// Gets the collection of frontpanel adapters.
@@ -28,9 +29,16 @@ public class FrontpanelHub
     /// </summary>
     public int Count => _adapters.Count;
 
+    /// <summary>
+    /// Gets the combined capabilities of all connected frontpanels.
+    /// Returns a capability as true if at least one adapter supports it.
+    /// </summary>
+    public IFrontpanelCapabilities Capabilities => _capabilities;
+
     public FrontpanelHub(IEnumerable<IFrontpanelAdapter> adapters)
     {
         _adapters = new List<IFrontpanelAdapter>(adapters ?? throw new ArgumentNullException(nameof(adapters)));
+        _capabilities = new AggregatedCapabilities(_adapters);
     }
 
     /// <summary>
@@ -95,4 +103,30 @@ public class FrontpanelHub
     /// Creates an empty hub with no frontpanels.
     /// </summary>
     public static FrontpanelHub CreateEmpty() => new FrontpanelHub(Enumerable.Empty<IFrontpanelAdapter>());
+
+    /// <summary>
+    /// Aggregates capabilities from multiple frontpanel adapters.
+    /// A capability is considered supported if at least one adapter supports it.
+    /// </summary>
+    private class AggregatedCapabilities : IFrontpanelCapabilities
+    {
+        private readonly IEnumerable<IFrontpanelAdapter> _adapters;
+
+        public AggregatedCapabilities(IEnumerable<IFrontpanelAdapter> adapters)
+        {
+            _adapters = adapters;
+        }
+
+        public bool HasSpeedDisplay => _adapters.Any(a => a.Capabilities?.HasSpeedDisplay == true);
+        public bool HasHeadingDisplay => _adapters.Any(a => a.Capabilities?.HasHeadingDisplay == true);
+        public bool HasAltitudeDisplay => _adapters.Any(a => a.Capabilities?.HasAltitudeDisplay == true);
+        public bool HasVerticalSpeedDisplay => _adapters.Any(a => a.Capabilities?.HasVerticalSpeedDisplay == true);
+        public bool CanDisplayBarometricPressure => _adapters.Any(a => a.Capabilities?.CanDisplayBarometricPressure == true);
+        public bool CanDisplayQnhQfe => _adapters.Any(a => a.Capabilities?.CanDisplayQnhQfe == true);
+        public bool HasPilotCourseDisplay => _adapters.Any(a => a.Capabilities?.HasPilotCourseDisplay == true);
+        public bool HasCopilotCourseDisplay => _adapters.Any(a => a.Capabilities?.HasCopilotCourseDisplay == true);
+        public bool SupportsAlphanumericDisplay => _adapters.Any(a => a.Capabilities?.SupportsAlphanumericDisplay == true);
+        public bool HasFlightLevelMode => _adapters.Any(a => a.Capabilities?.HasFlightLevelMode == true);
+        public bool HasMachSpeedMode => _adapters.Any(a => a.Capabilities?.HasMachSpeedMode == true);
+    }
 }

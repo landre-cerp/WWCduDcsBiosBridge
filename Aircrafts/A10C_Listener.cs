@@ -156,7 +156,7 @@ internal class A10C_Listener : AircraftListener
                 }
             }
             
-            if (e.Address == _HEADING!.Address)
+            if (e.Address == _HEADING!.Address && frontpanelHub.Capabilities.HasHeadingDisplay)
             {
                 refresh_frontpanel = true;
                 heading = (int) _HEADING!.GetUIntValue(e.Data);
@@ -164,61 +164,71 @@ internal class A10C_Listener : AircraftListener
 
             if (frontpanelState != null)
             {
-                if (e.Address == _VS!.Address)
+                if (e.Address == _VS!.Address && frontpanelHub.Capabilities.HasVerticalSpeedDisplay)
                 {
                     refresh_frontpanel = true;
                     var rawValue = (int)_VS!.GetUIntValue(e.Data);
                     verticalSpeed = ConvertVviToVerticalSpeed(rawValue);
                 }
 
-                if (e.Address == _ALT_PRESSURE0!.Address)
+                if (frontpanelHub.Capabilities.CanDisplayBarometricPressure)
                 {
-                    pressureDigits[0] = ConvertDrumPositionToDigit(_ALT_PRESSURE0!.GetUIntValue(e.Data), _ALT_PRESSURE0!.MaxValue);
-                    refresh_frontpanel = true;
-                }
-                if (e.Address == _ALT_PRESSURE1!.Address)
-                {
-                    pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
-                    refresh_frontpanel = true;
-                }
-                if (e.Address == _ALT_PRESSURE2!.Address)
-                {
-                    pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
-                    refresh_frontpanel = true;
-                }
-                if (e.Address == _ALT_PRESSURE3!.Address)
-                {
-                    pressureDigits[3] = ConvertDrumPositionToDigit(_ALT_PRESSURE3!.GetUIntValue(e.Data), _ALT_PRESSURE3!.MaxValue);
-                    refresh_frontpanel = true;
+                    if (e.Address == _ALT_PRESSURE0!.Address)
+                    {
+                        pressureDigits[0] = ConvertDrumPositionToDigit(_ALT_PRESSURE0!.GetUIntValue(e.Data), _ALT_PRESSURE0!.MaxValue);
+                        refresh_frontpanel = true;
+                    }
+                    if (e.Address == _ALT_PRESSURE1!.Address)
+                    {
+                        pressureDigits[1] = ConvertDrumPositionToDigit(_ALT_PRESSURE1!.GetUIntValue(e.Data), _ALT_PRESSURE1!.MaxValue);
+                        refresh_frontpanel = true;
+                    }
+                    if (e.Address == _ALT_PRESSURE2!.Address)
+                    {
+                        pressureDigits[2] = ConvertDrumPositionToDigit(_ALT_PRESSURE2!.GetUIntValue(e.Data), _ALT_PRESSURE2!.MaxValue);
+                        refresh_frontpanel = true;
+                    }
+                    if (e.Address == _ALT_PRESSURE3!.Address)
+                    {
+                        pressureDigits[3] = ConvertDrumPositionToDigit(_ALT_PRESSURE3!.GetUIntValue(e.Data), _ALT_PRESSURE3!.MaxValue);
+                        refresh_frontpanel = true;
+                    }
                 }
 
-                if (e.Address == _ALTITUDE_10000ft!.Address)
+                if (frontpanelHub.Capabilities.HasAltitudeDisplay)
                 {
-                    altitudeDigits[2] = ConvertDrumPositionToDigit(_ALTITUDE_10000ft!.GetUIntValue(e.Data), _ALTITUDE_10000ft!.MaxValue);
-                    UpdateAltitude();
-                    refresh_frontpanel = true;
-                }
-                if (e.Address == _ALTITUDE_1000ft!.Address)
-                {
-                    altitudeDigits[1] = ConvertDrumPositionToDigit(_ALTITUDE_1000ft!.GetUIntValue(e.Data), _ALTITUDE_1000ft!.MaxValue);
-                    UpdateAltitude();
-                    refresh_frontpanel = true;
-                }
-                if (e.Address == _ALTITUDE_100ft!.Address)
-                {
-                    altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
-                    UpdateAltitude();
-                    refresh_frontpanel = true;
+                    if (e.Address == _ALTITUDE_10000ft!.Address)
+                    {
+                        altitudeDigits[2] = ConvertDrumPositionToDigit(_ALTITUDE_10000ft!.GetUIntValue(e.Data), _ALTITUDE_10000ft!.MaxValue);
+                        UpdateAltitude();
+                        refresh_frontpanel = true;
+                    }
+                    if (e.Address == _ALTITUDE_1000ft!.Address)
+                    {
+                        altitudeDigits[1] = ConvertDrumPositionToDigit(_ALTITUDE_1000ft!.GetUIntValue(e.Data), _ALTITUDE_1000ft!.MaxValue);
+                        UpdateAltitude();
+                        refresh_frontpanel = true;
+                    }
+                    if (e.Address == _ALTITUDE_100ft!.Address)
+                    {
+                        altitudeDigits[0] = ConvertDrumPositionToAltitude100ft(_ALTITUDE_100ft!.GetUIntValue(e.Data), _ALTITUDE_100ft!.MaxValue);
+                        UpdateAltitude();
+                        refresh_frontpanel = true;
+                    }
                 }
                 
                 if (refresh_frontpanel)
                 {
-                    frontpanelState.Speed = speed;
-                    frontpanelState.Heading = heading;
-                    frontpanelState.Altitude = altitude;
-                    frontpanelState.VerticalSpeed = verticalSpeed;
+                    if (frontpanelHub.Capabilities.HasSpeedDisplay)
+                        frontpanelState.Speed = speed;
+                    if (frontpanelHub.Capabilities.HasHeadingDisplay)
+                        frontpanelState.Heading = heading;
+                    if (frontpanelHub.Capabilities.HasAltitudeDisplay)
+                        frontpanelState.Altitude = altitude;
+                    if (frontpanelHub.Capabilities.HasVerticalSpeedDisplay)
+                        frontpanelState.VerticalSpeed = verticalSpeed;
 
-                    if (frontpanelState is FcuEfisState fcuState)
+                    if (frontpanelState is FcuEfisState fcuState && frontpanelHub.Capabilities.CanDisplayBarometricPressure)
                     {
                         UpdateBaroPressure();
                         fcuState.LeftBaroPressure = baroPressure;
@@ -309,7 +319,7 @@ internal class A10C_Listener : AircraftListener
                 output.Line(options.DisplayBottomAligned ? 2 : 11).Amber().WriteLine("------------------------");
             }
 
-            if (e.Address == _IAS!.Address)
+            if (e.Address == _IAS!.Address && frontpanelHub.Capabilities.HasSpeedDisplay)
             {
                 // there's a bug? in DCS-BIOS A-10C module where IAS is 2 knots below the actual value
                 var trimmedSpeed = e.StringData.Trim();
