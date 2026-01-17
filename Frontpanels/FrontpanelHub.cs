@@ -115,16 +115,16 @@ public class FrontpanelHub
             _adapters = adapters;
         }
 
-        public bool HasSpeedDisplay => _adapters.Any(a => a.Capabilities.HasSpeedDisplay);
-        public bool HasHeadingDisplay => _adapters.Any(a => a.Capabilities.HasHeadingDisplay);
-        public bool HasAltitudeDisplay => _adapters.Any(a => a.Capabilities.HasAltitudeDisplay);
-        public bool HasVerticalSpeedDisplay => _adapters.Any(a => a.Capabilities.HasVerticalSpeedDisplay);
-        public bool CanDisplayBarometricPressure => _adapters.Any(a => a.Capabilities.CanDisplayBarometricPressure);
-        public bool CanDisplayQnhQfe => _adapters.Any(a => a.Capabilities.CanDisplayQnhQfe);
-        public bool HasPilotCourseDisplay => _adapters.Any(a => a.Capabilities.HasPilotCourseDisplay);
-        public bool HasCopilotCourseDisplay => _adapters.Any(a => a.Capabilities.HasCopilotCourseDisplay);
-        public bool SupportsAlphanumericDisplay => _adapters.Any(a => a.Capabilities.SupportsAlphanumericDisplay);
-        public bool HasFlightLevelMode => _adapters.Any(a => a.Capabilities.HasFlightLevelMode);
-        public bool HasMachSpeedMode => _adapters.Any(a => a.Capabilities.HasMachSpeedMode);
+        public bool HasSpeedDisplay => _adapters.Any(a => a.Capabilities?.HasSpeedDisplay == true);
+        public bool HasHeadingDisplay => _adapters.Any(a => a.Capabilities?.HasHeadingDisplay == true);
+        public bool HasAltitudeDisplay => _adapters.Any(a => a.Capabilities?.HasAltitudeDisplay == true);
+        public bool HasVerticalSpeedDisplay => _adapters.Any(a => a.Capabilities?.HasVerticalSpeedDisplay == true);
+        public bool CanDisplayBarometricPressure => _adapters.Any(a => a.Capabilities?.CanDisplayBarometricPressure == true);
+        public bool CanDisplayQnhQfe => _adapters.Any(a => a.Capabilities?.CanDisplayQnhQfe == true);
+        public bool HasPilotCourseDisplay => _adapters.Any(a => a.Capabilities?.HasPilotCourseDisplay == true);
+        public bool HasCopilotCourseDisplay => _adapters.Any(a => a.Capabilities?.HasCopilotCourseDisplay == true);
+        public bool SupportsAlphanumericDisplay => _adapters.Any(a => a.Capabilities?.SupportsAlphanumericDisplay == true);
+        public bool HasFlightLevelMode => _adapters.Any(a => a.Capabilities?.HasFlightLevelMode == true);
+        public bool HasMachSpeedMode => _adapters.Any(a => a.Capabilities?.HasMachSpeedMode == true);
     }
 }
