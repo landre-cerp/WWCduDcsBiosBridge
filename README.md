@@ -1,5 +1,6 @@
 
 [![Release][release-shield]][release-url]
+[![License][license-shield]][license-url]
 [![Discord][discord-shield]][discord-invite-url]
 ![Build Status][build-shield]
 [![Pre-Release][pre-release-shield]][pre-release-url]
