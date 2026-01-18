@@ -1,6 +1,6 @@
 
 [![Release][release-shield]][release-url]
-[![License][license-shield]][license-url]
+![License](https://img.shields.io/github/license/landre-cerp/WWCduDcsBiosBridge)
 [![Discord][discord-shield]][discord-invite-url]
 ![Build Status][build-shield]
 [![Pre-Release][pre-release-shield]][pre-release-url]
