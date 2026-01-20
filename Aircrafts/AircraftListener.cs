@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using System.IO;
 using Timer = System.Timers.Timer;
 using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.FcuAndEfis;
-using WwDevicesDotNet.WinWing.Pap3;
+using WwDevicesDotNet.Winctrl.FcuAndEfis;
+using WwDevicesDotNet.Winctrl.Pap3;
 using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;

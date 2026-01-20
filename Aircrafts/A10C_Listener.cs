@@ -2,8 +2,8 @@ using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.FcuAndEfis;
-using WwDevicesDotNet.WinWing.Pap3;
+using WwDevicesDotNet.Winctrl.FcuAndEfis;
+using WwDevicesDotNet.Winctrl.Pap3;
 using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;

@@ -29,7 +29,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore WWCduDcsBiosBridge.csproj
+        run: dotnet restore WCtrlDcsBiosBridge.csproj
 
       - name: Build
-        run: dotnet build WWCduDcsBiosBridge.csproj --configuration ${{ env.CONFIGURATION }} --no-restore
+        run: dotnet build WCtrlDcsBiosBridge.csproj --configuration ${{ env.CONFIGURATION }} --no-restore

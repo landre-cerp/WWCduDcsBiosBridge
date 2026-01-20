@@ -1,8 +1,8 @@
 using System;
 using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.FcuAndEfis;
-using WwDevicesDotNet.WinWing.Pap3;
-using WwDevicesDotNet.WinWing.Pdc3nm;
+using WwDevicesDotNet.Winctrl.FcuAndEfis;
+using WwDevicesDotNet.Winctrl.Pap3;
+using WwDevicesDotNet.Winctrl.Pdc3nm;
 
 namespace WWCduDcsBiosBridge.Frontpanels;
 
