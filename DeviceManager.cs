@@ -84,7 +84,7 @@ public class DeviceManager
                     Logger.Info($"FCU device connected: IsConnected={fcu.IsConnected}, Type={fcu.GetType().Name}");
                     
                     // Initialize FCU device to start HID communication (if not already initialized by factory)
-                    if (fcu is WwDevicesDotNet.WinWing.FcuAndEfis.FcuEfisDevice fcuDevice)
+                    if (fcu is WwDevicesDotNet.Winctrl.FcuAndEfis.FcuEfisDevice fcuDevice)
                     {
                         Logger.Info("FCU device is FcuEfisDevice, ensuring initialization...");
                         // Factory already calls Initialise(), but we verify it worked

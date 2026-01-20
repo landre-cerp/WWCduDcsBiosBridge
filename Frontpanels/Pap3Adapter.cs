@@ -1,6 +1,6 @@
 using System;
 using WwDevicesDotNet;
-using WwDevicesDotNet.WinWing.Pap3;
+using WwDevicesDotNet.Winctrl.Pap3;
 
 namespace WWCduDcsBiosBridge.Frontpanels;
 

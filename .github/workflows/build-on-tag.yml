@@ -31,7 +31,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore WWCduDcsBiosBridge.csproj
+        run: dotnet restore WCtrlDcsBiosBridge.csproj
 
       - name: Compute version from tag
         if: startsWith(github.ref, 'refs/tags/v')
@@ -72,7 +72,7 @@ jobs:
       - name: Publish (Single File)
         shell: powershell
         run: |
-          dotnet publish WWCduDcsBiosBridge.csproj `
+          dotnet publish WCtrlDcsBiosBridge.csproj `
             --configuration ${{ env.CONFIGURATION }} `
             --runtime win-x64 `
             --self-contained true `
@@ -94,21 +94,21 @@ jobs:
           Copy-Item "docs/" -Destination "./publish/docs/" -Recurse -ErrorAction SilentlyContinue
 
           # Create a zip file with the published application and all copied files
-          Compress-Archive -Path ./publish/* -DestinationPath ww-dcsbios-bridge-${{ github.ref_name }}.zip
+          Compress-Archive -Path ./publish/* -DestinationPath wctrl-dcsbios-bridge-${{ github.ref_name }}.zip
         shell: powershell
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ww-dcsbios-bridge-${{ github.ref_name }}
+          name: wctrl-dcsbios-bridge-${{ github.ref_name }}
           path: ./publish/
           retention-days: 90
 
       - name: Upload release zip
         uses: actions/upload-artifact@v4
         with:
-          name: ww-dcsbios-bridge-${{ github.ref_name }}-zip
-          path: ww-dcsbios-bridge-${{ github.ref_name }}.zip
+          name: wctrl-dcsbios-bridge-${{ github.ref_name }}-zip
+          path: wctrl-dcsbios-bridge-${{ github.ref_name }}.zip
           retention-days: 90
 
   create-release:
@@ -126,12 +126,12 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ww-dcsbios-bridge-${{ github.ref_name }}-zip
+          name: wctrl-dcsbios-bridge-${{ github.ref_name }}-zip
           path: .
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ww-dcsbios-bridge-${{ github.ref_name }}.zip
+          files: wctrl-dcsbios-bridge-${{ github.ref_name }}.zip
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
