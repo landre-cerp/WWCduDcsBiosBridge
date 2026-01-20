@@ -4,3 +4,6 @@
 [submodule "libs/WwDevicesDotnet"]
 	path = libs/WwDevicesDotnet
 	url = https://github.com/landre-cerp/WwDevicesDotnet.git
+[submodule "WwDevicesDotnet"]
+	path = WwDevicesDotnet
+	url = https://github.com/landre-cerp/WwDevicesDotnet.git
