@@ -3,7 +3,6 @@ using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
 using WwDevicesDotNet;
 using WwDevicesDotNet.Winctrl.FcuAndEfis;
-using WwDevicesDotNet.Winctrl.Pap3;
 using WWCduDcsBiosBridge.Frontpanels;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
