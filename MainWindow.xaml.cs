@@ -175,7 +175,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             if (cduCount == 0)
             {
                 GlobalAircraftSelectionGroup.Visibility = Visibility.Visible;
-                ShowStatus("No CDU detected. Please select aircraft from the panel above.", false);
+                ShowStatus("No CDU detected. Start the bridge to select aircraft.", false);
+                UpdateAircraftButtonState();
             }
             else
             {
@@ -319,6 +320,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             bridgeManager = new BridgeManager();
             OnPropertyChanged(nameof(IsBridgeRunning));
             OnPropertyChanged(nameof(CanEdit));
+            
+            var hasCdu = devices.Any(d => d.Cdu != null);
+            if (!hasCdu)
+            {
+                foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
+                {
+                    btn.IsEnabled = true;
+                }
+                ShowStatus("Please select an aircraft to continue...", false);
+            }
+            
             await bridgeManager.StartAsync(devices, userOptions, config);
 
             ShowStatus($"Bridge started successfully with {bridgeManager.Contexts?.Count ?? 0} device(s)!", false);
@@ -328,7 +340,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             OnPropertyChanged(nameof(CanEdit));
             Logger.Info("Bridge started successfully from WPF interface");
             
-            // Minimize window if the option is enabled
+            UpdateAircraftButtonState();
+            
             if (userOptions.MinimizeOnStart)
             {
                 WindowState = WindowState.Minimized;
@@ -357,9 +370,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         AircraftSelectionStatus.Text = "Select an aircraft:";
         AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.White;
         
+        UpdateAircraftButtonState();
+    }
+
+    private void UpdateAircraftButtonState()
+    {
+        var hasCdu = devices.Any(d => d.Cdu != null);
+        var shouldEnableButtons = IsBridgeRunning && !hasCdu;
+        
         foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
         {
-            btn.IsEnabled = true;
+            btn.IsEnabled = shouldEnableButtons;
         }
     }
 
@@ -467,8 +488,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
                 bridgeManager = null;
                 OnPropertyChanged(nameof(IsBridgeRunning));
                 OnPropertyChanged(nameof(CanEdit));
-                
-                ResetAircraftSelection();
             }
             catch (Exception ex)
             {
