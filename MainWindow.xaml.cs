@@ -222,39 +222,23 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void LoadConfig()
     {
-        try
-        {
-            var loaded = ConfigManager.Load();
-            if (loaded == null)
+        var result = ConfigManager.TryLoad();
+        result.Match(
+            onSuccess: cfg =>
             {
-                config = new DcsBiosConfig
-                {
-                    ReceiveFromIpUdp = "239.255.50.10",
-                    SendToIpUdp = "127.0.0.1",
-                    ReceivePortUdp = 5010,
-                    SendPortUdp = 7778,
-                    DcsBiosJsonLocation = string.Empty
-                };
-                ConfigManager.Save(config);
-                ShowStatus("Please edit DCS-BIOS config", true);
-            }
-            else
+                config = cfg;
+                StatusMessage = "Configuration loaded successfully.";
+                StatusIsError = false;
+                return 0; // Unit equivalent
+            },
+            onFailure: error =>
             {
-                config = loaded;
-                if (!IsConfigValid())
-                {
-                    ShowStatus("Please edit DCS-BIOS config", true);
-                }
+                StatusMessage = error;
+                StatusIsError = true;
+                Logger.Warn($"Configuration load failed: {error}");
+                return 0;
             }
-        }
-        catch (ConfigException)
-        {
-            ShowStatus("Please edit DCS-BIOS config", true);
-        }
-        catch (Exception)
-        {
-            ShowStatus("Please edit DCS-BIOS config", true);
-        }
+        );
     }
 
     private void ConfigButton_Click(object sender, RoutedEventArgs e)
@@ -365,7 +349,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         OnPropertyChanged(nameof(CanEdit));
     }
 
-    private void LoadUserSettings() => userOptions = UserOptionsStorage.Load() ?? new UserOptions();
+    private void LoadUserSettings()
+    {
+        var result = UserOptionsStorage.TryLoad();
+        if (result.IsSuccess)
+        {
+            userOptions = result.Value!;
+            _isLoadingSettings = true;
+            UpdateOptionsUIFromSettings();
+            _isLoadingSettings = false;
+        }
+        else
+        {
+            Logger.Warn($"Failed to load user options: {result.Error}");
+            userOptions = UserOptionsStorage.GetDefaultOptions();
+        }
+    }
     private void SaveUserSettings() => UserOptionsStorage.Save(userOptions);
 
     private void ShowStatus(string message, bool isError)
