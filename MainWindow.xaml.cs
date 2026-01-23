@@ -175,7 +175,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             if (cduCount == 0)
             {
                 GlobalAircraftSelectionGroup.Visibility = Visibility.Visible;
-                ShowStatus("No CDU detected. Please select aircraft from the panel above.", false);
+                ShowStatus("No CDU detected. Start the bridge to select aircraft.", false);
+                UpdateAircraftButtonState();
             }
             else
             {
@@ -222,39 +223,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void LoadConfig()
     {
-        try
-        {
-            var loaded = ConfigManager.Load();
-            if (loaded == null)
+        var result = ConfigManager.TryLoad();
+        result.Match(
+            onSuccess: cfg =>
             {
-                config = new DcsBiosConfig
-                {
-                    ReceiveFromIpUdp = "239.255.50.10",
-                    SendToIpUdp = "127.0.0.1",
-                    ReceivePortUdp = 5010,
-                    SendPortUdp = 7778,
-                    DcsBiosJsonLocation = string.Empty
-                };
-                ConfigManager.Save(config);
-                ShowStatus("Please edit DCS-BIOS config", true);
-            }
-            else
+                config = cfg;
+                Logger.Info("Configuration loaded successfully.");
+                return 0; // Unit equivalent
+            },
+            onFailure: error =>
             {
-                config = loaded;
-                if (!IsConfigValid())
-                {
-                    ShowStatus("Please edit DCS-BIOS config", true);
-                }
+                StatusMessage = error;
+                StatusIsError = true;
+                Logger.Warn($"Configuration load failed: {error}");
+                return 0;
             }
-        }
-        catch (ConfigException)
-        {
-            ShowStatus("Please edit DCS-BIOS config", true);
-        }
-        catch (Exception)
-        {
-            ShowStatus("Please edit DCS-BIOS config", true);
-        }
+        );
     }
 
     private void ConfigButton_Click(object sender, RoutedEventArgs e)
@@ -325,6 +309,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         UpdateUserOptionsFromUI();
         SaveUserSettings();
 
+        // Clear any previous error messages when starting
+        ShowStatus("Starting bridge...", false);
+        
         StartButton.IsEnabled = false;
         StartButton.Content = "Starting...";
 
@@ -333,6 +320,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             bridgeManager = new BridgeManager();
             OnPropertyChanged(nameof(IsBridgeRunning));
             OnPropertyChanged(nameof(CanEdit));
+            
+            var hasCdu = devices.Any(d => d.Cdu != null);
+            if (!hasCdu)
+            {
+                foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
+                {
+                    btn.IsEnabled = true;
+                }
+                ShowStatus("Please select an aircraft to continue...", false);
+            }
+            
             await bridgeManager.StartAsync(devices, userOptions, config);
 
             ShowStatus($"Bridge started successfully with {bridgeManager.Contexts?.Count ?? 0} device(s)!", false);
@@ -342,7 +340,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             OnPropertyChanged(nameof(CanEdit));
             Logger.Info("Bridge started successfully from WPF interface");
             
-            // Minimize window if the option is enabled
+            UpdateAircraftButtonState();
+            
             if (userOptions.MinimizeOnStart)
             {
                 WindowState = WindowState.Minimized;
@@ -354,6 +353,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             Logger.Error(ex, "Failed to start bridge");
             ShowStatus($"Failed to start bridge: {ex.Message}", true);
             ResetStartButton();
+            ResetAircraftSelection();
         }
     }
 
@@ -365,7 +365,41 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         OnPropertyChanged(nameof(CanEdit));
     }
 
-    private void LoadUserSettings() => userOptions = UserOptionsStorage.Load() ?? new UserOptions();
+    private void ResetAircraftSelection()
+    {
+        AircraftSelectionStatus.Text = "Select an aircraft:";
+        AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.White;
+        
+        UpdateAircraftButtonState();
+    }
+
+    private void UpdateAircraftButtonState()
+    {
+        var hasCdu = devices.Any(d => d.Cdu != null);
+        var shouldEnableButtons = IsBridgeRunning && !hasCdu;
+        
+        foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
+        {
+            btn.IsEnabled = shouldEnableButtons;
+        }
+    }
+
+    private void LoadUserSettings()
+    {
+        var result = UserOptionsStorage.TryLoad();
+        if (result.IsSuccess)
+        {
+            userOptions = result.Value!;
+            _isLoadingSettings = true;
+            UpdateOptionsUIFromSettings();
+            _isLoadingSettings = false;
+        }
+        else
+        {
+            Logger.Warn($"Failed to load user options: {result.Error}");
+            userOptions = UserOptionsStorage.GetDefaultOptions();
+        }
+    }
     private void SaveUserSettings() => UserOptionsStorage.Save(userOptions);
 
     private void ShowStatus(string message, bool isError)
@@ -387,7 +421,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        // Delegate to the common checkbox handler to keep behavior consistent
         OptionCheckBox_Changed(sender, e);
     }
 
