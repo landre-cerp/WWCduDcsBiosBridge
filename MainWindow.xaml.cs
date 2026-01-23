@@ -227,8 +227,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             onSuccess: cfg =>
             {
                 config = cfg;
-                StatusMessage = "Configuration loaded successfully.";
-                StatusIsError = false;
+                Logger.Info("Configuration loaded successfully.");
                 return 0; // Unit equivalent
             },
             onFailure: error =>
@@ -309,6 +308,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         UpdateUserOptionsFromUI();
         SaveUserSettings();
 
+        // Clear any previous error messages when starting
+        ShowStatus("Starting bridge...", false);
+        
         StartButton.IsEnabled = false;
         StartButton.Content = "Starting...";
 
@@ -338,6 +340,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             Logger.Error(ex, "Failed to start bridge");
             ShowStatus($"Failed to start bridge: {ex.Message}", true);
             ResetStartButton();
+            ResetAircraftSelection(); // Re-enable aircraft buttons on failure
         }
     }
 
@@ -347,6 +350,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         StartButton.Content = "Start Bridge";
         OnPropertyChanged(nameof(IsBridgeRunning));
         OnPropertyChanged(nameof(CanEdit));
+    }
+
+    private void ResetAircraftSelection()
+    {
+        AircraftSelectionStatus.Text = "Select an aircraft:";
+        AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.White;
+        
+        foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
+        {
+            btn.IsEnabled = true;
+        }
     }
 
     private void LoadUserSettings()
@@ -386,7 +400,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        // Delegate to the common checkbox handler to keep behavior consistent
         OptionCheckBox_Changed(sender, e);
     }
 
@@ -454,6 +467,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
                 bridgeManager = null;
                 OnPropertyChanged(nameof(IsBridgeRunning));
                 OnPropertyChanged(nameof(CanEdit));
+                
+                ResetAircraftSelection();
             }
             catch (Exception ex)
             {
