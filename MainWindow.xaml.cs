@@ -353,7 +353,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             Logger.Error(ex, "Failed to start bridge");
             ShowStatus($"Failed to start bridge: {ex.Message}", true);
             ResetStartButton();
-            ResetAircraftSelection(); // Re-enable aircraft buttons on failure
+            ResetAircraftSelection();
         }
     }
 

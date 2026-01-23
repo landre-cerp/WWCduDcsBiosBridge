@@ -45,8 +45,6 @@ public static class UserOptionsStorage
                 var saveResult = TrySave(defaultOptions);
                 if (!saveResult.IsSuccess)
                 {
-                    // Return success with default options even if save fails
-                    // This allows the app to continue with defaults
                     return Result<UserOptions>.Success(defaultOptions);
                 }
                 return Result<UserOptions>.Success(defaultOptions);
@@ -62,16 +60,13 @@ public static class UserOptionsStorage
         }
         catch (Exception ex)
         {
-            // Return default options on error to allow app to continue
             return Result<UserOptions>.Failure($"Error loading user options: {ex.Message}");
         }
     }
 
     public static void Save(UserOptions? options)
     {
-        var result = TrySave(options);
-        // Silently ignore save failures for user options
-        // This is backward compatible behavior
+        TrySave(options);
     }
 
     /// <summary>
