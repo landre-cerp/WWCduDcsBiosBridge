@@ -1,6 +1,7 @@
 <Window x:Class="WWCduDcsBiosBridge.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:WWCduDcsBiosBridge.UI"
         Title="MCDU DCS-BIOS Bridge Configuration" 
         Height="650" 
         MinHeight="600"
@@ -11,15 +12,6 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Window.Resources>
-        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="Green" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding StatusIsError}" Value="True">
-                    <Setter Property="Foreground" Value="Red" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </Window.Resources>
 
@@ -42,134 +34,17 @@
                    HorizontalAlignment="Center"/>
 
         <!-- Global Aircraft Selection (only visible when no CDU connected) -->
-        <GroupBox x:Name="GlobalAircraftSelectionGroup"
-                  Grid.Row="1"
-                  Header="Aircraft Selection"
-                  Padding="8"
-                  Margin="0,0,0,15"
-                  Visibility="Collapsed">
-            <StackPanel>
-                <TextBlock Text="No CDU connected. Select an aircraft to start the bridge:"
-                          TextWrapping="Wrap"
-                          Margin="0,0,0,8"
-                          Foreground="Gray"/>
-                
-                <TextBlock x:Name="AircraftSelectionStatus"
-                          Text="No aircraft selected"
-                          FontWeight="Bold"
-                          Foreground="Orange"
-                          Margin="0,0,0,8"/>
-
-                <Grid x:Name="GlobalAircraftButtonGrid">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Button x:Name="BtnA10C" Content="A-10C" Grid.Row="0" Grid.Column="0" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="A10C"/>
-                    <Button x:Name="BtnAH64D" Content="AH-64D" Grid.Row="0" Grid.Column="1" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="AH64D"/>
-                    <Button x:Name="BtnFA18C" Content="F/A-18C" Grid.Row="0" Grid.Column="2" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="FA18C"/>
-                    <Button x:Name="BtnF15E" Content="F-15E" Grid.Row="0" Grid.Column="3" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="F15E"/>
-                    <Button x:Name="BtnCH47Pilot" Content="CH-47F (PLT)" Grid.Row="1" Grid.Column="0" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="CH47_PLT"/>
-                    <Button x:Name="BtnCH47Copilot" Content="CH-47F (CPLT)" Grid.Row="1" Grid.Column="1" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="CH47_CPLT"/>
-                    <Button x:Name="BtnM2000C" Content="M-2000C" Grid.Row="1" Grid.Column="2" 
-                            Margin="3" Padding="8,4" Click="AircraftButton_Click" Tag="M2000C"/>
-                </Grid>
-            </StackPanel>
-        </GroupBox>
+        <ui:AircraftSelectionPanel x:Name="AircraftPanel"
+                                    Grid.Row="1"
+                                    Visibility="Collapsed"/>
 
         <!-- Tab Control -->
         <TabControl x:Name="MainTabControl" Grid.Row="2" Margin="0,0,0,15">
             <TabItem Header="Configuration" x:Name="ConfigurationTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="10" IsEnabled="{Binding CanEdit}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- First Row: Global Options and Application Options -->
-                        <GroupBox Header="Global Options" Padding="10" Margin="0,0,5,10" Grid.Row="0" Grid.Column="0">
-                            <StackPanel>
-                                <CheckBox x:Name="DisableLightingManagementCheckBox" 
-                                  Content="Disable Lighting Management"
-                                  ToolTip="Disable lighting management (for SimApp Pro users)"
-                                  Margin="0,5"
-                                  Checked="OptionCheckBox_Changed"
-                                  Unchecked="OptionCheckBox_Changed"/>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <GroupBox Header="Application Options" Padding="10" Margin="5,0,0,10" Grid.Row="0" Grid.Column="1">
-                            <StackPanel>
-                                <CheckBox x:Name="AutoStartCheckBox" 
-                                      Content="Auto-start bridge"
-                                      ToolTip="Automatically start the bridge when conditions are met"
-                                      Margin="0,5"
-                                      Checked="OptionCheckBox_Changed"
-                                      Unchecked="OptionCheckBox_Changed"/>
-                                <CheckBox x:Name="MinimizeOnStartCheckBox" 
-                                      Content="Minimize window on start"
-                                      ToolTip="Minimize the application window when the bridge starts"
-                                      Margin="0,5"
-                                      Checked="OptionCheckBox_Changed"
-                                      Unchecked="OptionCheckBox_Changed"/>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <!-- Second Row: A10C Options and CH-47F Options -->
-                        <GroupBox Header="A10C Options" Padding="10" Margin="0,0,5,0" Grid.Row="1" Grid.Column="0">
-                            <StackPanel>
-                                <CheckBox x:Name="DisplayBottomAlignedCheckBox" 
-                                          Content="Display Bottom Aligned"
-                                          ToolTip="Display is aligned to bottom of the screen"
-                                          Margin="0,5"
-                                          Checked="OptionCheckBox_Changed"
-                                          Unchecked="OptionCheckBox_Changed"/>
-
-                                <CheckBox x:Name="DisplayCMSCheckBox" 
-                                          Content="Display CMS"
-                                          ToolTip="Display CMS on the screen"
-                                          Margin="0,5"
-                                          Checked="OptionCheckBox_Changed"
-                                          Unchecked="OptionCheckBox_Changed"/>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <GroupBox Header="CH-47F Options" Padding="10" Margin="5,0,0,0" Grid.Row="1" Grid.Column="1">
-                            <StackPanel>
-                                <CheckBox x:Name="CH47LinkedBrightnessCheckBox" 
-                                      Content="Linked Background Brightness"
-                                      ToolTip="when ticked everything is bound to the CDU knob"
-                                      Margin="0,5"
-                                      Checked="OptionCheckBox_Changed"
-                                      Unchecked="OptionCheckBox_Changed"/>
-
-                                <CheckBox x:Name="CH47SingleCduSwitch" 
-                                      Content="Switches CDU display with seat position"
-                                      ToolTip="Useful if you have only 1 cdu"
-                                      Margin="0,5"
-                                      Checked="OptionCheckBox_Changed"
-                                      Unchecked="OptionCheckBox_Changed"/>
-                            </StackPanel>
-                        </GroupBox>
-                    </Grid>
+                    <ui:OptionsPanel x:Name="OptionsPanel" 
+                                     Margin="10" 
+                                     IsEnabled="{Binding CanEdit, RelativeSource={RelativeSource AncestorType=Window}}"/>
                 </ScrollViewer>
             </TabItem>
         </TabControl>
@@ -201,17 +76,12 @@
         </Border>
 
         <!-- Status Indicator -->
-        <TextBlock x:Name="StatusTextBlock"
-                   Grid.Row="4"
-                   Text="{Binding StatusMessage}" 
-                   Style="{StaticResource StatusTextStyle}"
-                   FontSize="13"
-                   Margin="0,10,0,0"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
-                   TextTrimming="CharacterEllipsis"
-                   MaxWidth="400"
-                   VerticalAlignment="Center"/>
+        <ui:StatusBarControl x:Name="StatusControl"
+                             Grid.Row="4"
+                             Margin="0,10,0,0"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             MaxWidth="400"/>
 
         <!-- Control Buttons Row -->
         <Grid Grid.Row="5" Margin="0,20,0,0">
