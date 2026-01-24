@@ -31,7 +31,7 @@ No configuration is needed - the behavior is entirely automatic based on detecti
 
 DIM / BRT buttons are now working and they impact the brightness of the display, like in DCS.
 Values are stored, so when you use 1 CDU and switch from pilot to copilot, brightness is kept.
-Same for the key and led backlight, controlled by the Knobs CDU1 and CDU2.
+Same for the key and LED backlight, controlled by the Knobs CDU1 and CDU2.
 
 
 If you don't want light management at all, and leave it to SimAppPro for example, tick the Global option that says that 🙂
