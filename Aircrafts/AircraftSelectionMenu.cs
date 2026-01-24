@@ -10,13 +10,15 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 internal class AircraftSelectionMenu : IDisposable
 {
     private readonly ICdu mcdu;
+    private readonly bool showSingleCh47Option;
     private bool isActive;
 
     public event EventHandler<AircraftSelectedEventArgs>? AircraftSelected;
 
-    public AircraftSelectionMenu(ICdu mcdu)
+    public AircraftSelectionMenu(ICdu mcdu, bool showSingleCh47Option = false)
     {
         this.mcdu = mcdu;
+        this.showSingleCh47Option = showSingleCh47Option;
     }
 
     public void Show()
@@ -40,17 +42,31 @@ internal class AircraftSelectionMenu : IDisposable
     {
         var version = AppVersionProvider.GetAppVersion();
 
-        mcdu.Output.Clear().Green()
+        var output = mcdu.Output.Clear().Green()
             .Line(0).Centered("DCSbios/WW Bridge")
             .NewLine().Large().Yellow().Centered("by Cerppo")
             .White()
             .LeftLabel(2, SupportedAircrafts.A10C_Name)
             .RightLabel(2, SupportedAircrafts.AH64D_Name)
-            .LeftLabel(3, SupportedAircrafts.FA18C_Name)
-            .RightLabel(3, $"{SupportedAircrafts.CH47_Name} (PLT)")
-            .LeftLabel(4, SupportedAircrafts.F15E_Name)
-            .RightLabel(4, $"{SupportedAircrafts.CH47_Name} (CPLT)")
-            .LeftLabel(5, SupportedAircrafts.M2000C_Name)
+            .LeftLabel(3, SupportedAircrafts.FA18C_Name);
+
+        if (showSingleCh47Option)
+        {
+            output.RightLabel(3, SupportedAircrafts.CH47_Name);
+        }
+        else
+        {
+            output.RightLabel(3, $"{SupportedAircrafts.CH47_Name} (PLT)");
+        }
+
+        output.LeftLabel(4, SupportedAircrafts.F15E_Name);
+        
+        if (!showSingleCh47Option)
+        {
+            output.RightLabel(4, $"{SupportedAircrafts.CH47_Name} (CPLT)");
+        }
+        
+        output.LeftLabel(5, SupportedAircrafts.M2000C_Name)
             .BottomLine().WriteLine($"v{version}");
         mcdu.RefreshDisplay();
     }

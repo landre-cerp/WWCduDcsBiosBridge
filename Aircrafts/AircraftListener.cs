@@ -161,7 +161,22 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
         if (mcdu != null)
         {
-            ShowStartupMessage();
+            // Load the correct font for this aircraft
+            var fontFile = GetFontFile();
+            try
+            {
+                using var fileStream = new FileStream(fontFile, FileMode.Open, FileAccess.Read);
+                using var reader = new StreamReader(fileStream);
+                var fontJson = reader.ReadToEnd();
+                mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(fontJson), true);
+                App.Logger.Info($"Loaded aircraft font: {fontFile}");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error(ex, $"Failed to load font file: {fontFile}");
+            }
+
+            InitMcduBrightness(options.DisableLightingManagement);
         }
     }
 

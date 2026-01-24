@@ -5,13 +5,27 @@
 ⚠️ 0.8.4 is the latest named release , AND IT DOES NOT CONTAIN CDU INFORMATION YET 
 So you need to download the most recent version. 
 
-## Single CDU 
+## Single vs Multiple CDUs
 
-If you only have 1 CDU, you can now use it for both pilot and co-pilot, by ticking the checkbox.
+The application automatically detects how many CDUs are connected and adjusts behavior accordingly:
+
+### Single CDU Setup
+If you only have **1 CDU connected**, the application will:
+- Display a single **"Ch-47F"** option in the aircraft selection menu (no PLT/CPLT choice)
+- Automatically switch the CDU display between pilot and co-pilot based on your seat position in DCS
+- Monitor the DCS seat position to seamlessly update the CDU display
 
 **YOU ABSOLUTELY NEED TO INSTALL DCS BIOS VERSION DCS-BIOS Nightly 2025-09-21 and Later**
-as the Seat position is not handled in previous versions
-<img width="900" height="154" alt="image" src="https://github.com/user-attachments/assets/580f88ae-8b9d-419d-900d-1df5249cd680" />
+as the seat position is not handled in previous versions.
+
+### Multiple CDU Setup  
+If you have **2 or more CDUs connected**, the application will:
+- Display both **"Ch-47F (PLT)"** and **"Ch-47F (CPLT)"** options in the aircraft selection menu
+- Require you to manually select the role for each CDU
+- Keep each CDU fixed to its selected role (pilot or co-pilot) without automatic switching
+
+No configuration is needed - the behavior is entirely automatic based on detection at startup.
+
 
 
 

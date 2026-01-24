@@ -131,6 +131,8 @@ public class DeviceManager
 
     private static void InitializeCdu(ICdu mcdu)
     {
+        // Load A-10C font as default for menu display
+        // Will be replaced by aircraft-specific font when listener starts
         using var fileStream = new FileStream("resources/a10c-font-21x31.json", FileMode.Open, FileAccess.Read);
         using var reader = new StreamReader(fileStream);
         var fontJson = reader.ReadToEnd();

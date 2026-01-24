@@ -47,6 +47,13 @@ public class BridgeManager : IDisposable
             // Create device contexts for all devices
             Contexts = new List<DeviceContext>();
             
+            // Count CDUs and set Ch47CduSwitchWithSeat option automatically
+            var cduCount = devices.Count(d => d.Cdu != null);
+            if (userOptions != null)
+            {
+                userOptions.Ch47CduSwitchWithSeat = (cduCount == 1);
+            }
+            
             foreach (var deviceInfo in devices)
             {
                 DeviceContext ctx;
@@ -71,7 +78,7 @@ public class BridgeManager : IDisposable
                 throw new InvalidOperationException("No valid devices found.");
             }
 
-            var cduCount = Contexts.Count(c => c.IsCduDevice);
+            cduCount = Contexts.Count(c => c.IsCduDevice);
             var frontpanelCount = Contexts.Count(c => c.IsFrontpanelDevice);
             
             Logger.Info($"Created contexts for {cduCount} CDU device(s) and {frontpanelCount} Frontpanel device(s)");
