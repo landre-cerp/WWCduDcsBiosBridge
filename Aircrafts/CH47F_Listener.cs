@@ -184,40 +184,37 @@ internal class CH47F_Listener : AircraftListener
             refresh = true;
         }
 
-        if (e.Address == _PLT_CDU_BRT!.Address)
+        if (e.Address == _PLT_CDU_BRT!.Address && (int)_PLT_CDU_BRT.GetUIntValue(e.Data) == 1)
         {
-            if ((int)_PLT_CDU_BRT.GetUIntValue(e.Data) == 1) 
-            {
-                _pilot_cdu_brightness = Math.Min(_pilot_cdu_brightness + BRT_STEP, 100);
-                refresh = true;
-            }
+            _pilot_cdu_brightness = Math.Min(_pilot_cdu_brightness+ BRT_STEP, 100);
+            refresh = true;
         }
 
-        if (e.Address == _PLT_CDU_DIM!.Address)
+
+
+
+        if (e.Address == _PLT_CDU_DIM!.Address && (int)_PLT_CDU_DIM.GetUIntValue(e.Data) == 1)
         {
-            if ((int)_PLT_CDU_DIM.GetUIntValue(e.Data) == 1)
-            {
-                _pilot_cdu_brightness = Math.Max(0, _pilot_cdu_brightness - BRT_STEP);
-                refresh = true;
-            }
+            _pilot_cdu_brightness = Math.Max(0, _pilot_cdu_brightness - BRT_STEP);
+            refresh = true;
         }
 
-        if (e.Address == _CPLT_CDU_BRT!.Address)
+
+
+
+        if (e.Address == _CPLT_CDU_BRT!.Address && (int)_CPLT_CDU_BRT.GetUIntValue(e.Data) == 1)
         {
-            if ((int)_CPLT_CDU_BRT.GetUIntValue(e.Data) == 1)
-            {
-                _copilot_cdu_brightness = Math.Min(_copilot_cdu_brightness + BRT_STEP, 100);
-                refresh = true;
-            }
+            _copilot_cdu_brightness = Math.Min(_copilot_cdu_brightness + BRT_STEP, 100);
+            refresh = true;
         }
 
-        if (e.Address == _CPLT_CDU_DIM!.Address)
+
+
+
+        if (e.Address == _CPLT_CDU_DIM!.Address && (int)_CPLT_CDU_DIM.GetUIntValue(e.Data) == 1)
         {
-            if ((int)_CPLT_CDU_DIM.GetUIntValue(e.Data) == 1)
-            {
-                _copilot_cdu_brightness = Math.Max(0, _copilot_cdu_brightness - BRT_STEP);
-                refresh = true;
-            }
+            _copilot_cdu_brightness = Math.Max(0, _copilot_cdu_brightness - BRT_STEP);
+            refresh = true;
         }
         if (e.Address == _PLT_CDU_BACKLIGHT!.Address)
         {
