@@ -88,8 +88,16 @@ public class BridgeManager : IDisposable
             {
                 // If there are CDU devices, wait for selection on ANY CDU (first one wins)
                 Logger.Info("Waiting for aircraft selection on any CDU device...");
+                
+                // Use a more efficient polling strategy with exponential backoff
+                int delayMs = 50;
+                const int maxDelayMs = 500;
                 while (!cduContexts.Any(c => c.IsSelectedAircraft))
-                    await Task.Delay(100);
+                {
+                    await Task.Delay(delayMs);
+                    if (delayMs < maxDelayMs)
+                        delayMs = Math.Min(delayMs * 2, maxDelayMs);
+                }
                 
                 // First CDU to select wins - use that selection globally
                 selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
@@ -140,7 +148,7 @@ public class BridgeManager : IDisposable
     /// <summary>
     /// Stops the bridge and cleans up resources
     /// </summary>
-    public async Task StopAsync()
+    public Task StopAsync()
     {
         try
         {
@@ -158,7 +166,7 @@ public class BridgeManager : IDisposable
             throw;
         }
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     private void InitializeDcsBios(DcsBiosConfig config)
@@ -232,7 +240,13 @@ public class BridgeManager : IDisposable
             {
                 try
                 {
-                    StopAsync().GetAwaiter().GetResult();
+                    // Perform synchronous cleanup to avoid blocking in Dispose
+                    // StopAsync is now effectively synchronous
+                    dcsBios?.Shutdown();
+                    dcsBios = null;
+                    DisposeContexts();
+                    IsStarted = false;
+                    Logger.Info("Bridge stopped during dispose");
                 }
                 catch (Exception ex)
                 {

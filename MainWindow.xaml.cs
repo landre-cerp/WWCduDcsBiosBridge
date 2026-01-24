@@ -61,7 +61,21 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
         LoadConfig();
         LoadUserSettings();
-        _ = DetectDevicesAsync();
+        
+        // Start device detection with proper error handling
+        Task.Run(async () =>
+        {
+            try
+            {
+                await DetectDevicesAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unhandled error in device detection");
+                Dispatcher.Invoke(() => ShowStatus($"Device detection failed: {ex.Message}", true));
+            }
+        });
+        
         UpdateState();
         Loaded += MainWindow_Loaded;
     }
