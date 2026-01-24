@@ -24,11 +24,18 @@ internal class DeviceContext : IDisposable
     public bool IsSelectedAircraft { get => isSelectedAircraft; }
     public bool Pilot { get; private set; } = true;
     
+    /// <summary>
+    /// Gets the aircraft listener for this context.
+    /// May be shared with other frontpanel-only contexts.
+    /// </summary>
+    public AircraftListener? Listener => listener;
+    
     private readonly DcsBiosConfig? config;
     private readonly UserOptions options;
     private readonly AircraftSelectionMenu? menu;
     private AircraftListener? listener;
     private bool isSelectedAircraft = false;
+    private bool ownsListener = false; // Track if this context owns the listener
 
     /// <summary>
     /// Creates a context for a CDU device with aircraft selection menu
@@ -92,12 +99,14 @@ internal class DeviceContext : IDisposable
                 // CDU device: create listener with CDU display and frontpanel hub
                 listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, Mcdu!, options, frontpanelHub);
                 listener.Start();
+                ownsListener = true;
             }
             else if (IsFrontpanelDevice)
             {
                 // Frontpanel-only device: create listener without CDU (pass null for mcdu, pass hub)
                 listener = new AircraftListenerFactory().CreateListener(SelectedAircraft, null, options, frontpanelHub);
                 listener.Start();
+                ownsListener = true;
             }
         }
         catch (NotSupportedException ex)
@@ -109,10 +118,23 @@ internal class DeviceContext : IDisposable
             }
         }
     }
+    
+    /// <summary>
+    /// Sets a shared listener for this context (used when multiple frontpanel devices share one listener)
+    /// </summary>
+    public void SetSharedListener(AircraftListener? sharedListener)
+    {
+        listener = sharedListener;
+        ownsListener = false;
+    }
 
     public void Dispose()
     {
         menu?.Dispose();
-        listener?.Dispose();
+        // Only dispose the listener if this context owns it
+        if (ownsListener)
+        {
+            listener?.Dispose();
+        }
     }
 }

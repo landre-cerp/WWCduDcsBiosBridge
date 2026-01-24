@@ -160,9 +160,29 @@ public class BridgeManager : IDisposable
             var frontpanelHub = BuildFrontpanelHub(Contexts);
             Logger.Info($"Frontpanel hub created with {frontpanelHub.Count} device(s)");
 
-            // Start device bridges - pass hub to all contexts
-            foreach (var ctx in Contexts)
+            // Start device bridges
+            // Important: For frontpanel-only devices, create only ONE listener shared by all devices
+            // to avoid duplicate DCS-BIOS event handlers
+            var cduContextsList = Contexts.Where(c => c.IsCduDevice).ToList();
+            var frontpanelOnlyContexts = Contexts.Where(c => c.IsFrontpanelDevice && !c.IsCduDevice).ToList();
+            
+            // Start CDU devices - each CDU gets its own listener with the shared frontpanel hub
+            foreach (var ctx in cduContextsList)
                 ctx.StartBridge(frontpanelHub);
+            
+            // Start frontpanel-only devices - all share a single listener
+            if (frontpanelOnlyContexts.Any())
+            {
+                // Use the first frontpanel context as the "primary" to create the shared listener
+                var primaryFrontpanelContext = frontpanelOnlyContexts.First();
+                primaryFrontpanelContext.StartBridge(frontpanelHub);
+                
+                // All other frontpanel contexts share the same listener
+                for (int i = 1; i < frontpanelOnlyContexts.Count; i++)
+                {
+                    frontpanelOnlyContexts[i].SetSharedListener(primaryFrontpanelContext.Listener);
+                }
+            }
 
             IsStarted = true;
             Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
