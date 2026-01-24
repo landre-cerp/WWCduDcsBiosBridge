@@ -137,10 +137,6 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
                 }
             }
         }
-        else
-        {
-            App.Logger.Info("No frontpanel devices connected");
-        }
     }
 
     public void Start()
