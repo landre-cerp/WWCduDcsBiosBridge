@@ -8,35 +8,49 @@
             
             <CheckBox Content="Align CDU Display to Bottom"
                      IsChecked="{Binding DisplayBottomAligned, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2"/>
             
             <CheckBox Content="Display CMS on CDU"
                      IsChecked="{Binding DisplayCMS, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2,0,10"/>
 
             <TextBlock Text="CH-47F Options:" FontWeight="Bold" Margin="0,5,0,5"/>
             
             <CheckBox Content="Link Screen Brightness to CDU Knob"
                      IsChecked="{Binding LinkedScreenBrightness, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2"/>
             
             <CheckBox Content="Switch CDU Display with Seat"
                      IsChecked="{Binding Ch47CduSwitchWithSeat, Mode=TwoWay}"
                      ToolTip="Enable if you only have one CDU and want it to switch between pilot/co-pilot"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2,0,10"/>
 
             <TextBlock Text="General Options:" FontWeight="Bold" Margin="0,5,0,5"/>
             
             <CheckBox Content="Disable Lighting Management (for SimApp Pro users)"
                      IsChecked="{Binding DisableLightingManagement, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2"/>
             
             <CheckBox Content="Auto-Start Bridge when Ready"
                      IsChecked="{Binding AutoStart, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2"/>
             
             <CheckBox Content="Minimize Window on Start"
                      IsChecked="{Binding MinimizeOnStart, Mode=TwoWay}"
+                     Checked="CheckBox_Changed"
+                     Unchecked="CheckBox_Changed"
                      Margin="0,2"/>
         </StackPanel>
     </GroupBox>

@@ -57,6 +57,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
         // Wire up event handlers for new UserControls
         AircraftPanel.AircraftSelected += (sender, selection) => OnGlobalAircraftSelected(selection);
+        OptionsPanel.SettingsChanged += (sender, args) => SaveUserSettings();
 
         LoadConfig();
         LoadUserSettings();

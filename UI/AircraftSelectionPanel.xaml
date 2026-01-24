@@ -50,13 +50,13 @@
                         CommandParameter="F15E"
                         IsEnabled="{Binding ButtonsEnabled}"/>
                 
-                <Button Content="CH-47 Pilot" Grid.Row="1" Grid.Column="0" 
+                <Button Content="CH-47F (PLT)" Grid.Row="1" Grid.Column="0" 
                         Margin="3" Padding="8,4"
                         Command="{Binding SelectAircraftCommand}"
                         CommandParameter="CH47_PLT"
                         IsEnabled="{Binding ButtonsEnabled}"/>
                 
-                <Button Content="CH-47 Co-Pilot" Grid.Row="1" Grid.Column="1" 
+                <Button Content="CH-47F (CPLT)" Grid.Row="1" Grid.Column="1" 
                         Margin="3" Padding="8,4"
                         Command="{Binding SelectAircraftCommand}"
                         CommandParameter="CH47_CPLT"
