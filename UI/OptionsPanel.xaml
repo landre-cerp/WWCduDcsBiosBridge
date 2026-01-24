@@ -24,13 +24,6 @@
                      IsChecked="{Binding LinkedScreenBrightness, Mode=TwoWay}"
                      Checked="CheckBox_Changed"
                      Unchecked="CheckBox_Changed"
-                     Margin="0,2"/>
-            
-            <CheckBox Content="Switch CDU Display with Seat"
-                     IsChecked="{Binding Ch47CduSwitchWithSeat, Mode=TwoWay}"
-                     ToolTip="Enable if you only have one CDU and want it to switch between pilot/co-pilot"
-                     Checked="CheckBox_Changed"
-                     Unchecked="CheckBox_Changed"
                      Margin="0,2,0,10"/>
 
             <TextBlock Text="General Options:" FontWeight="Bold" Margin="0,5,0,5"/>

@@ -38,7 +38,7 @@ internal class DeviceContext : IDisposable
         Mcdu = mcdu;
         this.options = options;
         this.config = config;
-        menu = new AircraftSelectionMenu(mcdu);
+        menu = new AircraftSelectionMenu(mcdu, options.Ch47CduSwitchWithSeat);
         menu.AircraftSelected += OnAircraftSelected;
     }
 
