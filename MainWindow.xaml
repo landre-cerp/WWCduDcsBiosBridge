@@ -44,7 +44,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ui:OptionsPanel x:Name="OptionsPanel" 
                                      Margin="10" 
-                                     IsEnabled="{Binding CanEdit}"/>
+                                     IsEnabled="{Binding CanEdit, RelativeSource={RelativeSource AncestorType=Window}}"/>
                 </ScrollViewer>
             </TabItem>
         </TabControl>
