@@ -73,18 +73,18 @@ public class DeviceManager
                 try
                 {
                     Logger.Info($"About to connect frontpanel device: {deviceId.Description}");
-                    var fcu = await Task.Run(() => FrontpanelFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    var frontpanel = await Task.Run(() => FrontpanelFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
                     
-                    if (fcu == null)
+                    if (frontpanel == null)
                     {
                         Logger.Error($"FrontpanelFactory.ConnectLocal returned null for device {deviceId.Description}");
                         throw new InvalidOperationException($"Failed to connect to frontpanel device: ConnectLocal returned null");
                     }
                     
-                    Logger.Info($"Frontpanel device connected: IsConnected={fcu.IsConnected}, Type={fcu.GetType().Name}");
+                    Logger.Info($"Frontpanel device connected: IsConnected={frontpanel.IsConnected}, Type={frontpanel.GetType().Name}");
                     
                     var displayName = GetDeviceName(deviceId);
-                    var deviceInfo = new DeviceInfo(fcu, deviceId, displayName);
+                    var deviceInfo = new DeviceInfo(frontpanel, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
                     currentIndex++;
                     Logger.Info($"Successfully added frontpanel device: {displayName}");
