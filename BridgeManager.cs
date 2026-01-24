@@ -161,8 +161,28 @@ public class BridgeManager : IDisposable
             Logger.Info($"Frontpanel hub created with {frontpanelHub.Count} device(s)");
 
             // Start device bridges - pass hub to all contexts
+            // We ensure only ONE listener drives the frontpanel hub to avoid race conditions and double-updates.
+            // Priority: First CDU context, otherwise First Frontpanel context.
+            // Since all contexts use the same shared FrontpanelHub instance which contains ALL connected frontpanels,
+            // we only need one listener to feed it.
+            var masterContext = Contexts.FirstOrDefault(c => c.IsCduDevice) ?? Contexts.FirstOrDefault(c => c.IsFrontpanelDevice);
+            var emptyHub = FrontpanelHub.CreateEmpty();
+
             foreach (var ctx in Contexts)
-                ctx.StartBridge(frontpanelHub);
+            {
+                if (ctx == masterContext)
+                {
+                    // This listener will drive all frontpanels in the hub
+                    Logger.Info($"Starting bridge for master context (driving frontpanels): {ctx.SelectedAircraft?.AircraftId}");
+                    ctx.StartBridge(frontpanelHub);
+                }
+                else
+                {
+                    // This listener will allow CDU to work but won't touch frontpanels
+                    // For pure frontpanel contexts that are not master, this listener runs but writes to nowhere
+                    ctx.StartBridge(emptyHub);
+                }
+            }
 
             IsStarted = true;
             Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
