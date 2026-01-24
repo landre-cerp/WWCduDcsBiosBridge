@@ -239,22 +239,19 @@ internal class CH47F_Listener : AircraftListener
             seatPosition = (int)_SEAT_POSITION.GetUIntValue(e.Data);
         }
 
-        if (!options.DisableLightingManagement)
+        if (!options.DisableLightingManagement && refresh == true)
         {
             if (seatPosition == PILOT_SEAT)
             {
                 mcdu.DisplayBrightnessPercent = _pilot_cdu_brightness;
                 mcdu.BacklightBrightnessPercent = _pilot_key_brightness;
                 mcdu.LedBrightnessPercent = _pilot_led_brightness;
-
             }
             else
             {
                 mcdu.DisplayBrightnessPercent = _copilot_cdu_brightness;
                 mcdu.BacklightBrightnessPercent = _copilot_key_brightness;
                 mcdu.LedBrightnessPercent = _copilot_led_brightness;
-
-
             }
         }
 
