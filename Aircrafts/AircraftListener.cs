@@ -14,7 +14,7 @@ namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 {
-    private static readonly double _TICK_DISPLAY = 200;
+    private static readonly double _TICK_DISPLAY = 100;
     private readonly Timer _DisplayCDUTimer;
     protected ICdu? mcdu;
     protected FrontpanelHub frontpanelHub;

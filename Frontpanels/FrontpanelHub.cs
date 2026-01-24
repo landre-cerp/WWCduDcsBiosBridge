@@ -13,6 +13,7 @@ public class FrontpanelHub
 {
     private readonly List<IFrontpanelAdapter> _adapters;
     private readonly IFrontpanelCapabilities _capabilities;
+    private readonly object _lock = new();
 
     /// <summary>
     /// Gets the collection of frontpanel adapters.
@@ -48,15 +49,18 @@ public class FrontpanelHub
     {
         if (state == null) return;
 
-        foreach (var adapter in _adapters.Where(a => a.IsConnected))
+        lock (_lock)
         {
-            try
+            foreach (var adapter in _adapters.Where(a => a.IsConnected))
             {
-                adapter.UpdateDisplay(state);
-            }
-            catch (Exception ex)
-            {
-                App.Logger.Error(ex, $"Failed to update display on {adapter.DisplayName}");
+                try
+                {
+                    adapter.UpdateDisplay(state);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.Error(ex, $"Failed to update display on {adapter.DisplayName}");
+                }
             }
         }
     }
@@ -68,15 +72,18 @@ public class FrontpanelHub
     {
         if (leds == null) return;
 
-        foreach (var adapter in _adapters.Where(a => a.IsConnected))
+        lock (_lock)
         {
-            try
+            foreach (var adapter in _adapters.Where(a => a.IsConnected))
             {
-                adapter.UpdateLeds(leds);
-            }
-            catch (Exception ex)
-            {
-                App.Logger.Error(ex, $"Failed to update LEDs on {adapter.DisplayName}");
+                try
+                {
+                    adapter.UpdateLeds(leds);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.Error(ex, $"Failed to update LEDs on {adapter.DisplayName}");
+                }
             }
         }
     }
@@ -86,15 +93,18 @@ public class FrontpanelHub
     /// </summary>
     public void SetBrightness(byte panelBacklight, byte lcdBacklight, byte ledBacklight)
     {
-        foreach (var adapter in _adapters.Where(a => a.IsConnected))
+        lock (_lock)
         {
-            try
+            foreach (var adapter in _adapters.Where(a => a.IsConnected))
             {
-                adapter.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
-            }
-            catch (Exception ex)
-            {
-                App.Logger.Error(ex, $"Failed to set brightness on {adapter.DisplayName}");
+                try
+                {
+                    adapter.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.Error(ex, $"Failed to set brightness on {adapter.DisplayName}");
+                }
             }
         }
     }

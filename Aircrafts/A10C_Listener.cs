@@ -36,11 +36,11 @@ internal class A10C_Listener : AircraftListener
     private DCSBIOSOutput? _ALTITUDE_1000ft;
     private DCSBIOSOutput? _ALTITUDE_100ft;
 
-    private int? speed;
-    private int? heading;
-    private int? altitude;
-    private int? verticalSpeed;
-    private int? baroPressure;
+    private int speed = 0;
+    private int heading = 0;
+    private int altitude = 0;
+    private int verticalSpeed = 0;
+    private int baroPressure = 0;
     private int[] pressureDigits = new int[4];
     private int[] altitudeDigits = new int[3];
 
@@ -95,7 +95,7 @@ internal class A10C_Listener : AircraftListener
     {
         try
         {
-            bool refresh = false;
+            bool refresh_cdu = false;
             bool refresh_frontpanel = false;
             UpdateCounter(e.Address, e.Data);
 
@@ -105,7 +105,7 @@ internal class A10C_Listener : AircraftListener
                 {
                     mcdu.BacklightBrightnessPercent =
                         (int)(_CONSOLE_BRT!.GetUIntValue(e.Data) * 100 / _CONSOLE_BRT.MaxValue);
-                    refresh = true;
+                    refresh_cdu = true;
                 }
 
                 if (e.Address == _CDU_BRT!.Address)
@@ -115,8 +115,7 @@ internal class A10C_Listener : AircraftListener
                         mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent - BRT_STEP);
                     else if (val == 2)
                         mcdu.DisplayBrightnessPercent = Math.Min(100, mcdu.DisplayBrightnessPercent + BRT_STEP);
-                    // Always refresh Brightness. 
-                    refresh = true;
+                    refresh_cdu = true;
                 }
             }
             
@@ -137,22 +136,22 @@ internal class A10C_Listener : AircraftListener
                 if (e.Address == _CANOPY_LED!.Address)
                 {
                     mcdu.Leds.Fm2 = _CANOPY_LED!.GetUIntValue(e.Data) == 1;
-                    refresh = true;
+                    refresh_cdu = true;
                 }
                 if (e.Address == _NOSE_SW_GREENLIGHT!.Address)
                 {
                     mcdu.Leds.Ind = _NOSE_SW_GREENLIGHT!.GetUIntValue(e.Data) == 1;
-                    refresh = true;
+                    refresh_cdu = true;
                 }
                 if (e.Address == _GUN_READY!.Address)
                 {
                     mcdu.Leds.Fm1 = _GUN_READY.GetUIntValue(e.Data) == 1;
-                    refresh = true;
+                    refresh_cdu = true;
                 }
                 if (e.Address == _MASTER_CAUTION!.Address)
                 {
                     mcdu.Leds.Fail = _MASTER_CAUTION.GetUIntValue(e.Data) == 1;
-                    refresh = true;
+                    refresh_cdu = true;
                 }
             }
             
@@ -236,7 +235,7 @@ internal class A10C_Listener : AircraftListener
                 }
             }
 
-            if (refresh && mcdu != null)
+            if (refresh_cdu && mcdu != null)
             {
                 if (!options.DisableLightingManagement) mcdu.RefreshBrightnesses();
                 mcdu.RefreshLeds();
