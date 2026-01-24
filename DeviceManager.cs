@@ -78,7 +78,7 @@ public class DeviceManager
                     if (fcu == null)
                     {
                         Logger.Error($"FrontpanelFactory.ConnectLocal returned null for device {deviceId.Description}");
-                        throw new InvalidOperationException($"Failed to connect to FCU device: ConnectLocal returned null");
+                        throw new InvalidOperationException($"Failed to connect to frontpanel device: ConnectLocal returned null");
                     }
                     
                     Logger.Info($"Frontpanel device connected: IsConnected={fcu.IsConnected}, Type={fcu.GetType().Name}");
