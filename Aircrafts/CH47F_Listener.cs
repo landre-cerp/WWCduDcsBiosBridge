@@ -188,7 +188,7 @@ internal class CH47F_Listener : AircraftListener
         {
             if ((int)_PLT_CDU_BRT.GetUIntValue(e.Data) == 1) 
             {
-                _pilot_cdu_brightness = Math.Min(_pilot_cdu_brightness+ BRT_STEP, 100);
+                _pilot_cdu_brightness = Math.Min(_pilot_cdu_brightness + BRT_STEP, 100);
                 refresh = true;
             }
         }
