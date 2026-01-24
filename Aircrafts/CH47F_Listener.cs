@@ -13,6 +13,7 @@ internal class CH47F_Listener : AircraftListener
 {
     protected const int MAX_CDU_LINES = 14;
 
+    private const int BRT_STEP = 5;
     // Buffers for CDU lines and colors
     private readonly DCSBIOSOutput?[] pilotCduLines = new DCSBIOSOutput?[MAX_CDU_LINES];
     private readonly DCSBIOSOutput?[] pilotCduColorLines = new DCSBIOSOutput?[MAX_CDU_LINES];
@@ -21,8 +22,25 @@ internal class CH47F_Listener : AircraftListener
     private readonly DCSBIOSOutput?[] copilotCduColorLines = new DCSBIOSOutput?[MAX_CDU_LINES];
 
     private DCSBIOSOutput? _MSTR_CAUTION;
-    private DCSBIOSOutput? _CDU_BACKLIGHT;
+    private DCSBIOSOutput? _PLT_CDU_BACKLIGHT;
+    private DCSBIOSOutput? _CPLT_CDU_BACKLIGHT;
     private DCSBIOSOutput? _SEAT_POSITION;
+
+    private DCSBIOSOutput? _PLT_CDU_BRT;
+    private DCSBIOSOutput? _CPLT_CDU_BRT;
+
+    private DCSBIOSOutput? _PLT_CDU_DIM;
+    private DCSBIOSOutput? _CPLT_CDU_DIM;
+
+    private int _pilot_cdu_brightness = 100;
+    private int _copilot_cdu_brightness = 100;
+
+    private int _pilot_key_brightness = 100;
+    private int _copilot_key_brightness = 100;
+
+    private int _pilot_led_brightness = 100;
+    private int _copilot_led_brightness = 100;
+
 
     // Which address maps to which line
     private Dictionary<uint, int>? pilotLineMap;
@@ -77,8 +95,14 @@ internal class CH47F_Listener : AircraftListener
         }
 
         _MSTR_CAUTION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_MASTER_CAUTION_LIGHT");
-        _CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_INT_LIGHT_CDU");
+        _PLT_CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_INT_LIGHT_CDU");
+        _CPLT_CDU_BACKLIGHT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CPLT_INT_LIGHT_CDU");
         _SEAT_POSITION = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("SEAT_POSITION");
+
+        _PLT_CDU_BRT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_CDU_BRT");
+        _CPLT_CDU_BRT = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CPLT_CDU_BRT");
+        _PLT_CDU_DIM = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("PLT_CDU_DIM");
+        _CPLT_CDU_DIM = DCSBIOSControlLocator.GetUIntDCSBIOSOutput("CPLT_CDU_DIM");
 
         pilotLineMap = new Dictionary<uint, int>();
         pilotColorLines = new Dictionary<uint, int>();
@@ -160,24 +184,74 @@ internal class CH47F_Listener : AircraftListener
             refresh = true;
         }
 
+        if (e.Address == _PLT_CDU_BRT!.Address && (int)_PLT_CDU_BRT.GetUIntValue(e.Data) == 1)
+        {
+            _pilot_cdu_brightness = Math.Min(_pilot_cdu_brightness+ BRT_STEP, 100);
+            refresh = true;
+        }
+
+
+
+
+        if (e.Address == _PLT_CDU_DIM!.Address && (int)_PLT_CDU_DIM.GetUIntValue(e.Data) == 1)
+        {
+            _pilot_cdu_brightness = Math.Max(0, _pilot_cdu_brightness - BRT_STEP);
+            refresh = true;
+        }
+
+
+
+
+        if (e.Address == _CPLT_CDU_BRT!.Address && (int)_CPLT_CDU_BRT.GetUIntValue(e.Data) == 1)
+        {
+            _copilot_cdu_brightness = Math.Min(_copilot_cdu_brightness + BRT_STEP, 100);
+            refresh = true;
+        }
+
+
+
+
+        if (e.Address == _CPLT_CDU_DIM!.Address && (int)_CPLT_CDU_DIM.GetUIntValue(e.Data) == 1)
+        {
+            _copilot_cdu_brightness = Math.Max(0, _copilot_cdu_brightness - BRT_STEP);
+            refresh = true;
+        }
+        if (e.Address == _PLT_CDU_BACKLIGHT!.Address)
+        {
+            int bright = (int)_PLT_CDU_BACKLIGHT.GetUIntValue(e.Data);
+            bright = bright * 100 / 65536;
+            _pilot_key_brightness = bright;
+            _pilot_led_brightness = bright;
+            refresh = true;
+        }
+        if (e.Address == _CPLT_CDU_BACKLIGHT!.Address)
+        {
+            int bright = (int)_CPLT_CDU_BACKLIGHT.GetUIntValue(e.Data);
+            bright = bright * 100 / 65536;
+            _copilot_key_brightness = bright;
+            _copilot_led_brightness = bright;
+            refresh = true;
+        }
+
+
         if (options.Ch47CduSwitchWithSeat && e.Address == _SEAT_POSITION?.Address)
         {
             seatPosition = (int)_SEAT_POSITION.GetUIntValue(e.Data);
         }
 
-        if (!options.DisableLightingManagement)
+        if (!options.DisableLightingManagement && refresh == true)
         {
-            if (e.Address == _CDU_BACKLIGHT!.Address)
+            if (seatPosition == PILOT_SEAT)
             {
-                int bright = (int)_CDU_BACKLIGHT.GetUIntValue(e.Data);
-                bright = bright * 100 / 65536;
-                mcdu.BacklightBrightnessPercent = bright;
-                if (options.LinkedScreenBrightness)
-                {
-                    mcdu.DisplayBrightnessPercent = bright;
-                }
-                mcdu.LedBrightnessPercent = bright;
-                refresh = true;
+                mcdu.DisplayBrightnessPercent = _pilot_cdu_brightness;
+                mcdu.BacklightBrightnessPercent = _pilot_key_brightness;
+                mcdu.LedBrightnessPercent = _pilot_led_brightness;
+            }
+            else
+            {
+                mcdu.DisplayBrightnessPercent = _copilot_cdu_brightness;
+                mcdu.BacklightBrightnessPercent = _copilot_key_brightness;
+                mcdu.LedBrightnessPercent = _copilot_led_brightness;
             }
         }
 

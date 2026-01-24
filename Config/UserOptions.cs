@@ -15,11 +15,6 @@ public class UserOptions
     public bool DisplayCMS { get; set; } 
     
     /// <summary>
-    /// Gets or sets whether the CH-47F background brightness should be linked to the CDU knob.
-    /// </summary>
-    public bool LinkedScreenBrightness { get; set; }
-    
-    /// <summary>
     /// Gets or sets whether lighting management should be disabled (for SimApp Pro users).
     /// </summary>
     public bool DisableLightingManagement { get; set; }
