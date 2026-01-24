@@ -6,7 +6,7 @@ using WwDevicesDotNet;
 namespace WWCduDcsBiosBridge;
 
 /// <summary>
-/// Manages CDU and FCU device detection and connection
+/// Manages CDU and FrontPanel device detection and connection
 /// </summary>
 public class DeviceManager
 {
@@ -18,7 +18,7 @@ public class DeviceManager
     public sealed record DeviceDetectionProgress(int Current, int Total, string Message);
 
     /// <summary>
-    /// Asynchronously detects and connects to all available CDU and FCU devices with progress reporting
+    /// Asynchronously detects and connects to all available CDU and FrontPanel devices with progress reporting
     /// </summary>
     public static async Task<List<DeviceInfo>> DetectAndConnectDevicesAsync(
         IProgress<DeviceDetectionProgress>? progress = null, 
@@ -32,10 +32,10 @@ public class DeviceManager
             // Detect CDU devices
             var cduDeviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
             
-            // Detect FCU devices
-            var fcuDeviceIdentifiers = await Task.Run(() => FrontpanelFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
+            // Detect Frontpanel devices
+            var frontpanelDeviceIdentifiers = await Task.Run(() => FrontpanelFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
 
-            var totalDevices = cduDeviceIdentifiers.Count + fcuDeviceIdentifiers.Count;
+            var totalDevices = cduDeviceIdentifiers.Count + frontpanelDeviceIdentifiers.Count;
             progress?.Report(new DeviceDetectionProgress(0, totalDevices, totalDevices == 0 ? "No devices found" : $"Found {totalDevices} device(s). Connecting..."));
 
             int currentIndex = 0;
@@ -64,53 +64,36 @@ public class DeviceManager
                 }
             }
 
-            // Connect to FCU devices
-            for (int i = 0; i < fcuDeviceIdentifiers.Count; i++)
+            // Connect to frontpanel devices
+            for (int i = 0; i < frontpanelDeviceIdentifiers.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var deviceId = fcuDeviceIdentifiers[i];
-                progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connecting FCU device {i + 1}/{fcuDeviceIdentifiers.Count}..."));
+                var deviceId = frontpanelDeviceIdentifiers[i];
+                progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connecting frontpanel device {i + 1}/{frontpanelDeviceIdentifiers.Count}..."));
                 try
                 {
-                    Logger.Info($"About to connect FCU device: {deviceId.Description}");
-                    var fcu = await Task.Run(() => FrontpanelFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
+                    Logger.Info($"About to connect frontpanel device: {deviceId.Description}");
+                    var frontpanel = await Task.Run(() => FrontpanelFactory.ConnectLocal(deviceId), cancellationToken).ConfigureAwait(false);
                     
-                    if (fcu == null)
+                    if (frontpanel == null)
                     {
                         Logger.Error($"FrontpanelFactory.ConnectLocal returned null for device {deviceId.Description}");
-                        throw new InvalidOperationException($"Failed to connect to FCU device: ConnectLocal returned null");
+                        throw new InvalidOperationException($"Failed to connect to frontpanel device: ConnectLocal returned null");
                     }
                     
-                    Logger.Info($"FCU device connected: IsConnected={fcu.IsConnected}, Type={fcu.GetType().Name}");
-                    
-                    // Initialize FCU device to start HID communication (if not already initialized by factory)
-                    if (fcu is WwDevicesDotNet.Winctrl.FcuAndEfis.FcuEfisDevice fcuDevice)
-                    {
-                        Logger.Info("FCU device is FcuEfisDevice, ensuring initialization...");
-                        // Factory already calls Initialise(), but we verify it worked
-                        if (!fcu.IsConnected)
-                        {
-                            Logger.Warn("Device not connected after factory initialization, trying to initialize again...");
-                            fcuDevice.Initialise();
-                        }
-                        Logger.Info($"After initialization check: IsConnected={fcu.IsConnected}");
-                    }
-                    else
-                    {
-                        Logger.Warn($"FCU device is not FcuEfisDevice, it's: {fcu.GetType().FullName}");
-                    }
+                    Logger.Info($"Frontpanel device connected: IsConnected={frontpanel.IsConnected}, Type={frontpanel.GetType().Name}");
                     
                     var displayName = GetDeviceName(deviceId);
-                    var deviceInfo = new DeviceInfo(fcu, deviceId, displayName);
+                    var deviceInfo = new DeviceInfo(frontpanel, deviceId, displayName);
                     detectedDevices.Add(deviceInfo);
                     currentIndex++;
-                    Logger.Info($"Successfully added FCU device: {displayName}");
+                    Logger.Info($"Successfully added frontpanel device: {displayName}");
                     progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Connected {displayName} ({currentIndex}/{totalDevices})"));
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, $"Failed to connect to FCU device {i + 1}: {ex.Message}");
-                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Failed to connect FCU device {i + 1}: {ex.Message}"));
+                    Logger.Error(ex, $"Failed to connect to frontpanel device {i + 1}: {ex.Message}");
+                    progress?.Report(new DeviceDetectionProgress(currentIndex, totalDevices, $"Failed to connect frontpanel device {i + 1}: {ex.Message}"));
                     currentIndex++;
                 }
             }
