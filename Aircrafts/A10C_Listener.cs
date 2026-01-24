@@ -391,11 +391,30 @@ internal class A10C_Listener : AircraftListener
     
     private int ConvertVviToVerticalSpeed(int rawValue)
     {
+        // Variometer linear segments based on DCS LUA definition:
+        // Input (ft/min): {-6000, -2000, -1000, 1000, 2000, 6000}
+        // Output (gauge): {-1.0, -0.5, -0.29, 0.29, 0.5, 1.0}
         
-        float percent = (float)(100.0 * rawValue / 65536);
+        // Convert 0-65535 to -1.0 to 1.0
+        double pos = (rawValue / 65535.0) * 2.0 - 1.0;
+        double vvi;
 
-        int verticalSpeed = (int)(0.0209 * Math.Pow(percent, 3) - 3.1435 * Math.Pow(percent, 2) + 228.09 * percent - 6161.6);
-        
-        return Math.Clamp(verticalSpeed, -6000, 6000);
+        if (pos < -0.5)
+            vvi = Interpolate(pos, -1.0, -0.5, -6000, -2000);
+        else if (pos < -0.29)
+            vvi = Interpolate(pos, -0.5, -0.29, -2000, -1000);
+        else if (pos < 0.29)
+            vvi = Interpolate(pos, -0.29, 0.29, -1000, 1000);
+        else if (pos < 0.5)
+            vvi = Interpolate(pos, 0.29, 0.5, 1000, 2000);
+        else
+            vvi = Interpolate(pos, 0.5, 1.0, 2000, 6000);
+
+        return Math.Clamp((int)vvi, -6000, 6000);
+
+        static double Interpolate(double value, double x1, double x2, double y1, double y2)
+        {
+            return y1 + (value - x1) * (y2 - y1) / (x2 - x1);
+        }
     }
 }
