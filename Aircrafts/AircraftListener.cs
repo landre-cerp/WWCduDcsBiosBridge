@@ -150,17 +150,6 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
         if (mcdu != null)
         {
-            InitMcduBrightness(options.DisableLightingManagement);
-        }
-
-        BIOSEventHandler.AttachStringListener(this);
-        BIOSEventHandler.AttachDataListener(this);
-        BIOSEventHandler.AttachConnectionListener(this);
-
-        _DisplayCDUTimer.Start();
-
-        if (mcdu != null)
-        {
             // Load the correct font for this aircraft
             var fontFile = GetFontFile();
             try
@@ -178,6 +167,13 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
             InitMcduBrightness(options.DisableLightingManagement);
         }
+
+        BIOSEventHandler.AttachStringListener(this);
+        BIOSEventHandler.AttachDataListener(this);
+        BIOSEventHandler.AttachConnectionListener(this);
+
+        _DisplayCDUTimer.Start();
+
     }
 
     private void InitMcduBrightness(bool disabledBrightness)
