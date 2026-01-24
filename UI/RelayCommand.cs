@@ -3,7 +3,8 @@ using System.Windows.Input;
 namespace WWCduDcsBiosBridge.UI;
 
 /// <summary>
-/// A simple ICommand implementation for XAML commanding
+/// A simple ICommand implementation for XAML commanding.
+/// Note: The CanExecute predicate should be lightweight as it's called frequently by WPF's commanding system.
 /// </summary>
 public class RelayCommand<T> : ICommand
 {
