@@ -100,7 +100,7 @@ public class BridgeManager : IDisposable
                     // Propagate to frontpanel-only devices
                     foreach (var ctx in Contexts.Where(c => c.IsFrontpanelDevice))
                     {
-                        ctx.SetAircraftSelection(selectedAircraft);
+                        ctx.SetAircraftSelection(selectedAircraft!);
                     }
                 }
                 else
