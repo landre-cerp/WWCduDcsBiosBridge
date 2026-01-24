@@ -92,6 +92,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     private async Task DetectDevicesAsync()
     {
         _detectCts?.Cancel();
+        _detectCts?.Dispose();
         _detectCts = new CancellationTokenSource();
         devices.Clear();
         ShowStatus("Detecting devices...", false);
@@ -266,7 +267,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
     {
-        await StartBridge();
+        try
+        {
+            await StartBridge();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Unhandled error in StartButton_Click");
+            ShowStatus($"Failed to start bridge: {ex.Message}", true);
+            ResetStartButton();
+        }
     }
 
     private async Task StartBridge()
@@ -446,6 +456,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         if (disposing)
         {
             _detectCts?.Cancel();
+            _detectCts?.Dispose();
             bridgeManager?.Dispose();
             SaveUserSettings();
             DeviceManager.DisposeDevices(devices);
