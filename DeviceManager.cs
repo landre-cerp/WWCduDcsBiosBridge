@@ -32,7 +32,7 @@ public class DeviceManager
             // Detect CDU devices
             var cduDeviceIdentifiers = await Task.Run(() => CduFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
             
-            // Detect FRontPanel devices
+            // Detect Frontpanel devices
             var frontpanelDeviceIdentifiers = await Task.Run(() => FrontpanelFactory.FindLocalDevices().ToList(), cancellationToken).ConfigureAwait(false);
 
             var totalDevices = cduDeviceIdentifiers.Count + frontpanelDeviceIdentifiers.Count;
