@@ -36,11 +36,11 @@ internal class A10C_Listener : AircraftListener
     private DCSBIOSOutput? _ALTITUDE_1000ft;
     private DCSBIOSOutput? _ALTITUDE_100ft;
 
-    private int? speed = 0;
-    private int? heading = 0;
-    private int? altitude = 0;
-    private int? verticalSpeed = 0;
-    private int? baroPressure = 0;
+    private int speed = 0;
+    private int heading = 0;
+    private int altitude = 0;
+    private int verticalSpeed = 0;
+    private int baroPressure = 0;
     private int[] pressureDigits = new int[4];
     private int[] altitudeDigits = new int[3];
 
