@@ -27,8 +27,10 @@ internal class DeviceContext : IDisposable
     /// <summary>
     /// Gets the aircraft listener for this context.
     /// May be shared with other frontpanel-only contexts.
+    /// This property is internal to the assembly and should only be accessed by BridgeManager
+    /// for listener sharing coordination.
     /// </summary>
-    public AircraftListener? Listener => listener;
+    internal AircraftListener? Listener => listener;
     
     private readonly DcsBiosConfig? config;
     private readonly UserOptions options;
@@ -122,8 +124,14 @@ internal class DeviceContext : IDisposable
     /// <summary>
     /// Sets a shared listener for this context (used when multiple frontpanel devices share one listener)
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if this context is not a frontpanel-only device</exception>
     public void SetSharedListener(AircraftListener? sharedListener)
     {
+        if (!IsFrontpanelDevice || IsCduDevice)
+        {
+            throw new InvalidOperationException("SetSharedListener can only be called on frontpanel-only device contexts");
+        }
+        
         listener = sharedListener;
         ownsListener = false;
     }

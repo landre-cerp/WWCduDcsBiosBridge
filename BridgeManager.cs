@@ -177,10 +177,19 @@ public class BridgeManager : IDisposable
                 var primaryFrontpanelContext = frontpanelOnlyContexts.First();
                 primaryFrontpanelContext.StartBridge(frontpanelHub);
                 
-                // All other frontpanel contexts share the same listener
-                for (int i = 1; i < frontpanelOnlyContexts.Count; i++)
+                // Verify that the listener was successfully created before sharing
+                if (primaryFrontpanelContext.Listener == null)
                 {
-                    frontpanelOnlyContexts[i].SetSharedListener(primaryFrontpanelContext.Listener);
+                    Logger.Error("Failed to create listener for primary frontpanel context. Frontpanel devices will not function.");
+                }
+                else
+                {
+                    // All other frontpanel contexts share the same listener
+                    for (int i = 1; i < frontpanelOnlyContexts.Count; i++)
+                    {
+                        frontpanelOnlyContexts[i].SetSharedListener(primaryFrontpanelContext.Listener);
+                    }
+                    Logger.Info($"Shared listener created for {frontpanelOnlyContexts.Count} frontpanel device(s)");
                 }
             }
 
