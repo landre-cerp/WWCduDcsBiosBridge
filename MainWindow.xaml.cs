@@ -24,9 +24,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     private BridgeManager? bridgeManager;
     private CancellationTokenSource? _detectCts;
 
-    private string _statusMessage = "Ready.";
-    private bool _statusIsError;
-
     private const string GitHubOwner = "landre-cerp";
     private const string GitHubRepo = "WWCduDcsBiosBridge";
 
@@ -38,8 +35,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     // Update service
     private readonly GitHubUpdateService _updateService = new(GitHubOwner, GitHubRepo);
 
-    public string StatusMessage { get => _statusMessage; private set { _statusMessage = value; OnPropertyChanged(); } }
-    public bool StatusIsError { get => _statusIsError; private set { _statusIsError = value; OnPropertyChanged(); } }
     public string? UpdateMessage { get => _updateMessage; private set { _updateMessage = value; OnPropertyChanged(); } }
     public string? UpdateUrl { get => _updateUrl; private set { _updateUrl = value; OnPropertyChanged(); } }
     public bool IsUpdateVisible { get => _isUpdateVisible; private set { _isUpdateVisible = value; OnPropertyChanged(); } }
@@ -52,8 +47,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    private bool _isLoadingSettings = false;
-
     public MainWindow()
     {
         SetupLogging();
@@ -61,6 +54,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
         AppVersion = AppVersionProvider.GetAppVersion();
         Title = $"WWCduDcsBiosBridge v{AppVersion}";
+
+        // Wire up event handlers for new UserControls
+        AircraftPanel.AircraftSelected += (sender, selection) => OnGlobalAircraftSelected(selection);
 
         LoadConfig();
         LoadUserSettings();
@@ -74,39 +70,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         // Forward the selection to the bridge manager
         bridgeManager?.SetGlobalAircraftSelection(selection);
         Logger.Info($"Global aircraft selected: {selection.AircraftId}, IsPilot: {selection.IsPilot}");
-    }
-
-    private void AircraftButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button button || button.Tag is not string tag)
-            return;
-
-        var selection = tag switch
-        {
-            "A10C" => new AircraftSelection(Aircrafts.SupportedAircrafts.A10C, true),
-            "AH64D" => new AircraftSelection(Aircrafts.SupportedAircrafts.AH64D, true),
-            "FA18C" => new AircraftSelection(Aircrafts.SupportedAircrafts.FA18C, true),
-            "CH47_PLT" => new AircraftSelection(Aircrafts.SupportedAircrafts.CH47, true),
-            "CH47_CPLT" => new AircraftSelection(Aircrafts.SupportedAircrafts.CH47, false),
-            "F15E" => new AircraftSelection(Aircrafts.SupportedAircrafts.F15E, true),
-            "M2000C" => new AircraftSelection(Aircrafts.SupportedAircrafts.M2000C, true),
-            _ => null
-        };
-
-        if (selection != null)
-        {
-            // Update UI
-            AircraftSelectionStatus.Text = $"Selected: {button.Content}";
-            AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.Green;
-
-            // Disable all aircraft buttons
-            foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
-            {
-                btn.IsEnabled = false;
-            }
-
-            OnGlobalAircraftSelected(selection);
-        }
     }
 
     private bool IsConfigValid() => !string.IsNullOrWhiteSpace(config.DcsBiosJsonLocation);
@@ -174,13 +137,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             // Show global aircraft selection UI only if NO CDU devices
             if (cduCount == 0)
             {
-                GlobalAircraftSelectionGroup.Visibility = Visibility.Visible;
+                AircraftPanel.Visibility = Visibility.Visible;
                 ShowStatus("No CDU detected. Start the bridge to select aircraft.", false);
                 UpdateAircraftButtonState();
             }
             else
             {
-                GlobalAircraftSelectionGroup.Visibility = Visibility.Collapsed;
+                AircraftPanel.Visibility = Visibility.Collapsed;
             }
             
             foreach (var deviceInfo in devices)
@@ -198,7 +161,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void UpdateState()
     {
-        UpdateOptionsUIFromSettings();
         UpdateStartButtonState();
     }
 
@@ -208,6 +170,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         {
             OpenConfigEditor();
         }
+
+        // Bind the OptionsPanel to the userOptions object
+        OptionsPanel.DataContext = userOptions;
 
         try
         {
@@ -233,8 +198,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             },
             onFailure: error =>
             {
-                StatusMessage = error;
-                StatusIsError = true;
+                ShowStatus(error, true);
                 Logger.Warn($"Configuration load failed: {error}");
                 return 0;
             }
@@ -306,7 +270,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             if (devices.Count == 0) return;
         }
 
-        UpdateUserOptionsFromUI();
         SaveUserSettings();
 
         // Clear any previous error messages when starting
@@ -324,10 +287,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
             var hasCdu = devices.Any(d => d.Cdu != null);
             if (!hasCdu)
             {
-                foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
-                {
-                    btn.IsEnabled = true;
-                }
+                AircraftPanel.ButtonsEnabled = true;
                 ShowStatus("Please select an aircraft to continue...", false);
             }
             
@@ -367,9 +327,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void ResetAircraftSelection()
     {
-        AircraftSelectionStatus.Text = "Select an aircraft:";
-        AircraftSelectionStatus.Foreground = System.Windows.Media.Brushes.White;
-        
+        AircraftPanel.Reset();
         UpdateAircraftButtonState();
     }
 
@@ -378,10 +336,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         var hasCdu = devices.Any(d => d.Cdu != null);
         var shouldEnableButtons = IsBridgeRunning && !hasCdu;
         
-        foreach (var btn in GlobalAircraftButtonGrid.Children.OfType<Button>())
-        {
-            btn.IsEnabled = shouldEnableButtons;
-        }
+        AircraftPanel.ButtonsEnabled = shouldEnableButtons;
     }
 
     private void LoadUserSettings()
@@ -390,9 +345,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         if (result.IsSuccess)
         {
             userOptions = result.Value!;
-            _isLoadingSettings = true;
-            UpdateOptionsUIFromSettings();
-            _isLoadingSettings = false;
         }
         else
         {
@@ -404,24 +356,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
     private void ShowStatus(string message, bool isError)
     {
-        StatusMessage = message;
-        StatusIsError = isError;
-    }
-
-    private void OptionCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_isLoadingSettings)
-        {
-            return;
-        }
-        
-        UpdateUserOptionsFromUI();
-        SaveUserSettings();
-    }
-
-    private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        OptionCheckBox_Changed(sender, e);
+        StatusControl.ShowStatus(message, isError);
     }
 
     private void UpdateStartButtonState()
@@ -431,31 +366,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
         {
             StartButton.Content = "Start Bridge";
         }
-    }
-
-    private void UpdateUserOptionsFromUI()
-    {
-        userOptions.DisplayBottomAligned = DisplayBottomAlignedCheckBox.IsChecked ?? false;
-        userOptions.DisplayCMS = DisplayCMSCheckBox.IsChecked ?? false;
-        userOptions.LinkedScreenBrightness = CH47LinkedBrightnessCheckBox.IsChecked ?? false;
-        userOptions.DisableLightingManagement = DisableLightingManagementCheckBox.IsChecked ?? false;
-        userOptions.Ch47CduSwitchWithSeat = CH47SingleCduSwitch.IsChecked ?? false;
-        userOptions.AutoStart = AutoStartCheckBox.IsChecked ?? false;
-        userOptions.MinimizeOnStart = MinimizeOnStartCheckBox.IsChecked ?? false;
-    }
-
-    private void UpdateOptionsUIFromSettings()
-    {
-        _isLoadingSettings = true;
-        
-        DisplayBottomAlignedCheckBox.IsChecked = userOptions.DisplayBottomAligned;
-        DisplayCMSCheckBox.IsChecked = userOptions.DisplayCMS;
-        CH47LinkedBrightnessCheckBox.IsChecked = userOptions.LinkedScreenBrightness;
-        DisableLightingManagementCheckBox.IsChecked = userOptions.DisableLightingManagement;
-        CH47SingleCduSwitch.IsChecked = userOptions.Ch47CduSwitchWithSeat;
-        AutoStartCheckBox.IsChecked = userOptions.AutoStart;
-        MinimizeOnStartCheckBox.IsChecked = userOptions.MinimizeOnStart;
-        _isLoadingSettings = false;
     }
 
     private async void ExitButton_Click(object sender, RoutedEventArgs e)
