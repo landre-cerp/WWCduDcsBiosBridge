@@ -80,34 +80,70 @@ public class BridgeManager : IDisposable
             foreach (var ctx in Contexts.Where(c => c.IsCduDevice))
                 ctx.ShowStartupScreen();
 
-            // Wait for aircraft selection - GLOBAL across all devices
-            AircraftSelection? selectedAircraft = null;
+            // Wait for aircraft selection
+            // If multiple CDUs are present, each must make its own selection
+            // (important for CH47F with pilot and copilot CDUs)
             var cduContexts = Contexts.Where(c => c.IsCduDevice).ToList();
 
             if (cduContexts.Any())
             {
-                // If there are CDU devices, wait for selection on ANY CDU (first one wins)
-                Logger.Info("Waiting for aircraft selection on any CDU device...");
-                while (!cduContexts.Any(c => c.IsSelectedAircraft))
-                    await Task.Delay(100);
-                
-                // First CDU to select wins - use that selection globally
-                selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
-                Logger.Info($"Aircraft selected on CDU: {selectedAircraft!.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+                if (cduContexts.Count == 1)
+                {
+                    // Single CDU: wait for selection and use it globally
+                    Logger.Info("Waiting for aircraft selection on CDU...");
+                    while (!cduContexts[0].IsSelectedAircraft)
+                        await Task.Delay(100);
+                    
+                    var selectedAircraft = cduContexts[0].SelectedAircraft;
+                    Logger.Info($"Aircraft selected on CDU: {selectedAircraft!.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+                    
+                    // Propagate to frontpanel-only devices
+                    foreach (var ctx in Contexts.Where(c => c.IsFrontpanelDevice))
+                    {
+                        ctx.SetAircraftSelection(selectedAircraft!);
+                    }
+                }
+                else
+                {
+                    // Multiple CDUs: each must select independently
+                    // This is important for CH47F where pilot and copilot CDUs can have different selections
+                    Logger.Info($"Waiting for aircraft selection on {cduContexts.Count} CDU device(s)...");
+                    
+                    // Wait for ALL CDUs to make a selection
+                    while (!cduContexts.All(c => c.IsSelectedAircraft))
+                        await Task.Delay(100);
+                    
+                    Logger.Info("All CDUs have made their aircraft selections");
+                    
+                    // Each CDU keeps its own selection - no need to propagate
+                    // Log all selections
+                    for (int i = 0; i < cduContexts.Count; i++)
+                    {
+                        var selection = cduContexts[i].SelectedAircraft;
+                        Logger.Info($"  CDU {i + 1}: Aircraft={selection!.AircraftId}, IsPilot={selection.IsPilot}");
+                    }
+                    
+                    // For frontpanel-only devices, use the first CDU's selection
+                    var firstCduSelection = cduContexts[0].SelectedAircraft;
+                    foreach (var ctx in Contexts.Where(c => c.IsFrontpanelDevice))
+                    {
+                        ctx.SetAircraftSelection(firstCduSelection!);
+                    }
+                }
             }
             else
             {
                 // No CDU devices - wait for global UI selection
                 Logger.Info("No CDU devices found. Waiting for global aircraft selection from UI...");
                 _globalAircraftSelectionTcs = new TaskCompletionSource<AircraftSelection>();
-                selectedAircraft = await _globalAircraftSelectionTcs.Task;
+                var selectedAircraft = await _globalAircraftSelectionTcs.Task;
                 Logger.Info($"Global aircraft selection received from UI: {selectedAircraft.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
-            }
-
-            // Propagate global aircraft selection to ALL contexts (CDU and Frontpanel)
-            foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft))
-            {
-                ctx.SetAircraftSelection(selectedAircraft!);
+                
+                // Propagate to all frontpanel devices
+                foreach (var ctx in Contexts.Where(c => c.IsFrontpanelDevice))
+                {
+                    ctx.SetAircraftSelection(selectedAircraft);
+                }
             }
 
             // Initialize DCS-BIOS

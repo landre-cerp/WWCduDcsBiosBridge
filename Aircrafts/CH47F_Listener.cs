@@ -31,7 +31,9 @@ internal class CH47F_Listener : AircraftListener
     private Dictionary<uint, int>? copilotLineMap;
     private Dictionary<uint, int>? copilotColorLines;
 
-    private static readonly string[] ColorMap = Enumerable.Range(0, 14)
+    // Instance field (not static) so each CH47F_Listener has its own color map
+    // This is crucial when 2 CDUs are connected - pilot and copilot must have separate color state
+    private readonly string[] ColorMap = Enumerable.Range(0, 14)
         .Select(_ => new string(' ', 24))
         .ToArray();
 
