@@ -30,7 +30,7 @@ No configuration is needed - the behavior is entirely automatic based on detecti
 ## CDU Brightness 
 
 DIM / BRT buttons are now working and they impact the brightness of the display, like in DCS.
-Values are stored, so when you use 1 cdu and switch from pilot to copilot, brightness is kept.
+Values are stored, so when you use 1 CDU and switch from pilot to copilot, brightness is kept.
 Same for the key and led backlight, controlled by the Knobs CDU1 and CDU2.
 
 
