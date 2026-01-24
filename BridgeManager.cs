@@ -241,7 +241,7 @@ public class BridgeManager : IDisposable
                 try
                 {
                     // Perform synchronous cleanup to avoid blocking in Dispose
-                    // StopAsync is now effectively synchronous
+                    // Note: StopAsync is kept for API compatibility but performs synchronous operations
                     dcsBios?.Shutdown();
                     dcsBios = null;
                     DisposeContexts();
