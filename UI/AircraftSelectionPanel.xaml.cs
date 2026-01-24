@@ -65,9 +65,21 @@ public partial class AircraftSelectionPanel : UserControl, INotifyPropertyChange
             _ => null
         };
 
+        var displayName = tag switch
+        {
+            "A10C" => "A-10C",
+            "AH64D" => "AH-64D",
+            "FA18C" => "F/A-18C",
+            "CH47_PLT" => "CH-47F (PLT)",
+            "CH47_CPLT" => "CH-47F (CPLT)",
+            "F15E" => "F-15E",
+            "M2000C" => "M-2000C",
+            _ => tag
+        };
+
         if (selection is not null)
         {
-            SelectionStatus = $"Selected: {tag}";
+            SelectionStatus = $"Selected: {displayName}";
             SelectionStatusColor = Brushes.Green;
             ButtonsEnabled = false;
             AircraftSelected?.Invoke(this, selection);
